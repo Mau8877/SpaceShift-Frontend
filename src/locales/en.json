@@ -1,0 +1,49 @@
+{
+  "header": {
+    "tooltips": {
+      "currency": "Change Currency",
+      "language": "Change Language",
+      "help": "Frequently Asked Questions"
+    },
+    "buttons": {
+      "publishLong": "Publish your property",
+      "publishShort": "Publish",
+      "login": "Sign In"
+    }
+  },
+  "sidebar": {
+    "header": {
+      "detail": "Administration",
+      "menu": "Menu"
+    },
+    "menu": {
+      "configuracion": "Configuration",
+      "contratos": "My Contracts",
+      "inmuebles": "My Properties",
+      "inquilinos": "My Tenants"
+    }
+  },
+  "home": {
+    "description": {
+      "cantidad": "Exploring the best {{type}} options available",
+      "default": "Explore all properties available on SpaceShift."
+    },
+    "filter": {
+      "alojamiento": "Accommodation",
+      "alquiler": "for rent",
+      "anticretico": "in Anticretic",
+      "venta": "on sale",
+      "component": {
+        "alojamiento": "Accommodation",
+        "alquiler": "Rent",
+        "anticretico": "Anticretic",
+        "venta": "Sale"
+      }
+    },
+    "menu": {
+      "title": {
+        "inmuebles": "Estate"
+      }
+    }
+  }
+}
