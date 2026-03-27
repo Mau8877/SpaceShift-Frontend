@@ -1,0 +1,49 @@
+{
+  "header": {
+    "tooltips": {
+      "currency": "Cambiar Moneda",
+      "language": "Cambiar Idioma",
+      "help": "Centro de Ayuda"
+    },
+    "buttons": {
+      "publishLong": "Publica tu inmueble",
+      "publishShort": "Publicar",
+      "login": "Inicia sesión"
+    }
+  },
+  "sidebar": {
+    "header": {
+      "menu": "Menú",
+      "detail": "Administración"
+    },
+    "menu": {
+      "inmuebles": "Mis Inmuebles",
+      "inquilinos": "Mis Inquilinos",
+      "contratos": "Mis Contratos",
+      "configuracion": "Configuración"
+    }
+  },
+  "home": {
+    "filter": {
+      "venta": "en Venta",
+      "alquiler": "en Alquiler",
+      "anticretico": "en Anticrético",
+      "alojamiento": "de Alojamiento",
+      "component": {
+        "venta": "Venta",
+        "alquiler": "Alquiler",
+        "anticretico": "Anticrético",
+        "alojamiento": "Alojamiento"
+      }
+    },
+    "description": {
+      "default": "Explora todas las propiedades disponibles en SpaceShift.",
+      "cantidad": "Explorando las mejores opciones de {{type}} disponibles"
+    },
+    "menu": {
+      "title": {
+        "inmuebles": "Inmuebles"
+      }
+    }
+  }
+}

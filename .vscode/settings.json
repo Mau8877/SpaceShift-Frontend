@@ -1,0 +1,10 @@
+{
+  "i18n-ally.localesPaths": "src/locales",
+  "i18n-ally.sourceLanguage": "es",
+  "i18n-ally.displayLanguage": "en",
+  "i18n-ally.enabledParsers": ["json"],
+  "i18n-ally.extract.autoSubstitution": true,
+  "i18n-ally.extract.targetFixedKey": "header.buttons",
+  "i18n-ally.translate.fallbackLanguage": "es",
+  "i18n-ally.keystyle": "nested"
+}
