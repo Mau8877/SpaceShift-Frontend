@@ -6,7 +6,6 @@ import {
   DashboardSquare02Icon,
   File02Icon,
   Home01Icon,
-  Settings02Icon,
   UserGroupIcon,
 } from "hugeicons-react"
 import { Link } from "@tanstack/react-router"
@@ -29,6 +28,13 @@ export function AppSidebar() {
   const { t } = useTranslation()
   const { setOpenMobile, isMobile } = useSidebar()
 
+  // 1. Agregamos el estado de montado
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const menuItems = [
     { title: "Home", icon: Home01Icon, to: "/" },
     { title: "Dashboard", icon: DashboardSquare02Icon, to: "/dashboard" },
@@ -43,15 +49,21 @@ export function AppSidebar() {
       to: "/tenants",
     },
     { title: t("sidebar.menu.contratos"), icon: File02Icon, to: "/leases" },
-    {
-      title: t("sidebar.menu.configuracion"),
-      icon: Settings02Icon,
-      to: "/settings",
-    },
   ]
+
+  // 2. Si no está montado, devolvemos un Sidebar básico o nulo para que coincida con el servidor
+  if (!mounted) {
+    return (
+      <Sidebar
+        collapsible="icon"
+        className="w-[75vw] border-r-0 sm:w-[260px]"
+      />
+    )
+  }
 
   return (
     <Sidebar collapsible="icon" className="w-[75vw] border-r-0 sm:w-[260px]">
+      {/* 3. Ahora isMobile es seguro de usar porque estamos en el cliente */}
       {isMobile && (
         <SidebarHeader className="flex flex-row items-center justify-between p-4">
           <span className="text-xs font-bold tracking-widest text-primary uppercase">
