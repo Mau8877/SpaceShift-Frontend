@@ -1,7 +1,6 @@
 {
   "header": {
     "tooltips": {
-      "currency": "Change Currency",
       "language": "Change Language",
       "help": "Frequently Asked Questions"
     },
@@ -9,6 +8,47 @@
       "publishLong": "Publish your property",
       "publishShort": "Publish",
       "login": "Sign In"
+    },
+    "dropdown-menu": {
+      "ajustes": "Settings",
+      "cerrar-sesion": "Sign Out",
+      "perfil": "My Profile"
+    },
+    "login": {
+      "contrasena": "Password",
+      "correo": "Email",
+      "descripcion": "Manage your properties in SpaceShift.",
+      "ingresando": "Entering...",
+      "iniciar-sesion": "Login",
+      "registrate": "Register for free",
+      "sin-cuenta": "Don't have an account?",
+      "titulo": "Log in to your Account",
+      "toast": {
+        "descripcion": "Session started.",
+        "titulo": "Welcome!"
+      }
+    },
+    "register": {
+      "apellido": {
+        "advertencia": "Must be at least 2 characters",
+        "titulo": "Last name"
+      },
+      "confirmar-contrasena": "Confirm Password",
+      "creando-cuenta": "Creating account...",
+      "descripcion": "Join SpaceShift to post or search for your next space.",
+      "empresa": "Company",
+      "nombre": "Name",
+      "personal": "Staff",
+      "razon-social": "Company Name",
+      "registrarse": "Register",
+      "title": "Create your Account",
+      "toast": {
+        "cuenta-creada": "Your account has been created successfully.",
+        "datos-incompletos": {
+          "descripcion": "The last name must be at least 2 characters.",
+          "title": "Incomplete data"
+        }
+      }
     }
   },
   "sidebar": {
@@ -17,7 +57,6 @@
       "menu": "Menu"
     },
     "menu": {
-      "configuracion": "Configuration",
       "contratos": "My Contracts",
       "inmuebles": "My Properties",
       "inquilinos": "My Tenants"
@@ -43,6 +82,45 @@
     "menu": {
       "title": {
         "inmuebles": "Estate"
+      }
+    }
+  },
+  "toast": {
+    "api": {
+      "datos-invalidos": "Invalid data",
+      "sesion-expirada": {
+        "titulo": "Session expired",
+        "descripcion": "Your session has ended, please log in again."
+      },
+      "acceso-denegado": {
+        "titulo": "Access denied",
+        "descripcion": "You do not have permission to perform this action."
+      },
+      "error-servidor": {
+        "titulo": "Server error",
+        "descripcion": "There was an internal server problem. Please try again later."
+      },
+      "error-conexion": {
+        "titulo": "Connection error",
+        "descripcion": "Could not establish connection. Check your internet."
+      },
+      "error-inesperado": "An unexpected error occurred"
+    }
+  },
+  "auth": {
+    "register": {
+      "validation": {
+        "email-required": "Email is mandatory",
+        "name-min": "The name must be at least 2 characters",
+        "password-min": "Password must be at least 6 characters",
+        "passwords-mismatch": "Passwords do not match"
+      }
+    },
+    "login": {
+      "validation": {
+        "email-invalid": "Enter a valid email",
+        "email-required": "Email is mandatory",
+        "password-min": "Password must be at least 6 characters"
       }
     }
   }

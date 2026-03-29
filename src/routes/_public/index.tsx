@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Button } from "@/components/ui/button"
 import { HomePageScreen } from "@/app/features/home/screens/HomePageScreen"
 
-export const Route = createFileRoute("/")({ component: App })
+export const Route = createFileRoute("/_public/")({
+  component: App,
+})
 
 function App() {
   return (
-    <div>
+    <div className="animate-in duration-500 fade-in">
       <HomePageScreen />
     </div>
   )

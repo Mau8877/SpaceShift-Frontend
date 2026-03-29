@@ -1,10 +1,23 @@
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
+import React from "react"
+import {
+  HeadContent,
+  Scripts,
+  createRootRouteWithContext,
+  Outlet,
+} from "@tanstack/react-router"
 import { I18nextProvider } from "react-i18next"
+import { Provider } from "react-redux"
 import appCss from "../styles.css?url"
 import i18n from "../i18n"
-import { MainLayout } from "@/components/layout"
+import type { AuthState } from "@/app/store"
+import { Toaster } from "@/components/ui/sonner"
+import { store } from "@/app/store/redux"
 
-export const Route = createRootRoute({
+interface MyRouterContext {
+  auth: AuthState
+}
+
+export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -18,17 +31,26 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <I18nextProvider i18n={i18n}>
-      <RootDocument>
-        <MainLayout />
-      </RootDocument>
-    </I18nextProvider>
+    <Provider store={store}>
+      <I18nextProvider i18n={i18n}>
+        <RootDocument lang={i18n.language}>
+          <Outlet />
+          <Toaster richColors position="bottom-right" />
+        </RootDocument>
+      </I18nextProvider>
+    </Provider>
   )
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({
+  children,
+  lang,
+}: {
+  children: React.ReactNode
+  lang: string
+}) {
   return (
-    <html lang={i18n.language || "es"}>
+    <html lang={lang || "es"} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
