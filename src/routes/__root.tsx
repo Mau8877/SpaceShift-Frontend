@@ -50,7 +50,7 @@ function RootDocument({
   lang: string
 }) {
   return (
-    <html lang={lang || "es"}>
+    <html lang={lang || "es"} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

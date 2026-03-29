@@ -1,14 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { HomePageScreen } from "@/app/features/home/screens/HomePageScreen"
 
 export const Route = createFileRoute("/_public/")({
-  beforeLoad: ({ context }) => {
-    if (context.auth.isAuthenticated) {
-      throw redirect({
-        to: "/dashboard",
-      })
-    }
-  },
   component: App,
 })
 

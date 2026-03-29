@@ -17,6 +17,7 @@ import { Route as AuthTenantsRouteImport } from './routes/_auth/tenants'
 import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
 import { Route as AuthPropertiesRouteImport } from './routes/_auth/properties'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
+import { Route as AuthLeasesRouteImport } from './routes/_auth/leases'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 
 const PublicRoute = PublicRouteImport.update({
@@ -57,6 +58,11 @@ const AuthProfileRoute = AuthProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthLeasesRoute = AuthLeasesRouteImport.update({
+  id: '/leases',
+  path: '/leases',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthDashboardRoute = AuthDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -66,6 +72,7 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/dashboard': typeof AuthDashboardRoute
+  '/leases': typeof AuthLeasesRoute
   '/profile': typeof AuthProfileRoute
   '/properties': typeof AuthPropertiesRoute
   '/settings': typeof AuthSettingsRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
   '/dashboard': typeof AuthDashboardRoute
+  '/leases': typeof AuthLeasesRoute
   '/profile': typeof AuthProfileRoute
   '/properties': typeof AuthPropertiesRoute
   '/settings': typeof AuthSettingsRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
   '/_auth/dashboard': typeof AuthDashboardRoute
+  '/_auth/leases': typeof AuthLeasesRoute
   '/_auth/profile': typeof AuthProfileRoute
   '/_auth/properties': typeof AuthPropertiesRoute
   '/_auth/settings': typeof AuthSettingsRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/leases'
     | '/profile'
     | '/properties'
     | '/settings'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/leases'
     | '/profile'
     | '/properties'
     | '/settings'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_public'
     | '/_auth/dashboard'
+    | '/_auth/leases'
     | '/_auth/profile'
     | '/_auth/properties'
     | '/_auth/settings'
@@ -188,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProfileRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/leases': {
+      id: '/_auth/leases'
+      path: '/leases'
+      fullPath: '/leases'
+      preLoaderRoute: typeof AuthLeasesRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/dashboard': {
       id: '/_auth/dashboard'
       path: '/dashboard'
@@ -200,6 +219,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthRouteChildren {
   AuthDashboardRoute: typeof AuthDashboardRoute
+  AuthLeasesRoute: typeof AuthLeasesRoute
   AuthProfileRoute: typeof AuthProfileRoute
   AuthPropertiesRoute: typeof AuthPropertiesRoute
   AuthSettingsRoute: typeof AuthSettingsRoute
@@ -208,6 +228,7 @@ interface AuthRouteChildren {
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthDashboardRoute: AuthDashboardRoute,
+  AuthLeasesRoute: AuthLeasesRoute,
   AuthProfileRoute: AuthProfileRoute,
   AuthPropertiesRoute: AuthPropertiesRoute,
   AuthSettingsRoute: AuthSettingsRoute,

@@ -1,16 +1,10 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
+import { createFileRoute, Outlet } from "@tanstack/react-router"
 import { MainLayout } from "@/components/layout"
+import { requireAuth } from "@/utils"
 
 export const Route = createFileRoute("/_auth")({
   beforeLoad: ({ context, location }) => {
-    if (typeof window === "undefined") return
-
-    if (!context.auth.isAuthenticated) {
-      throw redirect({
-        to: "/",
-        search: { redirect: location.href },
-      })
-    }
+    requireAuth(context, location)
   },
   component: AuthLayoutComponent,
 })

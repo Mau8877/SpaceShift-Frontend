@@ -30,7 +30,7 @@ export function IdiomaModal({ isOpen, onClose }: Props) {
 
   const cambiarIdioma = (code: string) => {
     i18n.changeLanguage(code)
-    onClose() // Cerramos el modal después de elegir
+    onClose()
   }
 
   return (

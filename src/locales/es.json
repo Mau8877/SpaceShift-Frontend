@@ -13,6 +13,42 @@
       "perfil": "Mi Perfil",
       "ajustes": "Ajustes",
       "cerrar-sesion": "Cerrar Sesión"
+    },
+    "login": {
+      "toast": {
+        "titulo": "¡Bienvenido!",
+        "descripcion": "Sesión iniciada."
+      },
+      "titulo": "Ingresa a tu Cuenta",
+      "descripcion": "Gestiona tus inmuebles en SpaceShift.",
+      "correo": "Correo Electrónico",
+      "contrasena": "Contraseña",
+      "ingresando": "Ingresando...",
+      "iniciar-sesion": "Iniciar Sesión",
+      "sin-cuenta": "¿No tienes cuenta?",
+      "registrate": "Regístrate gratis"
+    },
+    "register": {
+      "toast": {
+        "datos-incompletos": {
+          "title": "Datos incompletos",
+          "descripcion": "El apellido debe tener al menos 2 caracteres."
+        },
+        "cuenta-creada": "Tu cuenta ha sido creada con éxito."
+      },
+      "title": "Crea tu Cuenta",
+      "descripcion": "Únete a SpaceShift para publicar o buscar tu próximo espacio.",
+      "personal": "Personal",
+      "empresa": "Empresa",
+      "razon-social": "Razón Social",
+      "nombre": "Nombre",
+      "apellido": {
+        "advertencia": "Debe tener al menos 2 caracteres",
+        "titulo": "Apellido"
+      },
+      "confirmar-contrasena": "Confirmar Contraseña",
+      "creando-cuenta": "Creando cuenta...",
+      "registrarse": "Registrarse"
     }
   },
   "sidebar": {
@@ -46,6 +82,45 @@
     "menu": {
       "title": {
         "inmuebles": "Inmuebles"
+      }
+    }
+  },
+  "toast": {
+    "api": {
+      "datos-invalidos": "Datos inválidos",
+      "sesion-expirada": {
+        "titulo": "Sesión expirada",
+        "descripcion": "Tu sesión ha terminado, por favor inicia sesión de nuevo."
+      },
+      "acceso-denegado": {
+        "titulo": "Acceso denegado",
+        "descripcion": "No tienes permisos para realizar esta acción."
+      },
+      "error-servidor": {
+        "titulo": "Error del servidor",
+        "descripcion": "Hubo un problema interno en el servidor. Inténtalo más tarde."
+      },
+      "error-conexion": {
+        "titulo": "Error de conexión",
+        "descripcion": "No se pudo establecer conexión. Revisa tu internet."
+      },
+      "error-inesperado": "Ocurrió un error inesperado"
+    }
+  },
+  "auth": {
+    "register": {
+      "validation": {
+        "name-min": "El nombre debe tener al menos 2 caracteres",
+        "email-required": "El correo es obligatorio",
+        "password-min": "La contraseña debe tener al menos 6 caracteres",
+        "passwords-mismatch": "Las contraseñas no coinciden"
+      }
+    },
+    "login": {
+      "validation": {
+        "email-required": "El correo es obligatorio",
+        "email-invalid": "Introduce un correo válido",
+        "password-min": "La contraseña debe tener al menos 6 caracteres"
       }
     }
   }

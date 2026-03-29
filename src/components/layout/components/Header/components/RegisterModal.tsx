@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { useForm } from "@tanstack/react-form"
 import { Loading01Icon } from "hugeicons-react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useRegisterMutation } from "../store"
-import { registerSchema } from "../schema"
+import { getRegisterSchema } from "../schema"
 import { setCredentials, useAppDispatch } from "@/app/store"
 
 import { Button } from "@/components/ui/button"
@@ -23,20 +24,23 @@ interface RegisterModalProps {
   onClose?: () => void
 }
 
-const zodFieldValidator =
-  (schema: any) =>
-  ({ value }: { value: unknown }) => {
-    const result = schema.safeParse(value)
-    return result.success ? undefined : result.error.issues[0]?.message
-  }
-
 export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
   const [registerUser, { isLoading }] = useRegisterMutation()
   const dispatch = useAppDispatch()
+  const { t } = useTranslation()
+
+  const schema = getRegisterSchema(t)
 
   const [tipoCliente, setTipoCliente] = useState<"PERSONAL" | "EMPRESA">(
     "PERSONAL"
   )
+
+  const zodValidator = (fieldName: keyof typeof schema.shape) => {
+    return ({ value }: { value: any }) => {
+      const result = schema.shape[fieldName].safeParse(value)
+      return result.success ? undefined : result.error.issues[0]?.message
+    }
+  }
 
   const form = useForm({
     defaultValues: {
@@ -52,9 +56,7 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
           tipoCliente === "PERSONAL" &&
           (!value.apellido || value.apellido.trim().length < 2)
         ) {
-          toast.error("Datos incompletos", {
-            description: "El apellido debe tener al menos 2 caracteres.",
-          })
+          toast.error(t("header.register.apellido.advertencia"))
           return
         }
 
@@ -69,15 +71,11 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
         const response = await registerUser(payload).unwrap()
         dispatch(setCredentials({ token: response.token }))
 
-        toast.success("¡Bienvenido!", {
-          description: "Tu cuenta ha sido creada con éxito.",
-        })
+        toast.success(t("header.register.toast.cuenta-creada"))
 
         if (onClose) onClose()
         form.reset()
-      } catch (error) {
-        // Manejado por baseQuery
-      }
+      } catch (error) {}
     },
   })
 
@@ -93,14 +91,15 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Crea tu Cuenta</DialogTitle>
+          <DialogTitle>{t("header.register.title")}</DialogTitle>
           <DialogDescription>
-            Únete a SpaceShift para publicar o buscar tu próximo espacio.
+            {t("header.register.descripcion")}
           </DialogDescription>
         </DialogHeader>
 
         <Separator className="my-2" />
 
+        {/* Switch de Tipo de Cuenta */}
         <div className="flex w-full rounded-md border bg-slate-100 p-1">
           <Button
             type="button"
@@ -111,7 +110,7 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
               form.setFieldValue("apellido", "")
             }}
           >
-            Personal
+            {t("header.register.personal")}
           </Button>
           <Button
             type="button"
@@ -122,7 +121,7 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
               form.setFieldValue("apellido", null)
             }}
           >
-            Empresa
+            {t("header.register.empresa")}
           </Button>
         </div>
 
@@ -134,15 +133,16 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
           }}
           className="space-y-4 pt-2"
         >
+          {/* Campo Nombre / Razón Social */}
           <form.Field
             name="nombre"
-            validators={{
-              onChange: zodFieldValidator(registerSchema.shape.nombre),
-            }}
+            validators={{ onChange: zodValidator("nombre") }}
             children={(field) => (
               <div className="space-y-1">
                 <Label htmlFor={field.name}>
-                  {tipoCliente === "EMPRESA" ? "Razón Social" : "Nombre"}
+                  {tipoCliente === "EMPRESA"
+                    ? t("header.register.razon-social")
+                    : t("header.register.nombre")}
                 </Label>
                 <Input
                   id={field.name}
@@ -152,44 +152,45 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
                   disabled={isLoading}
                   placeholder={
                     tipoCliente === "EMPRESA"
-                      ? "Ej. Inmobiliaria XYZ"
-                      : "Ej. Mauro"
+                      ? t("header.register.empresa")
+                      : t("header.register.nombre")
                   }
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-xs font-medium text-destructive">
-                    {field.state.meta.errors.join(", ")}
+                    {field.state.meta.errors[0]}
                   </p>
                 )}
               </div>
             )}
           />
 
+          {/* Campo Apellido (Condicional) */}
           {tipoCliente === "PERSONAL" && (
             <form.Field
               name="apellido"
               validators={{
-                onChange: ({ value }) => {
-                  if (value === null) return undefined
-                  return value.length < 2
-                    ? "Debe tener al menos 2 caracteres"
-                    : undefined
-                },
+                onChange: ({ value }) =>
+                  !value || value.length < 2
+                    ? t("header.register.apellido.advertencia")
+                    : undefined,
               }}
               children={(field) => (
                 <div className="space-y-1">
-                  <Label htmlFor={field.name}>Apellido</Label>
+                  <Label htmlFor={field.name}>
+                    {t("header.register.apellido.titulo")}
+                  </Label>
                   <Input
                     id={field.name}
                     value={field.state.value ?? ""}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     disabled={isLoading}
-                    placeholder="Ej. Barrios"
+                    placeholder={t("header.register.apellido.titulo")}
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs font-medium text-destructive">
-                      {field.state.meta.errors.join(", ")}
+                      {field.state.meta.errors[0]}
                     </p>
                   )}
                 </div>
@@ -197,39 +198,39 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
             />
           )}
 
+          {/* Correo */}
           <form.Field
             name="correo"
-            validators={{
-              onChange: zodFieldValidator(registerSchema.shape.correo),
-            }}
+            validators={{ onChange: zodValidator("correo") }}
             children={(field) => (
               <div className="space-y-1">
-                <Label htmlFor={field.name}>Correo Electrónico</Label>
+                <Label htmlFor={field.name}>{t("header.login.correo")}</Label>
                 <Input
                   id={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                   disabled={isLoading}
-                  placeholder="mauro@spaceshift.com"
+                  placeholder="user@spaceshift.com"
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-xs font-medium text-destructive">
-                    {field.state.meta.errors.join(", ")}
+                    {field.state.meta.errors[0]}
                   </p>
                 )}
               </div>
             )}
           />
 
+          {/* Password */}
           <form.Field
             name="password"
-            validators={{
-              onChange: zodFieldValidator(registerSchema.shape.password),
-            }}
+            validators={{ onChange: zodValidator("password") }}
             children={(field) => (
               <div className="space-y-1">
-                <Label htmlFor={field.name}>Contraseña</Label>
+                <Label htmlFor={field.name}>
+                  {t("header.login.contrasena")}
+                </Label>
                 <Input
                   id={field.name}
                   type="password"
@@ -241,29 +242,30 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-xs font-medium text-destructive">
-                    {field.state.meta.errors.join(", ")}
+                    {field.state.meta.errors[0]}
                   </p>
                 )}
               </div>
             )}
           />
 
+          {/* Confirmar Password */}
           <form.Field
             name="confirmPassword"
             validators={{
               onChangeListenTo: ["password"],
               onChange: ({ value, fieldApi }) => {
                 if (value !== fieldApi.form.getFieldValue("password")) {
-                  return "Las contraseñas no coinciden"
+                  return t("auth.register.validation.passwords-mismatch")
                 }
-                return zodFieldValidator(registerSchema.shape.confirmPassword)({
-                  value,
-                })
+                return undefined
               },
             }}
             children={(field) => (
               <div className="space-y-1">
-                <Label htmlFor={field.name}>Confirmar Contraseña</Label>
+                <Label htmlFor={field.name}>
+                  {t("header.register.confirmar-contrasena")}
+                </Label>
                 <Input
                   id={field.name}
                   type="password"
@@ -275,7 +277,7 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-xs font-medium text-destructive">
-                    {field.state.meta.errors.join(", ")}
+                    {field.state.meta.errors[0]}
                   </p>
                 )}
               </div>
@@ -287,10 +289,10 @@ export function RegisterModal({ isOpen = false, onClose }: RegisterModalProps) {
               {isLoading ? (
                 <>
                   <Loading01Icon className="mr-2 h-4 w-4 animate-spin" />
-                  Creando cuenta...
+                  {t("header.register.creando-cuenta")}
                 </>
               ) : (
-                "Registrarse"
+                t("header.register.registrarse")
               )}
             </Button>
           </div>

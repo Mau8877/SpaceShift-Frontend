@@ -13,6 +13,14 @@ export function getRouter() {
     defaultPreloadStaleTime: 0,
   })
 
+  store.subscribe(() => {
+    router.update({
+      context: {
+        auth: store.getState().auth,
+      },
+    })
+  })
+
   return router
 }
 

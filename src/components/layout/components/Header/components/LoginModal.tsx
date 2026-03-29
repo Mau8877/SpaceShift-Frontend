@@ -1,8 +1,10 @@
 import { useForm } from "@tanstack/react-form"
+import { useRouter } from "@tanstack/react-router"
 import { Loading01Icon } from "hugeicons-react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useLoginMutation } from "../store"
-import { loginSchema } from "../schema"
+import { getLoginSchema } from "../schema"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,16 +23,8 @@ import { setCredentials, useAppDispatch } from "@/app/store"
 interface LoginModalProps {
   isOpen?: boolean
   onClose?: () => void
-  // 🚀 Añadimos esta prop para cambiar de modal
   onSwitchToRegister?: () => void
 }
-
-const zodFieldValidator =
-  (schema: any) =>
-  ({ value }: { value: unknown }) => {
-    const result = schema.safeParse(value)
-    return result.success ? undefined : result.error.issues[0]?.message
-  }
 
 export function LoginModal({
   isOpen = false,
@@ -39,6 +33,17 @@ export function LoginModal({
 }: LoginModalProps) {
   const [login, { isLoading }] = useLoginMutation()
   const dispatch = useAppDispatch()
+  const { t } = useTranslation()
+  const router = useRouter()
+
+  const schema = getLoginSchema(t)
+
+  const zodValidator = (fieldName: keyof typeof schema.shape) => {
+    return ({ value }: { value: any }) => {
+      const result = schema.shape[fieldName].safeParse(value)
+      return result.success ? undefined : result.error.issues[0]?.message
+    }
+  }
 
   const form = useForm({
     defaultValues: {
@@ -50,13 +55,16 @@ export function LoginModal({
         const response = await login(value).unwrap()
         dispatch(setCredentials({ token: response.token }))
 
-        toast.success("¡Bienvenido!", { description: "Sesión iniciada." })
+        router.invalidate()
+        router.navigate({ to: "/dashboard" })
+
+        toast.success(t("header.login.toast.titulo"), {
+          description: t("header.login.toast.descripcion"),
+        })
 
         if (onClose) onClose()
         form.reset()
-      } catch (error) {
-        // Manejado por el middleware global
-      }
+      } catch (error) {}
     },
   })
 
@@ -71,10 +79,8 @@ export function LoginModal({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Ingresa a tu Cuenta</DialogTitle>
-          <DialogDescription>
-            Gestiona tus inmuebles en SpaceShift.
-          </DialogDescription>
+          <DialogTitle>{t("header.login.titulo")}</DialogTitle>
+          <DialogDescription>{t("header.login.descripcion")}</DialogDescription>
         </DialogHeader>
 
         <Separator className="my-4" />
@@ -89,13 +95,11 @@ export function LoginModal({
         >
           <form.Field
             name="correo"
-            validators={{
-              onChange: zodFieldValidator(loginSchema.shape.correo),
-            }}
+            validators={{ onChange: zodValidator("correo") }}
           >
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Correo Electrónico</Label>
+                <Label htmlFor={field.name}>{t("header.login.correo")}</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -103,11 +107,11 @@ export function LoginModal({
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                   disabled={isLoading}
-                  placeholder="mauro@spaceshift.com"
+                  placeholder="user@spaceshift.com"
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-sm font-medium text-destructive">
-                    {field.state.meta.errors.join(", ")}
+                    {field.state.meta.errors[0]}
                   </p>
                 )}
               </div>
@@ -116,13 +120,13 @@ export function LoginModal({
 
           <form.Field
             name="password"
-            validators={{
-              onChange: zodFieldValidator(loginSchema.shape.password),
-            }}
+            validators={{ onChange: zodValidator("password") }}
           >
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Contraseña</Label>
+                <Label htmlFor={field.name}>
+                  {t("header.login.contrasena")}
+                </Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -135,7 +139,7 @@ export function LoginModal({
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-sm font-medium text-destructive">
-                    {field.state.meta.errors.join(", ")}
+                    {field.state.meta.errors[0]}
                   </p>
                 )}
               </div>
@@ -147,21 +151,21 @@ export function LoginModal({
               {isLoading ? (
                 <>
                   <Loading01Icon className="mr-2 h-4 w-4 animate-spin" />
-                  Ingresando...
+                  {t("header.login.ingresando")}
                 </>
               ) : (
-                "Iniciar Sesión"
+                t("header.login.iniciar-sesion")
               )}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              ¿No tienes cuenta?{" "}
+              {t("header.login.sin-cuenta")}{" "}
               <button
                 type="button"
                 onClick={onSwitchToRegister}
-                className="text-primary hover:underline"
+                className="font-semibold text-primary hover:underline"
               >
-                Regístrate gratis
+                {t("header.login.registrate")}
               </button>
             </p>
           </div>
