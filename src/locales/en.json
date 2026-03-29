@@ -1,7 +1,6 @@
 {
   "header": {
     "tooltips": {
-      "currency": "Change Currency",
       "language": "Change Language",
       "help": "Frequently Asked Questions"
     },
@@ -9,6 +8,11 @@
       "publishLong": "Publish your property",
       "publishShort": "Publish",
       "login": "Sign In"
+    },
+    "dropdown-menu": {
+      "ajustes": "Settings",
+      "cerrar-sesion": "Sign Out",
+      "perfil": "My Profile"
     }
   },
   "sidebar": {
@@ -17,7 +21,6 @@
       "menu": "Menu"
     },
     "menu": {
-      "configuracion": "Configuration",
       "contratos": "My Contracts",
       "inmuebles": "My Properties",
       "inquilinos": "My Tenants"

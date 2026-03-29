@@ -1,50 +1,96 @@
-import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
+import Cookies from "js-cookie"
+import { jwtDecode } from "jwt-decode"
+import { createSlice } from "@reduxjs/toolkit"
+import type { PayloadAction } from "@reduxjs/toolkit"
+import type { AuthState, JWTPayload, UserAuth } from "./types"
 
-export interface User {
-  id: string
-  email: string
-  name: string
-  role: string
+/**
+ * 🛠️ LECTURA PROACTIVA
+ * En el servidor (SSR), esto devolverá null, lo cual está bien.
+ * El cliente lo hidratará inmediatamente al cargar.
+ */
+const getInitialToken = (): string | null => {
+  if (typeof window !== "undefined") {
+    return Cookies.get("token") || null
+  }
+  return null
 }
 
-interface AuthState {
-  user: User | null
-  token: string | null
-  refreshToken: string | null
-  sessionId: string | null
+const tokenFromCookie = getInitialToken()
+let initialUser: UserAuth | null = null
+let isAuth = false
+
+if (tokenFromCookie) {
+  try {
+    const decoded = jwtDecode<JWTPayload>(tokenFromCookie)
+    initialUser = {
+      id: decoded.id,
+      nombre: decoded.nombre,
+      apellido: decoded.apellido,
+      email: decoded.sub,
+      rol: decoded.rol,
+    }
+    isAuth = true
+  } catch (error) {
+    if (typeof window !== "undefined") {
+      Cookies.remove("token", { path: "/" })
+    }
+  }
 }
 
 const initialState: AuthState = {
-  user: null,
-  token: null,
-  refreshToken: null,
-  sessionId: null,
+  user: initialUser,
+  token: isAuth ? tokenFromCookie : null,
+  isAuthenticated: isAuth,
+  status: "idle",
+  error: null,
 }
 
 export const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    setCredentials: (
-      state,
-      { payload }: PayloadAction<{ 
-        user: User
-        access: string
-        refresh: string
-        session_id: string 
-      }>
-    ) => {
-      state.user = payload.user
-      state.token = payload.access
-      state.refreshToken = payload.refresh
-      state.sessionId = payload.session_id
+    setCredentials: (state, action: PayloadAction<{ token: string }>) => {
+      const { token } = action.payload
+      try {
+        const decoded = jwtDecode<JWTPayload>(token)
+        const user: UserAuth = {
+          id: decoded.id,
+          nombre: decoded.nombre,
+          apellido: decoded.apellido,
+          email: decoded.sub,
+          rol: decoded.rol,
+        }
+
+        state.user = user
+        state.token = token
+        state.isAuthenticated = true
+
+        if (typeof window !== "undefined") {
+          Cookies.set("token", token, {
+            expires: 1,
+            secure: true,
+            sameSite: "strict",
+            path: "/",
+          })
+        }
+      } catch (error) {
+        console.error("Error al setear credenciales:", error)
+      }
     },
     logout: (state) => {
       state.user = null
       state.token = null
-      state.refreshToken = null
-      state.sessionId = null
+      state.isAuthenticated = false
+      state.status = "idle"
+
+      if (typeof window !== "undefined") {
+        Cookies.remove("token", {
+          secure: true,
+          sameSite: "strict",
+          path: "/",
+        })
+      }
     },
   },
 })

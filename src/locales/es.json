@@ -1,7 +1,6 @@
 {
   "header": {
     "tooltips": {
-      "currency": "Cambiar Moneda",
       "language": "Cambiar Idioma",
       "help": "Centro de Ayuda"
     },
@@ -9,6 +8,11 @@
       "publishLong": "Publica tu inmueble",
       "publishShort": "Publicar",
       "login": "Inicia sesión"
+    },
+    "dropdown-menu": {
+      "perfil": "Mi Perfil",
+      "ajustes": "Ajustes",
+      "cerrar-sesion": "Cerrar Sesión"
     }
   },
   "sidebar": {
@@ -19,8 +23,7 @@
     "menu": {
       "inmuebles": "Mis Inmuebles",
       "inquilinos": "Mis Inquilinos",
-      "contratos": "Mis Contratos",
-      "configuracion": "Configuración"
+      "contratos": "Mis Contratos"
     }
   },
   "home": {
