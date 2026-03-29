@@ -83,6 +83,20 @@
       "title": {
         "inmuebles": "Inmuebles"
       }
+    },
+    "search": {
+      "location": {
+        "label": "Ubicación",
+        "placeholder": "¿A dónde vas?"
+      },
+      "type": {
+        "label": "Tipo",
+        "placeholder": "Cualquier tipo"
+      },
+      "price": {
+        "label": "Precio",
+        "placeholder": "Añadir presupuesto"
+      }
     }
   },
   "toast": {

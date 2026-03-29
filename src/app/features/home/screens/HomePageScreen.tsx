@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { FiltrosTipoInmueble, InmueblesList } from "../components"
+import { FiltrosTipoInmueble, InmueblesList, HomeSearchBar } from "../components"
 
 export const HomePageScreen = () => {
   const { t } = useTranslation()
@@ -18,6 +18,8 @@ export const HomePageScreen = () => {
     <div className="flex min-h-screen flex-col bg-slate-50/30">
       {/* Pasamos el estado y la función para cambiarlo */}
       <FiltrosTipoInmueble value={filtro} onFilterChange={setFiltro} />
+
+      <HomeSearchBar />
 
       <div className="mx-auto mt-6 w-full max-w-screen-xl px-4">
         <h1 className="text-2xl font-bold text-slate-800 transition-all">
