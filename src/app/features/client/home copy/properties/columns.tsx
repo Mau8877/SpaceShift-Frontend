@@ -9,6 +9,7 @@ export interface Property {
   price: number
   status: "pending" | "processed" | "error"
   location: string
+  category: string
 }
 
 export const propertyColumns: Array<ColumnDef<Property>> = [

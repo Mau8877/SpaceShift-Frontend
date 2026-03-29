@@ -1,5 +1,4 @@
-import { ReactNode } from "react"
-import { ColumnDef, OnChangeFn, SortingState, Table } from "@tanstack/react-table"
+import { ColumnDef, OnChangeFn, SortingState } from "@tanstack/react-table"
 
 // 1. Interfaz para los filtros y buscador (Header)
 export interface DataTableHeaderProps<TData> {

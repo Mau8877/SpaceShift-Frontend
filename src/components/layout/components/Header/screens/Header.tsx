@@ -20,7 +20,7 @@ export function Header() {
 
   return (
     <TooltipProvider>
-      <header className="sticky top-0 z-20 flex h-16 w-full shrink-0 items-center justify-between border-b bg-primary px-2 text-white shadow-md sm:px-4">
+      <header className="sticky top-0 z-20 flex h-16 w-full shrink-0 items-center justify-between bg-primary px-2 text-white sm:px-4">
         {/* --- PARTE IZQUIERDA: Logo --- */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <SidebarTrigger className="h-9 w-9 text-white hover:bg-white/20 hover:text-white" />
