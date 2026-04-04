@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { FiltrosTipoInmueble } from "../components"
+import { FiltrosTipoInmueble, InmueblesList, HomeSearchBar } from "../components"
 
 export const HomePageScreen = () => {
   const { t } = useTranslation()
@@ -19,6 +19,8 @@ export const HomePageScreen = () => {
       {/* Pasamos el estado y la función para cambiarlo */}
       <FiltrosTipoInmueble value={filtro} onFilterChange={setFiltro} />
 
+      <HomeSearchBar />
+
       <div className="mx-auto mt-6 w-full max-w-screen-xl px-4">
         <h1 className="text-2xl font-bold text-slate-800 transition-all">
           {t("home.menu.title.inmuebles")} {filtro ? titulos[filtro] : ""}
@@ -30,11 +32,10 @@ export const HomePageScreen = () => {
             : t("home.description.default")}
         </p>
 
-        {/* Aquí vendrán las Cards filtradas por la variable 'filtro' */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {/* Mapeo de inmuebles basado en 'filtro' */}
-        </div>
+        {/* Mapeo de inmuebles delegado al nuevo subcomponente */}
+        <InmueblesList filtro={filtro} />
       </div>
     </div>
   )
 }
+

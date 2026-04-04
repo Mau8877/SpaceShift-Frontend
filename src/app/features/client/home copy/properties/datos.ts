@@ -32,6 +32,7 @@ export const generateMockProperties = (): Array<Property> => {
   ];
 
   const statuses: Array<Property["status"]> = ["processed", "pending", "error"];
+  const categories = ["venta", "alquiler", "anticretico", "alojamiento"];
 
   // Cambiamos el length a 100
   return Array.from({ length: 100 }).map((_, i) => {
@@ -47,6 +48,7 @@ export const generateMockProperties = (): Array<Property> => {
       location: locations[i % locations.length],
       price: Math.floor(Math.random() * (950000 - 35000 + 1)) + 35000,
       status: statuses[i % statuses.length],
+      category: categories[i % categories.length],
     };
   });
 };

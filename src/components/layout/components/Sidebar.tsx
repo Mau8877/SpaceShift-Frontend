@@ -66,7 +66,7 @@ export function AppSidebar() {
       {/* 3. Ahora isMobile es seguro de usar porque estamos en el cliente */}
       {isMobile && (
         <SidebarHeader className="flex flex-row items-center justify-between p-4">
-          <span className="text-xs font-bold tracking-widest text-primary uppercase">
+          <span className="text-xs font-bold tracking-widest text-sidebar-foreground uppercase">
             {t("sidebar.header.menu")}
           </span>
           <Button
@@ -75,7 +75,7 @@ export function AppSidebar() {
             onClick={() => setOpenMobile(false)}
             className="h-8 w-8"
           >
-            <Cancel01Icon size={20} className="text-muted-foreground" />
+            <Cancel01Icon size={20} className="text-sidebar-foreground/70" />
           </Button>
         </SidebarHeader>
       )}
@@ -97,7 +97,7 @@ export function AppSidebar() {
                     <Link
                       to={item.to}
                       activeProps={{
-                        className: "bg-primary/10 text-primary font-bold",
+                        className: "bg-sidebar-accent text-sidebar-accent-foreground font-bold",
                       }}
                     >
                       <item.icon size={20} />

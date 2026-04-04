@@ -34,9 +34,9 @@ export function FiltrosTipoInmueble({ value, onFilterChange }: Props) {
   ]
 
   return (
-    <div className="flex w-full justify-center bg-white py-6 dark:bg-transparent">
+    <div className="flex w-full justify-center pt-6 pb-0 dark:bg-transparent">
       <Tabs value={value} className="w-full max-w-4xl px-4">
-        <TabsList className="grid !h-16 w-full grid-cols-4 items-stretch overflow-hidden rounded-xl border border-slate-200 !bg-white p-0 shadow-sm dark:!bg-transparent">
+        <TabsList className="grid !h-16 w-full grid-cols-4 items-stretch overflow-hidden border border-slate-200 !bg-slate-100/50 p-0 shadow-sm rounded-t-[32px] rounded-b-none border-b-0 dark:!bg-transparent">
           {categorias.map((cat, index) => (
             <TabsTrigger
               key={cat.id}
@@ -49,7 +49,7 @@ export function FiltrosTipoInmueble({ value, onFilterChange }: Props) {
                   onFilterChange(cat.id) // Si no, seleccionamos el nuevo
                 }
               }}
-              className={`group relative flex !h-full flex-row items-center justify-center gap-3 rounded-none !border-none !bg-transparent p-0 !shadow-none transition-all after:hidden data-[state=active]:!bg-primary data-[state=active]:!text-white ${index !== categorias.length - 1 ? "border-r border-slate-100" : ""} `}
+              className={`group relative flex !h-full flex-row items-center justify-center gap-1.5 rounded-none !border-none !bg-transparent p-0 !shadow-none transition-all text-slate-500 after:hidden sm:gap-3 data-[state=active]:!bg-primary data-[state=active]:!text-white ${index !== categorias.length - 1 ? "border-r border-slate-200/60" : ""} `}
             >
               <cat.icon className="!size-5 transition-transform group-hover:scale-110 sm:!size-6" />
               <span className="text-[10px] font-bold tracking-wider uppercase sm:text-xs">
