@@ -23,7 +23,7 @@ export interface Inmueble {
   categoria: string;
 }
 
-export function ExampleCard({ data }: { data: Inmueble }) {
+export function PropertyCard({ data }: { data: Inmueble }) {
   // Imagen de placeholder premium (Arquitectura moderna)
   const imageUrl = ""
 
