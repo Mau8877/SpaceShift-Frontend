@@ -171,6 +171,7 @@ export function Header() {
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
       />
+
     </TooltipProvider>
   )
 }

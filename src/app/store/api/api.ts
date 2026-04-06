@@ -13,7 +13,7 @@ const apiConfig: ApiConfig = {
 export const api = createApi({
   reducerPath: "api",
   baseQuery: createBaseApi(apiConfig),
-  tagTypes: ["Auth"],
+  tagTypes: ["Auth", "Publicaciones"],
 
   endpoints: () => ({}),
 })
