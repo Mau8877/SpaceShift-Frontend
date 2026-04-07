@@ -175,6 +175,7 @@ export function Header() {
           setTimeout(() => setLoginModalOpen(true), 150)
         }}
       />
+
     </TooltipProvider>
   )
 }

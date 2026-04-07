@@ -15,6 +15,7 @@ import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicFaqRouteImport } from './routes/_public/faq'
 import { Route as AuthTenantsRouteImport } from './routes/_auth/tenants'
 import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
+import { Route as AuthPublicarRouteImport } from './routes/_auth/publicar'
 import { Route as AuthPropertiesRouteImport } from './routes/_auth/properties'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
 import { Route as AuthLeasesRouteImport } from './routes/_auth/leases'
@@ -48,6 +49,11 @@ const AuthSettingsRoute = AuthSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthPublicarRoute = AuthPublicarRouteImport.update({
+  id: '/publicar',
+  path: '/publicar',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthPropertiesRoute = AuthPropertiesRouteImport.update({
   id: '/properties',
   path: '/properties',
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/leases': typeof AuthLeasesRoute
   '/profile': typeof AuthProfileRoute
   '/properties': typeof AuthPropertiesRoute
+  '/publicar': typeof AuthPublicarRoute
   '/settings': typeof AuthSettingsRoute
   '/tenants': typeof AuthTenantsRoute
   '/faq': typeof PublicFaqRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/leases': typeof AuthLeasesRoute
   '/profile': typeof AuthProfileRoute
   '/properties': typeof AuthPropertiesRoute
+  '/publicar': typeof AuthPublicarRoute
   '/settings': typeof AuthSettingsRoute
   '/tenants': typeof AuthTenantsRoute
   '/faq': typeof PublicFaqRoute
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/_auth/leases': typeof AuthLeasesRoute
   '/_auth/profile': typeof AuthProfileRoute
   '/_auth/properties': typeof AuthPropertiesRoute
+  '/_auth/publicar': typeof AuthPublicarRoute
   '/_auth/settings': typeof AuthSettingsRoute
   '/_auth/tenants': typeof AuthTenantsRoute
   '/_public/faq': typeof PublicFaqRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/leases'
     | '/profile'
     | '/properties'
+    | '/publicar'
     | '/settings'
     | '/tenants'
     | '/faq'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/leases'
     | '/profile'
     | '/properties'
+    | '/publicar'
     | '/settings'
     | '/tenants'
     | '/faq'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/_auth/leases'
     | '/_auth/profile'
     | '/_auth/properties'
+    | '/_auth/publicar'
     | '/_auth/settings'
     | '/_auth/tenants'
     | '/_public/faq'
@@ -186,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSettingsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/publicar': {
+      id: '/_auth/publicar'
+      path: '/publicar'
+      fullPath: '/publicar'
+      preLoaderRoute: typeof AuthPublicarRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/properties': {
       id: '/_auth/properties'
       path: '/properties'
@@ -222,6 +241,7 @@ interface AuthRouteChildren {
   AuthLeasesRoute: typeof AuthLeasesRoute
   AuthProfileRoute: typeof AuthProfileRoute
   AuthPropertiesRoute: typeof AuthPropertiesRoute
+  AuthPublicarRoute: typeof AuthPublicarRoute
   AuthSettingsRoute: typeof AuthSettingsRoute
   AuthTenantsRoute: typeof AuthTenantsRoute
 }
@@ -231,6 +251,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthLeasesRoute: AuthLeasesRoute,
   AuthProfileRoute: AuthProfileRoute,
   AuthPropertiesRoute: AuthPropertiesRoute,
+  AuthPublicarRoute: AuthPublicarRoute,
   AuthSettingsRoute: AuthSettingsRoute,
   AuthTenantsRoute: AuthTenantsRoute,
 }
