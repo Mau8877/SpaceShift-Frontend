@@ -21,8 +21,17 @@ export const publicacionApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Publicaciones"],
     }),
+
+    // 3. Subir Imágenes Múltiples (Soporta FormData)
+    subirImagenes: builder.mutation<string[], FormData>({
+      query: (formData) => ({
+        url: "/upload/imagenes",
+        method: "POST",
+        body: formData,
+      }),
+    }),
   }),
   overrideExisting: true,
 })
 
-export const { useCrearInmuebleMutation, useCrearPublicacionMutation } = publicacionApi
+export const { useCrearInmuebleMutation, useCrearPublicacionMutation, useSubirImagenesMutation } = publicacionApi

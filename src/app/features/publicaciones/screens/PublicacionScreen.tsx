@@ -16,7 +16,7 @@ import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 
 import { useAppSelector } from "@/app/store"
-import { useCrearInmuebleMutation, useCrearPublicacionMutation } from "../store/publicacionApi"
+import { useCrearInmuebleMutation, useCrearPublicacionMutation, useSubirImagenesMutation } from "../store/publicacionApi"
 import { crearPublicacionWizardSchema } from "../schemas/publicacionSchema"
 
 import { PasoInmueble, PasoUbicacion, PasoDetalles, PasoImagenes } from "../components/wizard"
@@ -35,6 +35,7 @@ export function PublicacionScreen() {
   // RTK Query Mutations
   const [crearInmueble, { isLoading: isCreatingInmueble }] = useCrearInmuebleMutation()
   const [crearPublicacion, { isLoading: isCreatingPublicacion }] = useCrearPublicacionMutation()
+  const [subirImagenes, { isLoading: isUploading }] = useSubirImagenesMutation()
 
   // Usuario extraido de Redux Auth
   const user = useAppSelector((state) => state.auth.user)
@@ -68,7 +69,19 @@ export function PublicacionScreen() {
           return
         }
 
-        // 1. CREAR EL INMUEBLE PRIMERO
+        // 1. SUBIR IMAGENES A CLOUDINARY (SI HAY)
+        let uploadedUrls: string[] = [];
+        if (value.imagenesUrls && value.imagenesUrls.length > 0) {
+          toast.loading("Subiendo imágenes a la nube...", { id: "upload-toast" })
+          const formData = new FormData()
+          value.imagenesUrls.forEach((file: File) => {
+            formData.append("files", file)
+          })
+          uploadedUrls = await subirImagenes(formData).unwrap()
+          toast.dismiss("upload-toast")
+        }
+
+        // 2. CREAR EL INMUEBLE
         const inmuebleRes = await crearInmueble({
           tipoInmueble: value.tipoInmueble,
           areaTerreno: value.areaTerreno,
@@ -86,7 +99,7 @@ export function PublicacionScreen() {
           }
         }).unwrap()
 
-        // 2. CREAR LA PUBLICACIÓN (SIMULANDO SUBIDA DE IMAGENES por ahora mandamos [])
+        // 3. CREAR LA PUBLICACIÓN (CON LAS URLs DE CLOUDINARY)
         await crearPublicacion({
           idUsuario: user.id,
           idInmueble: inmuebleRes.id,
@@ -96,7 +109,7 @@ export function PublicacionScreen() {
           precio: value.precio,
           moneda: value.moneda,
           estadoPublicacion: "ACTIVO",
-          imagenesUrls: [], // TODO: Aquí se conectarían las URLs generadas por Cloudinary en el futuro
+          imagenesUrls: uploadedUrls,
         }).unwrap()
 
         toast.success("¡Éxito!", { description: "Propiedad publicada correctamente" })
@@ -127,7 +140,7 @@ export function PublicacionScreen() {
     }
   }
 
-  const isLoading = isCreatingInmueble || isCreatingPublicacion;
+  const isLoading = isCreatingInmueble || isCreatingPublicacion || isUploading;
 
   return (
     <div className="container py-10 max-w-4xl mx-auto min-h-[80vh] flex items-center justify-center">
