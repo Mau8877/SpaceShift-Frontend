@@ -170,6 +170,10 @@ export function Header() {
       <RegisterModal
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
+        onSwitchToLogin={() => {
+          setRegisterModalOpen(false)
+          setTimeout(() => setLoginModalOpen(true), 150)
+        }}
       />
 
     </TooltipProvider>

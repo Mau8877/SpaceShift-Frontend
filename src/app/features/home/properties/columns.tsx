@@ -6,9 +6,18 @@ import { Button } from "@/components/ui/button"
 export interface Property {
   id: string
   name: string
+  type: string
   price: number
   status: "pending" | "processed" | "error"
   location: string
+  category: string
+}
+
+export interface SearchFilters {
+  location: string
+  type: string | null
+  minPrice: number
+  maxPrice: number | null
 }
 
 export const propertyColumns: Array<ColumnDef<Property>> = [
