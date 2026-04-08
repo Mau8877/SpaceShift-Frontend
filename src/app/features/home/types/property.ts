@@ -21,7 +21,7 @@ export interface InmuebleDetails {
 
 export interface ImagenPublicacion {
   id?: string;
-  url: string;
+  urlImage: string;
 }
 
 export interface Publicacion {

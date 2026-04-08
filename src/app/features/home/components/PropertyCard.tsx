@@ -19,7 +19,7 @@ import type { Publicacion } from "../types/property.ts"
 export function PropertyCard({ data }: { data: Publicacion }) {
   // Extraer URLs de las imágenes de la publicación
   const imagenes = data.imagenes?.length
-    ? data.imagenes.map(img => img.url)
+    ? data.imagenes.map(img => img.urlImage)
     : [
       "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=2071&auto=format&fit=crop"
     ]

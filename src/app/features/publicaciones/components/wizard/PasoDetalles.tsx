@@ -3,8 +3,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTranslation } from "react-i18next"
 
 export function PasoDetalles({ form }: { form: any }) {
+  const { t } = useTranslation()
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <h2 className="text-lg font-semibold text-foreground mb-6">Detalles de la Publicación</h2>
