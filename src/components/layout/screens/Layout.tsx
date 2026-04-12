@@ -3,12 +3,17 @@ import { Outlet } from "@tanstack/react-router"
 import { AppSidebar, Header } from "../components"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { useAppSelector } from "@/app/store"
+import { useAppSelector, useAppDispatch } from "@/app/store"
+import { ChatFloatingButton, ChatFloatingWindow } from "../../chat"
+import { setChatOpen } from "@/app/store/chatUiSlice"
 
 export function MainLayout({ children }: { children?: React.ReactNode }) {
+  const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
+  const { isChatOpen } = useAppSelector((state) => state.chatUi)
 
   const [mounted, setMounted] = React.useState(false)
+
   React.useEffect(() => {
     setMounted(true)
   }, [])
@@ -33,6 +38,20 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
               {children || <Outlet />}
             </main>
           </SidebarInset>
+
+          {/* Chat Flotante */}
+          {isAuthenticated && (
+            <>
+              <ChatFloatingWindow
+                isOpen={isChatOpen}
+                onClose={() => dispatch(setChatOpen(false))}
+              />
+              <ChatFloatingButton
+                isOpen={isChatOpen}
+                onClick={() => dispatch(setChatOpen(!isChatOpen))}
+              />
+            </>
+          )}
         </div>
       </SidebarProvider>
     </TooltipProvider>

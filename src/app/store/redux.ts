@@ -2,11 +2,13 @@ import { configureStore } from "@reduxjs/toolkit"
 import { setupListeners } from "@reduxjs/toolkit/query"
 import { api } from "./api/api"
 import authReducer from "./authSlice"
+import chatUiReducer from "./chatUiSlice"
 
 export const store = configureStore({
   reducer: {
     // Estado de autenticación (Memoria)
     auth: authReducer,
+    chatUi: chatUiReducer,
 
     // API global (Sistema Nervioso)
     [api.reducerPath]: api.reducer,

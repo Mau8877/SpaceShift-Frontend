@@ -1,1 +1,1 @@
-export * from "./screens/PublicacionScreen"
+export * from "./screens"
