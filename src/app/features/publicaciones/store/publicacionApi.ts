@@ -30,8 +30,19 @@ export const publicacionApi = api.injectEndpoints({
         body: formData,
       }),
     }),
+
+    // 4. Obtener detalle de una publicación
+    getPublicacionById: builder.query<any, string>({
+      query: (id) => `/publicaciones/${id}`,
+      providesTags: (_result, _error, id) => [{ type: "Publicaciones", id }],
+    }),
   }),
   overrideExisting: true,
 })
 
-export const { useCrearInmuebleMutation, useCrearPublicacionMutation, useSubirImagenesMutation } = publicacionApi
+export const { 
+  useCrearInmuebleMutation, 
+  useCrearPublicacionMutation, 
+  useSubirImagenesMutation,
+  useGetPublicacionByIdQuery
+} = publicacionApi

@@ -13,6 +13,7 @@ import {
   PropertyCardButton,
 } from "@/components/ui/property-card-parts"
 import { PropertyCardMedia } from "@/components/ui/property-card-media"
+import { Link } from "@tanstack/react-router"
 
 import type { Publicacion } from "../types/property.ts"
 
@@ -48,7 +49,9 @@ export function PropertyCard({ data }: { data: Publicacion }) {
       />
 
       <PropertyCardFooter>
-        <PropertyCardButton>Ver Detalles</PropertyCardButton>
+        <Link to="/publicacion/$id" params={{ id: data.id }} className="w-full">
+          <PropertyCardButton>Ver Detalles</PropertyCardButton>
+        </Link>
       </PropertyCardFooter>
     </PropertyCardRoot>
   )

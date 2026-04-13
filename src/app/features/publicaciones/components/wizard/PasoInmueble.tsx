@@ -7,7 +7,7 @@ export function PasoInmueble({ form }: { form: any }) {
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <h2 className="text-lg font-semibold text-foreground mb-6">Información del Inmueble</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* TIPO INMUEBLE */}
         <form.Field
@@ -23,10 +23,10 @@ export function PasoInmueble({ form }: { form: any }) {
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="apartamento">Apartamento</SelectItem>
-                  <SelectItem value="casa">Casa</SelectItem>
-                  <SelectItem value="terreno">Terreno</SelectItem>
-                  <SelectItem value="local">Local Comercial</SelectItem>
+                  <SelectItem value="DEPARTAMENTO">Departamento</SelectItem>
+                  <SelectItem value="CASA">Casa</SelectItem>
+                  {/*<SelectItem value="terreno">Terreno</SelectItem>
+                  <SelectItem value="local">Local Comercial</SelectItem>*/}
                 </SelectContent>
               </Select>
               {field.state.meta.errors ? (

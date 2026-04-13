@@ -20,6 +20,7 @@ import { Route as AuthPropertiesRouteImport } from './routes/_auth/properties'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
 import { Route as AuthLeasesRouteImport } from './routes/_auth/leases'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
+import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -74,6 +75,11 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthRoute,
 } as any)
+const PublicPublicacionIdRoute = PublicPublicacionIdRouteImport.update({
+  id: '/publicacion/$id',
+  path: '/publicacion/$id',
+  getParentRoute: () => PublicRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthSettingsRoute
   '/tenants': typeof AuthTenantsRoute
   '/faq': typeof PublicFaqRoute
+  '/publicacion/$id': typeof PublicPublicacionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthSettingsRoute
   '/tenants': typeof AuthTenantsRoute
   '/faq': typeof PublicFaqRoute
+  '/publicacion/$id': typeof PublicPublicacionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/_auth/tenants': typeof AuthTenantsRoute
   '/_public/faq': typeof PublicFaqRoute
   '/_public/': typeof PublicIndexRoute
+  '/_public/publicacion/$id': typeof PublicPublicacionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tenants'
     | '/faq'
+    | '/publicacion/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tenants'
     | '/faq'
+    | '/publicacion/$id'
   id:
     | '__root__'
     | '/_auth'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/_auth/tenants'
     | '/_public/faq'
     | '/_public/'
+    | '/_public/publicacion/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -233,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_public/publicacion/$id': {
+      id: '/_public/publicacion/$id'
+      path: '/publicacion/$id'
+      fullPath: '/publicacion/$id'
+      preLoaderRoute: typeof PublicPublicacionIdRouteImport
+      parentRoute: typeof PublicRoute
+    }
   }
 }
 
@@ -261,11 +280,13 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 interface PublicRouteChildren {
   PublicFaqRoute: typeof PublicFaqRoute
   PublicIndexRoute: typeof PublicIndexRoute
+  PublicPublicacionIdRoute: typeof PublicPublicacionIdRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
   PublicFaqRoute: PublicFaqRoute,
   PublicIndexRoute: PublicIndexRoute,
+  PublicPublicacionIdRoute: PublicPublicacionIdRoute,
 }
 
 const PublicRouteWithChildren =
