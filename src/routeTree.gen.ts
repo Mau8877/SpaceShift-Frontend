@@ -13,14 +13,15 @@ import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicFaqRouteImport } from './routes/_public/faq'
-import { Route as AuthTenantsRouteImport } from './routes/_auth/tenants'
 import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
 import { Route as AuthPublicarRouteImport } from './routes/_auth/publicar'
-import { Route as AuthPropertiesRouteImport } from './routes/_auth/properties'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
-import { Route as AuthLeasesRouteImport } from './routes/_auth/leases'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
+import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
+import { Route as AuthDashboardInmueblesRouteImport } from './routes/_auth/dashboard/inmuebles'
+import { Route as AuthDashboardContratosRouteImport } from './routes/_auth/dashboard/contratos'
+import { Route as AuthDashboardClientesRouteImport } from './routes/_auth/dashboard/clientes'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -40,11 +41,6 @@ const PublicFaqRoute = PublicFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => PublicRoute,
 } as any)
-const AuthTenantsRoute = AuthTenantsRouteImport.update({
-  id: '/tenants',
-  path: '/tenants',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthSettingsRoute = AuthSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -55,19 +51,9 @@ const AuthPublicarRoute = AuthPublicarRouteImport.update({
   path: '/publicar',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthPropertiesRoute = AuthPropertiesRouteImport.update({
-  id: '/properties',
-  path: '/properties',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthProfileRoute = AuthProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthLeasesRoute = AuthLeasesRouteImport.update({
-  id: '/leases',
-  path: '/leases',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthDashboardRoute = AuthDashboardRouteImport.update({
@@ -75,90 +61,114 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
 const PublicPublicacionIdRoute = PublicPublicacionIdRouteImport.update({
   id: '/publicacion/$id',
   path: '/publicacion/$id',
   getParentRoute: () => PublicRoute,
 } as any)
+const AuthDashboardInmueblesRoute = AuthDashboardInmueblesRouteImport.update({
+  id: '/inmuebles',
+  path: '/inmuebles',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
+const AuthDashboardContratosRoute = AuthDashboardContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
+const AuthDashboardClientesRoute = AuthDashboardClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
-  '/dashboard': typeof AuthDashboardRoute
-  '/leases': typeof AuthLeasesRoute
+  '/dashboard': typeof AuthDashboardRouteWithChildren
   '/profile': typeof AuthProfileRoute
-  '/properties': typeof AuthPropertiesRoute
   '/publicar': typeof AuthPublicarRoute
   '/settings': typeof AuthSettingsRoute
-  '/tenants': typeof AuthTenantsRoute
   '/faq': typeof PublicFaqRoute
+  '/dashboard/clientes': typeof AuthDashboardClientesRoute
+  '/dashboard/contratos': typeof AuthDashboardContratosRoute
+  '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
+  '/dashboard/': typeof AuthDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
-  '/dashboard': typeof AuthDashboardRoute
-  '/leases': typeof AuthLeasesRoute
   '/profile': typeof AuthProfileRoute
-  '/properties': typeof AuthPropertiesRoute
   '/publicar': typeof AuthPublicarRoute
   '/settings': typeof AuthSettingsRoute
-  '/tenants': typeof AuthTenantsRoute
   '/faq': typeof PublicFaqRoute
+  '/dashboard/clientes': typeof AuthDashboardClientesRoute
+  '/dashboard/contratos': typeof AuthDashboardContratosRoute
+  '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
+  '/dashboard': typeof AuthDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
-  '/_auth/dashboard': typeof AuthDashboardRoute
-  '/_auth/leases': typeof AuthLeasesRoute
+  '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
   '/_auth/profile': typeof AuthProfileRoute
-  '/_auth/properties': typeof AuthPropertiesRoute
   '/_auth/publicar': typeof AuthPublicarRoute
   '/_auth/settings': typeof AuthSettingsRoute
-  '/_auth/tenants': typeof AuthTenantsRoute
   '/_public/faq': typeof PublicFaqRoute
   '/_public/': typeof PublicIndexRoute
+  '/_auth/dashboard/clientes': typeof AuthDashboardClientesRoute
+  '/_auth/dashboard/contratos': typeof AuthDashboardContratosRoute
+  '/_auth/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/_public/publicacion/$id': typeof PublicPublicacionIdRoute
+  '/_auth/dashboard/': typeof AuthDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/leases'
     | '/profile'
-    | '/properties'
     | '/publicar'
     | '/settings'
-    | '/tenants'
     | '/faq'
+    | '/dashboard/clientes'
+    | '/dashboard/contratos'
+    | '/dashboard/inmuebles'
     | '/publicacion/$id'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
-    | '/leases'
     | '/profile'
-    | '/properties'
     | '/publicar'
     | '/settings'
-    | '/tenants'
     | '/faq'
+    | '/dashboard/clientes'
+    | '/dashboard/contratos'
+    | '/dashboard/inmuebles'
     | '/publicacion/$id'
+    | '/dashboard'
   id:
     | '__root__'
     | '/_auth'
     | '/_public'
     | '/_auth/dashboard'
-    | '/_auth/leases'
     | '/_auth/profile'
-    | '/_auth/properties'
     | '/_auth/publicar'
     | '/_auth/settings'
-    | '/_auth/tenants'
     | '/_public/faq'
     | '/_public/'
+    | '/_auth/dashboard/clientes'
+    | '/_auth/dashboard/contratos'
+    | '/_auth/dashboard/inmuebles'
     | '/_public/publicacion/$id'
+    | '/_auth/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -196,13 +206,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicFaqRouteImport
       parentRoute: typeof PublicRoute
     }
-    '/_auth/tenants': {
-      id: '/_auth/tenants'
-      path: '/tenants'
-      fullPath: '/tenants'
-      preLoaderRoute: typeof AuthTenantsRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/settings': {
       id: '/_auth/settings'
       path: '/settings'
@@ -217,25 +220,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPublicarRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/properties': {
-      id: '/_auth/properties'
-      path: '/properties'
-      fullPath: '/properties'
-      preLoaderRoute: typeof AuthPropertiesRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/profile': {
       id: '/_auth/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthProfileRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/leases': {
-      id: '/_auth/leases'
-      path: '/leases'
-      fullPath: '/leases'
-      preLoaderRoute: typeof AuthLeasesRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/dashboard': {
@@ -245,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/dashboard/': {
+      id: '/_auth/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthDashboardIndexRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
     '/_public/publicacion/$id': {
       id: '/_public/publicacion/$id'
       path: '/publicacion/$id'
@@ -252,27 +248,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicPublicacionIdRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_auth/dashboard/inmuebles': {
+      id: '/_auth/dashboard/inmuebles'
+      path: '/inmuebles'
+      fullPath: '/dashboard/inmuebles'
+      preLoaderRoute: typeof AuthDashboardInmueblesRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
+    '/_auth/dashboard/contratos': {
+      id: '/_auth/dashboard/contratos'
+      path: '/contratos'
+      fullPath: '/dashboard/contratos'
+      preLoaderRoute: typeof AuthDashboardContratosRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
+    '/_auth/dashboard/clientes': {
+      id: '/_auth/dashboard/clientes'
+      path: '/clientes'
+      fullPath: '/dashboard/clientes'
+      preLoaderRoute: typeof AuthDashboardClientesRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
   }
 }
 
+interface AuthDashboardRouteChildren {
+  AuthDashboardClientesRoute: typeof AuthDashboardClientesRoute
+  AuthDashboardContratosRoute: typeof AuthDashboardContratosRoute
+  AuthDashboardInmueblesRoute: typeof AuthDashboardInmueblesRoute
+  AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
+}
+
+const AuthDashboardRouteChildren: AuthDashboardRouteChildren = {
+  AuthDashboardClientesRoute: AuthDashboardClientesRoute,
+  AuthDashboardContratosRoute: AuthDashboardContratosRoute,
+  AuthDashboardInmueblesRoute: AuthDashboardInmueblesRoute,
+  AuthDashboardIndexRoute: AuthDashboardIndexRoute,
+}
+
+const AuthDashboardRouteWithChildren = AuthDashboardRoute._addFileChildren(
+  AuthDashboardRouteChildren,
+)
+
 interface AuthRouteChildren {
-  AuthDashboardRoute: typeof AuthDashboardRoute
-  AuthLeasesRoute: typeof AuthLeasesRoute
+  AuthDashboardRoute: typeof AuthDashboardRouteWithChildren
   AuthProfileRoute: typeof AuthProfileRoute
-  AuthPropertiesRoute: typeof AuthPropertiesRoute
   AuthPublicarRoute: typeof AuthPublicarRoute
   AuthSettingsRoute: typeof AuthSettingsRoute
-  AuthTenantsRoute: typeof AuthTenantsRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
-  AuthDashboardRoute: AuthDashboardRoute,
-  AuthLeasesRoute: AuthLeasesRoute,
+  AuthDashboardRoute: AuthDashboardRouteWithChildren,
   AuthProfileRoute: AuthProfileRoute,
-  AuthPropertiesRoute: AuthPropertiesRoute,
   AuthPublicarRoute: AuthPublicarRoute,
   AuthSettingsRoute: AuthSettingsRoute,
-  AuthTenantsRoute: AuthTenantsRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

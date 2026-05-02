@@ -55,11 +55,6 @@
     "header": {
       "detail": "Administration",
       "menu": "Menu"
-    },
-    "menu": {
-      "contratos": "My Contracts",
-      "inmuebles": "My Properties",
-      "inquilinos": "My Tenants"
     }
   },
   "home": {
@@ -82,6 +77,20 @@
     "menu": {
       "title": {
         "inmuebles": "Estate"
+      }
+    },
+    "search": {
+      "location": {
+        "label": "Location",
+        "placeholder": "Where are you going?"
+      },
+      "price": {
+        "label": "Price",
+        "placeholder": "Add quote"
+      },
+      "type": {
+        "label": "Guy",
+        "placeholder": "Any type"
       }
     }
   },
