@@ -1,14 +1,3 @@
-import * as React from "react"
-import { useTranslation } from "react-i18next"
-import {
-  Building01Icon,
-  Cancel01Icon,
-  DashboardSquare02Icon,
-  File02Icon,
-  Home01Icon,
-  UserGroupIcon,
-} from "hugeicons-react"
-import { Link } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import {
   Sidebar,
@@ -23,6 +12,14 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Link } from "@tanstack/react-router"
+import {
+  Cancel01Icon,
+  DashboardSquare02Icon,
+  Home01Icon,
+} from "hugeicons-react"
+import * as React from "react"
+import { useTranslation } from "react-i18next"
 
 export function AppSidebar() {
   const { t } = useTranslation()
@@ -38,31 +35,17 @@ export function AppSidebar() {
   const menuItems = [
     { title: "Home", icon: Home01Icon, to: "/" },
     { title: "Dashboard", icon: DashboardSquare02Icon, to: "/dashboard" },
-    {
-      title: t("sidebar.menu.inmuebles"),
-      icon: Building01Icon,
-      to: "/properties",
-    },
-    {
-      title: t("sidebar.menu.inquilinos"),
-      icon: UserGroupIcon,
-      to: "/tenants",
-    },
-    { title: t("sidebar.menu.contratos"), icon: File02Icon, to: "/leases" },
   ]
 
   // 2. Si no está montado, devolvemos un Sidebar básico o nulo para que coincida con el servidor
   if (!mounted) {
     return (
-      <Sidebar
-        collapsible="icon"
-        className="w-[75vw] border-r-0 sm:w-[260px]"
-      />
+      <Sidebar collapsible="icon" className="w-[75vw] border-r-0 sm:w-65" />
     )
   }
 
   return (
-    <Sidebar collapsible="icon" className="w-[75vw] border-r-0 sm:w-[260px]">
+    <Sidebar collapsible="icon" className="w-[75vw] border-r-0 sm:w-65">
       {/* 3. Ahora isMobile es seguro de usar porque estamos en el cliente */}
       {isMobile && (
         <SidebarHeader className="flex flex-row items-center justify-between p-4">
@@ -97,7 +80,8 @@ export function AppSidebar() {
                     <Link
                       to={item.to}
                       activeProps={{
-                        className: "bg-sidebar-accent text-sidebar-accent-foreground font-bold",
+                        className:
+                          "bg-sidebar-accent text-sidebar-accent-foreground font-bold",
                       }}
                     >
                       <item.icon size={20} />
