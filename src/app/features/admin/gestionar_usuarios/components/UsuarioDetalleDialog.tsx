@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import {
@@ -54,6 +54,11 @@ const asText = (value?: string | null) => {
   return normalized ? normalized : "No registrado"
 }
 
+const normalizeImageUrl = (value?: string | null) => {
+  const url = value?.trim()
+  return url && url.length > 0 ? url : null
+}
+
 const formatDate = (value?: string | null) => {
   if (!value) return "No registrado"
 
@@ -80,6 +85,7 @@ export const UsuarioDetalleDialog = ({
 
   const fullName = getNombreCompleto(data?.nombre, data?.apellido)
   const initials = getInitials(fullName, data?.correo)
+  const fotoUrl = normalizeImageUrl(data?.fotoUrl)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,6 +113,9 @@ export const UsuarioDetalleDialog = ({
           <div className="space-y-4">
             <div className="flex items-start gap-4">
               <Avatar className="h-14 w-14">
+                {fotoUrl ? (
+                  <AvatarImage src={fotoUrl} alt={fullName} className="object-cover" />
+                ) : null}
                 <AvatarFallback className="bg-slate-100 text-slate-700">
                   {initials}
                 </AvatarFallback>

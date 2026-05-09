@@ -58,14 +58,16 @@ export type UsuarioFilters = {
 export type UsuarioDetalle = {
   id: string
   correo: string
-  rol: string
-  tipoPerfil: string
-  nombre: string
-  apellido?: string | null
-  telefono?: string | null
-  descripcion?: string | null
   estado: boolean
   estadoConexion: boolean
+  ultimaConexion?: string | null
+  rol: string
+  nombre: string
+  apellido?: string | null
+  fotoUrl?: string | null
+  telefono?: string | null
+  descripcion?: string | null
+  tipoPerfil: string
   totalPublicaciones: number
   createdDate?: string | null
   lastModifiedDate?: string | null
