@@ -52,6 +52,8 @@ export function DataTable<TData, TValue>({
   onRefresh,
   onAdd,
   addLabel = "Crear",
+  toolbarContent,
+  rightActions,
 
   actions,
   onDetail,
@@ -60,6 +62,8 @@ export function DataTable<TData, TValue>({
 
   renderMobileCard,
   getRowId,
+  showPaginationSizeSelector = true,
+  onPaginationChange,
 }: DataTableProps<TData, TValue>) {
   const [internalSorting, setInternalSorting] = React.useState<SortingState>([])
   const [internalGlobalFilter, setInternalGlobalFilter] = React.useState("")
@@ -145,10 +149,18 @@ export function DataTable<TData, TValue>({
     },
     onPaginationChange: (updater) => {
       const nextPagination = functionalUpdate(updater, currentPagination)
+      onPaginationChange?.(updater)
 
       if (manualPagination) {
+        const pageSizeChanged = nextPagination.pageSize !== currentPagination.pageSize
+
+        if (pageSizeChanged) {
+          onPageSizeChange?.(nextPagination.pageSize)
+          onPageChange?.(0)
+          return
+        }
+
         onPageChange?.(nextPagination.pageIndex)
-        onPageSizeChange?.(nextPagination.pageSize)
       } else {
         setInternalPagination(nextPagination)
       }
@@ -210,6 +222,8 @@ export function DataTable<TData, TValue>({
         onRefresh={onRefresh}
         onAdd={onAdd}
         addLabel={addLabel}
+        toolbarContent={toolbarContent}
+        rightActions={rightActions}
       />
 
       <DataTableContent
@@ -225,6 +239,7 @@ export function DataTable<TData, TValue>({
         table={table}
         totalRecords={totalRecords}
         pageSizeOptions={pageSizeOptions}
+        showSizeSelector={showPaginationSizeSelector}
       />
     </div>
   )

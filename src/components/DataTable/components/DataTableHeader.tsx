@@ -10,6 +10,7 @@ import {
 } from "hugeicons-react"
 
 import type { Table } from "@tanstack/react-table"
+import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -47,6 +48,8 @@ type DataTableHeaderProps<TData> = {
   onRefresh?: () => void
   onAdd?: () => void
   addLabel?: string
+  toolbarContent?: ReactNode
+  rightActions?: ReactNode
 }
 
 export const DataTableHeader = <TData,>({
@@ -62,11 +65,15 @@ export const DataTableHeader = <TData,>({
   onRefresh,
   onAdd,
   addLabel = "Crear",
+  toolbarContent,
+  rightActions,
 }: DataTableHeaderProps<TData>) => {
   const isSearchEnabled = search?.enabled ?? false
   const isDateFilterEnabled = dateFilter?.enabled ?? false
   const hasLeftControls =
     isSearchEnabled || filters.length > 0 || isDateFilterEnabled
+  const hasToolbarContent = Boolean(toolbarContent)
+  const hasRightActions = Boolean(rightActions)
 
   const handleSearch = () => {
     search?.onSearch?.()
@@ -86,7 +93,11 @@ export const DataTableHeader = <TData,>({
 
   return (
     <div className="flex flex-col justify-between gap-3 rounded-t-2xl border border-b-0 border-slate-200 bg-white p-3 shadow-sm md:flex-row md:items-center">
-      {hasLeftControls ? (
+      {hasToolbarContent ? (
+        <div className="flex w-full flex-1 flex-wrap items-end gap-3">
+          {toolbarContent}
+        </div>
+      ) : hasLeftControls ? (
         <div className="flex w-full flex-1 flex-col gap-2 md:flex-row md:items-center">
           {isSearchEnabled ? (
             <div className="relative flex w-full items-center md:max-w-xs">
@@ -210,33 +221,37 @@ export const DataTableHeader = <TData,>({
         <div />
       )}
 
-      <div className="flex items-center gap-2">
-        {onRefresh ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={onRefresh}
-            className="border-slate-200 shadow-sm"
-          >
-            <RefreshIcon
-              size={18}
-              className={cn(isLoading && "animate-spin text-slate-950")}
-            />
-          </Button>
-        ) : null}
+      {hasRightActions ? (
+        <div className="flex items-center gap-2">{rightActions}</div>
+      ) : (
+        <div className="flex items-center gap-2">
+          {onRefresh ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={onRefresh}
+              className="border-slate-200 shadow-sm"
+            >
+              <RefreshIcon
+                size={18}
+                className={cn(isLoading && "animate-spin text-slate-950")}
+              />
+            </Button>
+          ) : null}
 
-        {onAdd ? (
-          <Button
-            type="button"
-            onClick={onAdd}
-            className="gap-2 bg-slate-950 text-xs font-bold text-white uppercase shadow-sm hover:bg-slate-800"
-          >
-            <PlusSignIcon size={18} />
-            {addLabel}
-          </Button>
-        ) : null}
-      </div>
+          {onAdd ? (
+            <Button
+              type="button"
+              onClick={onAdd}
+              className="gap-2 bg-slate-950 text-xs font-bold text-white uppercase shadow-sm hover:bg-slate-800"
+            >
+              <PlusSignIcon size={18} />
+              {addLabel}
+            </Button>
+          ) : null}
+        </div>
+      )}
     </div>
   )
 }

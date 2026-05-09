@@ -14,6 +14,7 @@ type DataTablePaginationProps<TData> = {
   table: Table<TData>
   totalRecords?: number
   pageSizeOptions?: number[]
+  showSizeSelector?: boolean
 }
 
 const getPaginationRange = (currentPage: number, pageCount: number) => {
@@ -39,6 +40,7 @@ export const DataTablePagination = <TData,>({
   table,
   totalRecords,
   pageSizeOptions = [10, 20, 50],
+  showSizeSelector = true,
 }: DataTablePaginationProps<TData>) => {
   const pagination = table.getState().pagination
 
@@ -110,26 +112,27 @@ export const DataTablePagination = <TData,>({
 
       <div className="flex items-center justify-center gap-3 md:justify-end">
         <p className="text-[11px] font-bold tracking-widest text-slate-500 uppercase">
-          Pág. <span className="text-slate-950">{pageIndex + 1}</span> /{" "}
-          {pageCount}
+          Pag. <span className="text-slate-950">{pageIndex + 1}</span> / {pageCount}
         </p>
 
-        <Select
-          value={String(pageSize)}
-          onValueChange={(value) => table.setPageSize(Number(value))}
-        >
-          <SelectTrigger className="h-8 w-[92px] border-slate-200 text-xs">
-            <SelectValue />
-          </SelectTrigger>
+        {showSizeSelector ? (
+          <Select
+            value={String(pageSize)}
+            onValueChange={(value) => table.setPageSize(Number(value))}
+          >
+            <SelectTrigger className="h-8 w-[92px] border-slate-200 text-xs">
+              <SelectValue />
+            </SelectTrigger>
 
-          <SelectContent>
-            {pageSizeOptions.map((option) => (
-              <SelectItem key={option} value={String(option)}>
-                {option} filas
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            <SelectContent>
+              {pageSizeOptions.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option} filas
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
       </div>
     </div>
   )
