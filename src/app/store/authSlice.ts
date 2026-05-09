@@ -69,7 +69,7 @@ export const authSlice = createSlice({
         if (typeof window !== "undefined") {
           Cookies.set("token", token, {
             expires: 1,
-            secure: true,
+            secure: false,
             sameSite: "strict",
             path: "/",
           })
@@ -86,7 +86,7 @@ export const authSlice = createSlice({
 
       if (typeof window !== "undefined") {
         Cookies.remove("token", {
-          secure: true,
+          secure: false,
           sameSite: "strict",
           path: "/",
         })

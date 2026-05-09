@@ -12,7 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as PublicVerificarCodigoRouteImport } from './routes/_public/verificar-codigo'
+import { Route as PublicRecuperarPasswordRouteImport } from './routes/_public/recuperar-password'
 import { Route as PublicFaqRouteImport } from './routes/_public/faq'
+import { Route as PublicCambiarPasswordRouteImport } from './routes/_public/cambiar-password'
 import { Route as AuthTenantsRouteImport } from './routes/_auth/tenants'
 import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
 import { Route as AuthPublicarRouteImport } from './routes/_auth/publicar'
@@ -35,9 +38,24 @@ const PublicIndexRoute = PublicIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PublicRoute,
 } as any)
+const PublicVerificarCodigoRoute = PublicVerificarCodigoRouteImport.update({
+  id: '/verificar-codigo',
+  path: '/verificar-codigo',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicRecuperarPasswordRoute = PublicRecuperarPasswordRouteImport.update({
+  id: '/recuperar-password',
+  path: '/recuperar-password',
+  getParentRoute: () => PublicRoute,
+} as any)
 const PublicFaqRoute = PublicFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicCambiarPasswordRoute = PublicCambiarPasswordRouteImport.update({
+  id: '/cambiar-password',
+  path: '/cambiar-password',
   getParentRoute: () => PublicRoute,
 } as any)
 const AuthTenantsRoute = AuthTenantsRouteImport.update({
@@ -90,7 +108,10 @@ export interface FileRoutesByFullPath {
   '/publicar': typeof AuthPublicarRoute
   '/settings': typeof AuthSettingsRoute
   '/tenants': typeof AuthTenantsRoute
+  '/cambiar-password': typeof PublicCambiarPasswordRoute
   '/faq': typeof PublicFaqRoute
+  '/recuperar-password': typeof PublicRecuperarPasswordRoute
+  '/verificar-codigo': typeof PublicVerificarCodigoRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
 }
 export interface FileRoutesByTo {
@@ -102,7 +123,10 @@ export interface FileRoutesByTo {
   '/publicar': typeof AuthPublicarRoute
   '/settings': typeof AuthSettingsRoute
   '/tenants': typeof AuthTenantsRoute
+  '/cambiar-password': typeof PublicCambiarPasswordRoute
   '/faq': typeof PublicFaqRoute
+  '/recuperar-password': typeof PublicRecuperarPasswordRoute
+  '/verificar-codigo': typeof PublicVerificarCodigoRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
 }
 export interface FileRoutesById {
@@ -116,7 +140,10 @@ export interface FileRoutesById {
   '/_auth/publicar': typeof AuthPublicarRoute
   '/_auth/settings': typeof AuthSettingsRoute
   '/_auth/tenants': typeof AuthTenantsRoute
+  '/_public/cambiar-password': typeof PublicCambiarPasswordRoute
   '/_public/faq': typeof PublicFaqRoute
+  '/_public/recuperar-password': typeof PublicRecuperarPasswordRoute
+  '/_public/verificar-codigo': typeof PublicVerificarCodigoRoute
   '/_public/': typeof PublicIndexRoute
   '/_public/publicacion/$id': typeof PublicPublicacionIdRoute
 }
@@ -131,7 +158,10 @@ export interface FileRouteTypes {
     | '/publicar'
     | '/settings'
     | '/tenants'
+    | '/cambiar-password'
     | '/faq'
+    | '/recuperar-password'
+    | '/verificar-codigo'
     | '/publicacion/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,7 +173,10 @@ export interface FileRouteTypes {
     | '/publicar'
     | '/settings'
     | '/tenants'
+    | '/cambiar-password'
     | '/faq'
+    | '/recuperar-password'
+    | '/verificar-codigo'
     | '/publicacion/$id'
   id:
     | '__root__'
@@ -156,7 +189,10 @@ export interface FileRouteTypes {
     | '/_auth/publicar'
     | '/_auth/settings'
     | '/_auth/tenants'
+    | '/_public/cambiar-password'
     | '/_public/faq'
+    | '/_public/recuperar-password'
+    | '/_public/verificar-codigo'
     | '/_public/'
     | '/_public/publicacion/$id'
   fileRoutesById: FileRoutesById
@@ -189,11 +225,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicIndexRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_public/verificar-codigo': {
+      id: '/_public/verificar-codigo'
+      path: '/verificar-codigo'
+      fullPath: '/verificar-codigo'
+      preLoaderRoute: typeof PublicVerificarCodigoRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/recuperar-password': {
+      id: '/_public/recuperar-password'
+      path: '/recuperar-password'
+      fullPath: '/recuperar-password'
+      preLoaderRoute: typeof PublicRecuperarPasswordRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/_public/faq': {
       id: '/_public/faq'
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof PublicFaqRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/cambiar-password': {
+      id: '/_public/cambiar-password'
+      path: '/cambiar-password'
+      fullPath: '/cambiar-password'
+      preLoaderRoute: typeof PublicCambiarPasswordRouteImport
       parentRoute: typeof PublicRoute
     }
     '/_auth/tenants': {
@@ -278,13 +335,19 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface PublicRouteChildren {
+  PublicCambiarPasswordRoute: typeof PublicCambiarPasswordRoute
   PublicFaqRoute: typeof PublicFaqRoute
+  PublicRecuperarPasswordRoute: typeof PublicRecuperarPasswordRoute
+  PublicVerificarCodigoRoute: typeof PublicVerificarCodigoRoute
   PublicIndexRoute: typeof PublicIndexRoute
   PublicPublicacionIdRoute: typeof PublicPublicacionIdRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
+  PublicCambiarPasswordRoute: PublicCambiarPasswordRoute,
   PublicFaqRoute: PublicFaqRoute,
+  PublicRecuperarPasswordRoute: PublicRecuperarPasswordRoute,
+  PublicVerificarCodigoRoute: PublicVerificarCodigoRoute,
   PublicIndexRoute: PublicIndexRoute,
   PublicPublicacionIdRoute: PublicPublicacionIdRoute,
 }
