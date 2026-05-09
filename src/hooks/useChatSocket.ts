@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from "react"
-import { Client, IMessage, StompConfig } from "@stomp/stompjs"
+import { Client, type IMessage, StompConfig } from "@stomp/stompjs"
 import Cookies from "js-cookie"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 interface UseChatSocketProps {
   onMessageReceived: (message: any) => void
@@ -8,7 +8,11 @@ interface UseChatSocketProps {
   topics?: string[]
 }
 
-export function useChatSocket({ onMessageReceived, enabled = true, topics = [] }: UseChatSocketProps) {
+export function useChatSocket({
+  onMessageReceived,
+  enabled = true,
+  topics = [],
+}: UseChatSocketProps) {
   const [isConnected, setIsConnected] = useState(false)
   const clientRef = useRef<Client | null>(null)
   const onMessageReceivedRef = useRef(onMessageReceived)
@@ -39,7 +43,8 @@ export function useChatSocket({ onMessageReceived, enabled = true, topics = [] }
       return
     }
 
-    const brokerURL = import.meta.env.VITE_WS_URL || "ws://localhost:8081/ws-chat"
+    const brokerURL =
+      import.meta.env.VITE_WS_URL || "ws://localhost:8081/ws-chat"
 
     const config: StompConfig = {
       brokerURL,
@@ -59,33 +64,41 @@ export function useChatSocket({ onMessageReceived, enabled = true, topics = [] }
         subscriptionsRef.current.clear()
 
         // Cola privada del usuario
-        const sub = clientRef.current?.subscribe("/user/queue/messages", (message: IMessage) => {
-          try {
-            const body = JSON.parse(message.body)
-            onMessageReceivedRef.current(body)
-          } catch (err) {
-            console.error("[STOMP] Error parsing message body:", err)
+        const sub = clientRef.current?.subscribe(
+          "/user/queue/messages",
+          (message: IMessage) => {
+            try {
+              const body = JSON.parse(message.body)
+              onMessageReceivedRef.current(body)
+            } catch (err) {
+              console.error("[STOMP] Error parsing message body:", err)
+            }
           }
-        })
+        )
         if (sub) subscriptionsRef.current.set("/user/queue/messages", sub)
 
         // FIX 1 aplicado: lee topicsRef.current en vez del closure inicial (que siempre era [])
-        topicsRef.current.forEach(topic => {
+        topicsRef.current.forEach((topic) => {
           if (!subscriptionsRef.current.has(topic)) {
-            const s = clientRef.current?.subscribe(topic, (message: IMessage) => {
-              try {
-                const body = JSON.parse(message.body)
-                onMessageReceivedRef.current(body)
-              } catch (err) {
-                console.error("[STOMP] Error parsing message body:", err)
+            const s = clientRef.current?.subscribe(
+              topic,
+              (message: IMessage) => {
+                try {
+                  const body = JSON.parse(message.body)
+                  onMessageReceivedRef.current(body)
+                } catch (err) {
+                  console.error("[STOMP] Error parsing message body:", err)
+                }
               }
-            })
+            )
             if (s) subscriptionsRef.current.set(topic, s)
           }
         })
       },
       onStompError: (frame) => {
-        console.error("[STOMP] Broker reported error: " + frame.headers["message"])
+        console.error(
+          "[STOMP] Broker reported error: " + frame.headers["message"]
+        )
         console.error("[STOMP] Additional details: " + frame.body)
       },
       onDisconnect: () => {
@@ -142,12 +155,13 @@ export function useChatSocket({ onMessageReceived, enabled = true, topics = [] }
       if (topic !== "/user/queue/messages" && !currentTopics.includes(topic)) {
         sub.unsubscribe()
         subscriptionsRef.current.delete(topic)
-        if (import.meta.env.DEV) console.log(`[STOMP] Unsubscribed from ${topic}`)
+        if (import.meta.env.DEV)
+          console.log(`[STOMP] Unsubscribed from ${topic}`)
       }
     })
 
     // Suscribir nuevos tópicos
-    currentTopics.forEach(topic => {
+    currentTopics.forEach((topic) => {
       if (!subscriptionsRef.current.has(topic)) {
         const sub = clientRef.current?.subscribe(topic, (message: IMessage) => {
           try {

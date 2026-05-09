@@ -55,11 +55,6 @@
     "header": {
       "menu": "Menú",
       "detail": "Administración"
-    },
-    "menu": {
-      "inmuebles": "Mis Inmuebles",
-      "inquilinos": "Mis Inquilinos",
-      "contratos": "Mis Contratos"
     }
   },
   "home": {
