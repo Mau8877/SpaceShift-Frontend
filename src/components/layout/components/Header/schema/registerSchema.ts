@@ -1,31 +1,30 @@
 import * as z from "zod"
-import type { TFunction } from "i18next"
 
-export const getRegisterSchema = (t: TFunction) =>
+export const getRegisterSchema = () =>
   z
     .object({
       nombre: z
         .string()
-        .min(2, { message: t("auth.register.validation.name-min") })
-        .max(100, { message: t("auth.register.validation.name-max") }),
+        .min(2, { message: "El nombre debe tener al menos 2 caracteres" })
+        .max(100, { message: "El nombre no puede superar 100 caracteres" }),
       apellido: z
         .string()
-        .max(100, { message: t("auth.register.validation.lastname-max") })
+        .max(100, { message: "El apellido no puede superar 100 caracteres" })
         .nullable()
         .optional(),
       correo: z
         .string()
-        .min(1, { message: t("auth.register.validation.email-required") })
-        .email({ message: t("auth.register.validation.email-invalid") }),
+        .min(1, { message: "El correo es obligatorio" })
+        .email({ message: "Ingresa un correo válido" }),
       password: z
         .string()
-        .min(6, { message: t("auth.register.validation.password-min") }),
+        .min(6, { message: "La contraseña debe tener al menos 6 caracteres" }),
       confirmPassword: z
         .string()
-        .min(1, { message: t("auth.register.validation.confirm-required") }),
+        .min(1, { message: "Debes confirmar la contraseña" }),
     })
     .refine((data) => data.password === data.confirmPassword, {
-      message: t("auth.register.validation.passwords-mismatch"),
+      message: "Las contraseñas no coinciden",
       path: ["confirmPassword"],
     })
 

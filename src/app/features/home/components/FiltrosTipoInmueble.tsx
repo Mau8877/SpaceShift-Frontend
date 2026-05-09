@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next"
 import {
   Building03Icon,
   Calendar03Icon,
@@ -13,22 +12,21 @@ interface Props {
 }
 
 export function FiltrosTipoInmueble({ value, onFilterChange }: Props) {
-  const { t } = useTranslation()
   const categorias = [
-    { id: "venta", label: t("home.filter.component.venta"), icon: Home01Icon },
+    { id: "venta", label: "Venta", icon: Home01Icon },
     {
       id: "alquiler",
-      label: t("home.filter.component.alquiler"),
+      label: "Alquiler",
       icon: Key01Icon,
     },
     {
       id: "anticretico",
-      label: t("home.filter.component.anticretico"),
+      label: "Anticrético",
       icon: Building03Icon,
     },
     {
       id: "alojamiento",
-      label: t("home.filter.component.alojamiento"),
+      label: "Alojamiento",
       icon: Calendar03Icon,
     },
   ]

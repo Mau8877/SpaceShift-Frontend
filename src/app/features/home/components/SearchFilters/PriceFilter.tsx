@@ -6,26 +6,24 @@ import { SearchField } from "./SearchField"
 interface PriceFilterProps {
   priceRange: { min: number; max: number | null }
   onPriceChange: (range: { min: number; max: number | null }) => void
-  t: any
 }
 
 export const PriceFilter = ({
   priceRange,
   onPriceChange,
-  t,
 }: PriceFilterProps) => (
   <Popover>
     <PopoverTrigger asChild>
       <div className="flex flex-1">
         <SearchField
-          label={t("home.search.price.label", "Precio")}
+          label="Precio"
           icon={<DollarCircleIcon size={18} />}
           className="w-full"
         >
           <span className={`truncate text-xs font-medium sm:text-sm ${priceRange.max ? "text-slate-900 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"}`}>
             {priceRange.max
               ? `$${priceRange.min} - $${priceRange.max}`
-              : t("home.search.price.placeholder", "Añadir presupuesto")}
+              : "Añadir presupuesto"}
           </span>
         </SearchField>
       </div>
