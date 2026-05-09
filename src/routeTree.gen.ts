@@ -130,8 +130,6 @@ export interface FileRoutesByTo {
   '/faq': typeof PublicFaqRoute
   '/recuperar-password': typeof PublicRecuperarPasswordRoute
   '/verificar-codigo': typeof PublicVerificarCodigoRoute
-=======
-  '/faq': typeof PublicFaqRoute
   '/dashboard/clientes': typeof AuthDashboardClientesRoute
   '/dashboard/contratos': typeof AuthDashboardContratosRoute
   '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
@@ -184,8 +182,6 @@ export interface FileRouteTypes {
     | '/faq'
     | '/recuperar-password'
     | '/verificar-codigo'
-=======
-    | '/faq'
     | '/dashboard/clientes'
     | '/dashboard/contratos'
     | '/dashboard/inmuebles'
