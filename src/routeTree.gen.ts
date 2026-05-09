@@ -11,14 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicVerificarCodigoRouteImport } from './routes/_public/verificar-codigo'
 import { Route as PublicRecuperarPasswordRouteImport } from './routes/_public/recuperar-password'
 import { Route as PublicFaqRouteImport } from './routes/_public/faq'
 import { Route as PublicCambiarPasswordRouteImport } from './routes/_public/cambiar-password'
 import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
+import { Route as AuthReportesRouteImport } from './routes/_auth/reportes'
 import { Route as AuthPublicarRouteImport } from './routes/_auth/publicar'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
+import { Route as AuthGestionarUsuariosRouteImport } from './routes/_auth/gestionar-usuarios'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
@@ -32,6 +35,11 @@ const PublicRoute = PublicRouteImport.update({
 } as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PublicIndexRoute = PublicIndexRouteImport.update({
@@ -64,6 +72,11 @@ const AuthSettingsRoute = AuthSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthReportesRoute = AuthReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthPublicarRoute = AuthPublicarRouteImport.update({
   id: '/publicar',
   path: '/publicar',
@@ -72,6 +85,11 @@ const AuthPublicarRoute = AuthPublicarRouteImport.update({
 const AuthProfileRoute = AuthProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthGestionarUsuariosRoute = AuthGestionarUsuariosRouteImport.update({
+  id: '/gestionar-usuarios',
+  path: '/gestionar-usuarios',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthDashboardRoute = AuthDashboardRouteImport.update({
@@ -106,10 +124,13 @@ const AuthDashboardClientesRoute = AuthDashboardClientesRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/$': typeof SplatRoute
   '/': typeof PublicIndexRoute
   '/dashboard': typeof AuthDashboardRouteWithChildren
+  '/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/profile': typeof AuthProfileRoute
   '/publicar': typeof AuthPublicarRoute
+  '/reportes': typeof AuthReportesRoute
   '/settings': typeof AuthSettingsRoute
   '/cambiar-password': typeof PublicCambiarPasswordRoute
   '/faq': typeof PublicFaqRoute
@@ -122,9 +143,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof AuthDashboardIndexRoute
 }
 export interface FileRoutesByTo {
+  '/$': typeof SplatRoute
   '/': typeof PublicIndexRoute
+  '/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/profile': typeof AuthProfileRoute
   '/publicar': typeof AuthPublicarRoute
+  '/reportes': typeof AuthReportesRoute
   '/settings': typeof AuthSettingsRoute
   '/cambiar-password': typeof PublicCambiarPasswordRoute
   '/faq': typeof PublicFaqRoute
@@ -138,11 +162,14 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/$': typeof SplatRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
   '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
+  '/_auth/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/_auth/profile': typeof AuthProfileRoute
   '/_auth/publicar': typeof AuthPublicarRoute
+  '/_auth/reportes': typeof AuthReportesRoute
   '/_auth/settings': typeof AuthSettingsRoute
   '/_public/cambiar-password': typeof PublicCambiarPasswordRoute
   '/_public/faq': typeof PublicFaqRoute
@@ -158,10 +185,13 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/$'
     | '/'
     | '/dashboard'
+    | '/gestionar-usuarios'
     | '/profile'
     | '/publicar'
+    | '/reportes'
     | '/settings'
     | '/cambiar-password'
     | '/faq'
@@ -174,9 +204,12 @@ export interface FileRouteTypes {
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/$'
     | '/'
+    | '/gestionar-usuarios'
     | '/profile'
     | '/publicar'
+    | '/reportes'
     | '/settings'
     | '/cambiar-password'
     | '/faq'
@@ -189,11 +222,14 @@ export interface FileRouteTypes {
     | '/dashboard'
   id:
     | '__root__'
+    | '/$'
     | '/_auth'
     | '/_public'
     | '/_auth/dashboard'
+    | '/_auth/gestionar-usuarios'
     | '/_auth/profile'
     | '/_auth/publicar'
+    | '/_auth/reportes'
     | '/_auth/settings'
     | '/_public/cambiar-password'
     | '/_public/faq'
@@ -208,6 +244,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
 }
@@ -226,6 +263,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_public/': {
@@ -270,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSettingsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/reportes': {
+      id: '/_auth/reportes'
+      path: '/reportes'
+      fullPath: '/reportes'
+      preLoaderRoute: typeof AuthReportesRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/publicar': {
       id: '/_auth/publicar'
       path: '/publicar'
@@ -282,6 +333,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthProfileRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/gestionar-usuarios': {
+      id: '/_auth/gestionar-usuarios'
+      path: '/gestionar-usuarios'
+      fullPath: '/gestionar-usuarios'
+      preLoaderRoute: typeof AuthGestionarUsuariosRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/dashboard': {
@@ -349,15 +407,19 @@ const AuthDashboardRouteWithChildren = AuthDashboardRoute._addFileChildren(
 
 interface AuthRouteChildren {
   AuthDashboardRoute: typeof AuthDashboardRouteWithChildren
+  AuthGestionarUsuariosRoute: typeof AuthGestionarUsuariosRoute
   AuthProfileRoute: typeof AuthProfileRoute
   AuthPublicarRoute: typeof AuthPublicarRoute
+  AuthReportesRoute: typeof AuthReportesRoute
   AuthSettingsRoute: typeof AuthSettingsRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthDashboardRoute: AuthDashboardRouteWithChildren,
+  AuthGestionarUsuariosRoute: AuthGestionarUsuariosRoute,
   AuthProfileRoute: AuthProfileRoute,
   AuthPublicarRoute: AuthPublicarRoute,
+  AuthReportesRoute: AuthReportesRoute,
   AuthSettingsRoute: AuthSettingsRoute,
 }
 
@@ -385,6 +447,7 @@ const PublicRouteWithChildren =
   PublicRoute._addFileChildren(PublicRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  SplatRoute: SplatRoute,
   AuthRoute: AuthRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
 }

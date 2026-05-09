@@ -6,6 +6,8 @@ export const updatePerfilSchema = z.object({
   tipoPerfil: z.string().min(1, "Tipo de perfil requerido").optional(),
   nombre: z.string().min(1, "Nombre requerido").optional(),
   apellido: z.string().optional(),
+  telefono: z.string().optional(),
+  descripcion: z.string().optional(),
   fotoUrl: z
     .string()
     .refine(
