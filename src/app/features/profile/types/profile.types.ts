@@ -5,6 +5,8 @@ export interface PerfilResponseDTO {
   nombre: string
   apellido: string | null
   fotoUrl: string | null
+  telefono: string | null
+  descripcion: string | null
 }
 
 export interface UpdatePerfilRequestDTO {
@@ -14,6 +16,8 @@ export interface UpdatePerfilRequestDTO {
   nombre?: string
   apellido?: string
   fotoUrl?: string
+  telefono?: string
+  descripcion?: string
 }
 
 export interface UpdatePerfilPayload {

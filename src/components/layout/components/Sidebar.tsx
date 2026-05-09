@@ -1,3 +1,4 @@
+import { useAppSelector } from "@/app/store"
 import { Button } from "@/components/ui/button"
 import {
   Sidebar,
@@ -14,9 +15,11 @@ import {
 } from "@/components/ui/sidebar"
 import { Link } from "@tanstack/react-router"
 import {
+  AnalyticsUpIcon,
   Cancel01Icon,
   DashboardSquare02Icon,
   Home01Icon,
+  UserGroup03Icon,
 } from "hugeicons-react"
 import * as React from "react"
 import { useTranslation } from "react-i18next"
@@ -24,6 +27,7 @@ import { useTranslation } from "react-i18next"
 export function AppSidebar() {
   const { t } = useTranslation()
   const { setOpenMobile, isMobile } = useSidebar()
+  const user = useAppSelector((state) => state.auth.user)
 
   // 1. Agregamos el estado de montado
   const [mounted, setMounted] = React.useState(false)
@@ -35,6 +39,20 @@ export function AppSidebar() {
   const menuItems = [
     { title: "Home", icon: Home01Icon, to: "/" },
     { title: "Dashboard", icon: DashboardSquare02Icon, to: "/dashboard" },
+    ...(user?.rol === "ROLE_ADMIN"
+      ? [
+          {
+            title: "Gestionar Usuarios",
+            icon: UserGroup03Icon,
+            to: "/gestionar-usuarios",
+          },
+          {
+            title: "Reportes del Sistema",
+            icon: AnalyticsUpIcon,
+            to: "/reportes",
+          },
+        ]
+      : []),
   ]
 
   // 2. Si no está montado, devolvemos un Sidebar básico o nulo para que coincida con el servidor

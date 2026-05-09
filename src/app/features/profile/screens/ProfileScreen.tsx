@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { useAppSelector } from "@/app/store"
 import { updatePerfilSchema } from "../schemas"
 import {
@@ -30,6 +31,8 @@ type ProfileFormState = {
   apellido: string
   correo: string
   tipoPerfil: string
+  telefono: string
+  descripcion: string
   estadoConexion: boolean
   fotoUrl: string
 }
@@ -39,6 +42,8 @@ const EMPTY_FORM: ProfileFormState = {
   apellido: "",
   correo: "",
   tipoPerfil: "",
+  telefono: "",
+  descripcion: "",
   estadoConexion: false,
   fotoUrl: "",
 }
@@ -48,6 +53,8 @@ const mapProfileToForm = (profile: PerfilResponseDTO): ProfileFormState => ({
   apellido: profile.apellido ?? "",
   correo: profile.correo ?? "",
   tipoPerfil: profile.tipoPerfil ?? "",
+  telefono: profile.telefono ?? "",
+  descripcion: profile.descripcion ?? "",
   estadoConexion: Boolean(profile.estadoConexion),
   fotoUrl: profile.fotoUrl ?? "",
 })
@@ -89,6 +96,8 @@ export function ProfileScreen() {
       draft.correo === original.correo &&
       draft.estadoConexion === original.estadoConexion &&
       draft.tipoPerfil === original.tipoPerfil &&
+      draft.telefono === original.telefono &&
+      draft.descripcion === original.descripcion &&
       draft.nombre === original.nombre &&
       draft.apellido === original.apellido &&
       draft.fotoUrl === original.fotoUrl
@@ -144,6 +153,10 @@ export function ProfileScreen() {
       payload.estadoConexion = draft.estadoConexion
     }
     if (draft.tipoPerfil !== original.tipoPerfil) payload.tipoPerfil = draft.tipoPerfil
+    if (draft.telefono !== original.telefono) payload.telefono = draft.telefono.trim()
+    if (draft.descripcion !== original.descripcion) {
+      payload.descripcion = draft.descripcion.trim()
+    }
     if (draft.nombre !== original.nombre) payload.nombre = draft.nombre
     if (draft.apellido !== original.apellido) payload.apellido = draft.apellido.trim()
     if (draft.fotoUrl !== original.fotoUrl) payload.fotoUrl = draft.fotoUrl.trim()
@@ -275,6 +288,18 @@ export function ProfileScreen() {
                   {form.estadoConexion ? "Conectado" : "Desconectado"}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Teléfono
+                </p>
+                <p className="text-sm text-slate-800">{form.telefono || "No disponible"}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Descripción
+                </p>
+                <p className="text-sm text-slate-800">{form.descripcion || "No disponible"}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -361,6 +386,26 @@ export function ProfileScreen() {
                   value={draft.tipoPerfil}
                   onChange={(e) =>
                     setDraft((prev) => ({ ...prev, tipoPerfil: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="telefono">Teléfono</Label>
+                <Input
+                  id="telefono"
+                  value={draft.telefono}
+                  onChange={(e) =>
+                    setDraft((prev) => ({ ...prev, telefono: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1.5 md:col-span-2">
+                <Label htmlFor="descripcion">Descripción</Label>
+                <Textarea
+                  id="descripcion"
+                  value={draft.descripcion}
+                  onChange={(e) =>
+                    setDraft((prev) => ({ ...prev, descripcion: e.target.value }))
                   }
                 />
               </div>
