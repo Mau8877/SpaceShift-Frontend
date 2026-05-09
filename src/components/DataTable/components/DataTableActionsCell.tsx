@@ -34,6 +34,7 @@ export const DataTableActionsCell = <TData,>({
             size="icon"
             disabled={isDisabled}
             title={action.label}
+            aria-label={action.label}
             onClick={() => action.onClick(row)}
             className={cn(
               "h-8 w-8 text-slate-500 hover:text-slate-950",

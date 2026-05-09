@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "@tanstack/react-router"
 import { Logout01Icon, Settings01Icon, UserIcon } from "hugeicons-react"
+import { useGetMiPerfilQuery } from "@/app/features/profile/store"
 import { api } from "@/app/store/api/api"
 import {
   DropdownMenu,
@@ -26,6 +27,9 @@ export function UserDropdown() {
   }, [])
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth)
+  const { data: perfil } = useGetMiPerfilQuery(undefined, {
+    skip: !isAuthenticated || !user?.id,
+  })
 
   const handleLogout = () => {
     dispatch(logout())
@@ -39,12 +43,15 @@ export function UserDropdown() {
 
   const nombreInic = user.nombre[0] || "U"
   const apellidoInic = user.apellido ? user.apellido[0] : ""
+  const fotoUrl = perfil?.fotoUrl?.trim() || null
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="h-8 w-8 cursor-pointer border-2 border-white/20 transition-transform hover:scale-105 sm:h-9 sm:w-9">
-          <AvatarImage src="" alt={user.nombre} />
+          {fotoUrl ? (
+            <AvatarImage src={fotoUrl} alt={user.nombre} className="object-cover" />
+          ) : null}
           <AvatarFallback className="bg-blue-600 text-[10px] font-bold text-white sm:text-xs">
             {nombreInic}
             {apellidoInic}

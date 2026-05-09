@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import {
+  Delete02Icon,
   PencilEdit01Icon,
   RefreshIcon,
   UserAdd01Icon,
@@ -11,6 +12,16 @@ import { toast } from "sonner"
 import { useAppSelector } from "@/app/store"
 import type { DataTableRowAction } from "@/components/DataTable"
 import { DataTable } from "@/components/DataTable"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
@@ -35,6 +46,23 @@ const EMPTY_STATS = {
   totalPublicaciones: 0,
 }
 
+const getRolLabel = (rol?: string) => {
+  if (rol === "ROLE_ADMIN") return "Administrador"
+  if (rol === "ROLE_USER") return "Usuario"
+  return rol || "Sin rol"
+}
+
+const getTipoPerfilLabel = (tipoPerfil?: string) => {
+  if (tipoPerfil === "PERSONAL") return "Personal"
+  if (tipoPerfil === "EMPRESA") return "Empresa"
+  return tipoPerfil || "Sin tipo"
+}
+
+const getNombreCompleto = (nombre?: string, apellido?: string | null) => {
+  const partes = [nombre?.trim(), apellido?.trim()].filter(Boolean)
+  return partes.length > 0 ? partes.join(" ") : "Sin nombre"
+}
+
 export function GestionarUsuariosScreen() {
   const currentUser = useAppSelector((state) => state.auth.user)
 
@@ -50,6 +78,9 @@ export function GestionarUsuariosScreen() {
   const [selectedEditUser, setSelectedEditUser] = useState<UsuarioListItem | null>(null)
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
 
+  const [confirmAction, setConfirmAction] = useState<"desactivar" | "reactivar" | null>(null)
+  const [confirmUser, setConfirmUser] = useState<UsuarioListItem | null>(null)
+
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       setSearch(searchInput)
@@ -58,9 +89,7 @@ export function GestionarUsuariosScreen() {
     return () => window.clearTimeout(timeout)
   }, [searchInput])
 
-  const estado =
-    estadoFilter === "all" ? null : estadoFilter === "true" ? true : false
-
+  const estado = estadoFilter === "all" ? null : estadoFilter === "true" ? true : false
   const estadoConexion =
     estadoConexionFilter === "all"
       ? null
@@ -77,8 +106,7 @@ export function GestionarUsuariosScreen() {
   })
 
   const [activarUsuario, { isLoading: isActivando }] = useActivarUsuarioMutation()
-  const [desactivarUsuario, { isLoading: isDesactivando }] =
-    useDesactivarUsuarioMutation()
+  const [desactivarUsuario, { isLoading: isDesactivando }] = useDesactivarUsuarioMutation()
 
   const isMutating = isActivando || isDesactivando
 
@@ -100,16 +128,30 @@ export function GestionarUsuariosScreen() {
     setIsFormDialogOpen(true)
   }
 
-  const handleToggleEstado = async (usuario: UsuarioListItem) => {
-    if (usuario.estado) {
-      const confirmed = window.confirm("¿Seguro que deseas desactivar este usuario?")
-      if (!confirmed) {
-        return
-      }
+  const handleRequestToggleEstado = (usuario: UsuarioListItem) => {
+    setConfirmUser(usuario)
+    setConfirmAction(usuario.estado ? "desactivar" : "reactivar")
+  }
 
+  const handleCloseConfirm = () => {
+    if (isMutating) {
+      return
+    }
+
+    setConfirmAction(null)
+    setConfirmUser(null)
+  }
+
+  const handleConfirmToggleEstado = async () => {
+    if (!confirmUser || !confirmAction) {
+      return
+    }
+
+    if (confirmAction === "desactivar") {
       try {
-        await desactivarUsuario(usuario.id).unwrap()
+        await desactivarUsuario(confirmUser.id).unwrap()
         toast.success("Usuario desactivado correctamente")
+        handleCloseConfirm()
       } catch (mutationError: any) {
         toast.error("No se pudo desactivar el usuario", {
           description: mutationError?.data?.message ?? "Intenta nuevamente.",
@@ -119,10 +161,11 @@ export function GestionarUsuariosScreen() {
     }
 
     try {
-      await activarUsuario(usuario.id).unwrap()
-      toast.success("Usuario activado correctamente")
+      await activarUsuario(confirmUser.id).unwrap()
+      toast.success("Usuario reactivado correctamente")
+      handleCloseConfirm()
     } catch (mutationError: any) {
-      toast.error("No se pudo activar el usuario", {
+      toast.error("No se pudo reactivar el usuario", {
         description: mutationError?.data?.message ?? "Intenta nuevamente.",
       })
     }
@@ -145,45 +188,35 @@ export function GestionarUsuariosScreen() {
       {
         accessorKey: "correo",
         header: "Correo",
+        cell: ({ row }) => (
+          <div>
+            <p className="font-medium text-slate-900">{row.original.correo}</p>
+            <p className="text-xs text-slate-500">{getRolLabel(row.original.rol)}</p>
+          </div>
+        ),
       },
       {
-        accessorKey: "nombre",
-        header: "Nombre",
+        id: "nombreCompleto",
+        header: "Nombre completo",
+        cell: ({ row }) => getNombreCompleto(row.original.nombre, row.original.apellido),
       },
       {
-        accessorKey: "apellido",
-        header: "Apellido",
-        cell: ({ row }) => row.original.apellido || "-",
-      },
-      {
-        accessorKey: "telefono",
-        header: "Telefono",
-        cell: ({ row }) => row.original.telefono || "-",
-      },
-      {
-        accessorKey: "rol",
-        header: "Rol",
+        accessorKey: "totalPublicaciones",
+        header: "# Publicaciones",
       },
       {
         accessorKey: "tipoPerfil",
         header: "Tipo perfil",
+        cell: ({ row }) => getTipoPerfilLabel(row.original.tipoPerfil),
       },
       {
-        accessorKey: "totalPublicaciones",
-        header: "Total publicaciones",
-      },
-      {
-        accessorKey: "estado",
+        id: "estado",
         header: "Estado",
         cell: ({ row }) => (
-          <UsuarioEstadoBadge tipo="estado" valor={row.original.estado} />
-        ),
-      },
-      {
-        accessorKey: "estadoConexion",
-        header: "Estado conexion",
-        cell: ({ row }) => (
-          <UsuarioEstadoBadge tipo="conexion" valor={row.original.estadoConexion} />
+          <div className="flex flex-wrap gap-1">
+            <UsuarioEstadoBadge tipo="estado" valor={row.original.estado} />
+            <UsuarioEstadoBadge tipo="conexion" valor={row.original.estadoConexion} />
+          </div>
         ),
       },
     ],
@@ -206,18 +239,20 @@ export function GestionarUsuariosScreen() {
       },
       {
         id: "deactivate",
-        label: "Desactivar",
+        label: "Desactivar usuario",
+        icon: Delete02Icon,
         variant: "destructive",
         hidden: (row) => !row.estado,
         disabled: () => isMutating,
-        onClick: handleToggleEstado,
+        onClick: handleRequestToggleEstado,
       },
       {
         id: "activate",
-        label: "Activar",
+        label: "Reactivar usuario",
+        icon: RefreshIcon,
         hidden: (row) => row.estado,
         disabled: () => isMutating,
-        onClick: handleToggleEstado,
+        onClick: handleRequestToggleEstado,
       },
     ],
     [isMutating]
@@ -341,6 +376,35 @@ export function GestionarUsuariosScreen() {
         user={selectedEditUser}
         onOpenChange={setIsFormDialogOpen}
       />
+
+      <AlertDialog open={Boolean(confirmAction && confirmUser)} onOpenChange={(open) => !open && handleCloseConfirm()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction === "desactivar" ? "Desactivar usuario" : "Reactivar usuario"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction === "desactivar"
+                ? `Estas seguro de que deseas desactivar a ${getNombreCompleto(confirmUser?.nombre, confirmUser?.apellido)}? El usuario no podra acceder al sistema hasta que sea reactivado.`
+                : `Estas seguro de que deseas reactivar a ${getNombreCompleto(confirmUser?.nombre, confirmUser?.apellido)}? El usuario podra acceder nuevamente al sistema.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isMutating}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              variant={confirmAction === "desactivar" ? "destructive" : "default"}
+              disabled={isMutating}
+              onClick={handleConfirmToggleEstado}
+            >
+              {isMutating
+                ? "Procesando..."
+                : confirmAction === "desactivar"
+                  ? "Desactivar"
+                  : "Reactivar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   )
 }
