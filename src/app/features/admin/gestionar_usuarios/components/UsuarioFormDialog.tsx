@@ -24,11 +24,10 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   createUsuarioSchema,
   updateUsuarioSchema,
-  type CreateUsuarioFormValues,
-  type UpdateUsuarioFormValues,
 } from "../schemas"
 import {
   useCreateUsuarioMutation,
+  useGetUsuarioByIdQuery,
   useUpdateUsuarioMutation,
 } from "../store"
 import type { UsuarioListItem, UsuarioPatchRequest, UsuarioRequest } from "../types"
@@ -71,6 +70,9 @@ export const UsuarioFormDialog = ({
   const [form, setForm] = useState<UsuarioFormState>(EMPTY_FORM)
   const [createUsuario, { isLoading: isCreating }] = useCreateUsuarioMutation()
   const [updateUsuario, { isLoading: isUpdating }] = useUpdateUsuarioMutation()
+  const { data: userDetail } = useGetUsuarioByIdQuery(user?.id ?? "", {
+    skip: !open || mode !== "edit" || !user?.id,
+  })
 
   const isPending = isCreating || isUpdating
 
@@ -81,11 +83,11 @@ export const UsuarioFormDialog = ({
 
     if (mode === "edit" && user) {
       setForm({
-        correo: user.correo,
+        correo: user.correo ?? "",
         password: "",
-        rol: user.rol,
-        tipoPerfil: user.tipoPerfil,
-        nombre: user.nombre,
+        rol: user.rol ?? "ROLE_USER",
+        tipoPerfil: user.tipoPerfil ?? "PERSONAL",
+        nombre: user.nombre ?? "",
         apellido: user.apellido ?? "",
         telefono: user.telefono ?? "",
         descripcion: "",
@@ -95,6 +97,23 @@ export const UsuarioFormDialog = ({
 
     setForm(EMPTY_FORM)
   }, [mode, open, user])
+
+  useEffect(() => {
+    if (!open || mode !== "edit" || !userDetail) {
+      return
+    }
+
+    setForm({
+      correo: userDetail.correo ?? "",
+      password: "",
+      rol: userDetail.rol ?? "ROLE_USER",
+      tipoPerfil: userDetail.tipoPerfil ?? "PERSONAL",
+      nombre: userDetail.nombre ?? "",
+      apellido: userDetail.apellido ?? "",
+      telefono: userDetail.telefono ?? "",
+      descripcion: userDetail.descripcion ?? "",
+    })
+  }, [mode, open, userDetail])
 
   const title = useMemo(
     () => (mode === "create" ? "Crear usuario" : "Editar usuario"),
@@ -135,7 +154,7 @@ export const UsuarioFormDialog = ({
       }
 
       try {
-        await createUsuario(parsed.data as CreateUsuarioFormValues).unwrap()
+        await createUsuario(parsed.data).unwrap()
         toast.success("Usuario creado correctamente")
         onOpenChange(false)
       } catch (error: any) {
@@ -169,7 +188,7 @@ export const UsuarioFormDialog = ({
     try {
       await updateUsuario({
         id: user.id,
-        data: parsed.data as UpdateUsuarioFormValues,
+        data: parsed.data,
       }).unwrap()
       toast.success("Usuario actualizado correctamente")
       onOpenChange(false)
