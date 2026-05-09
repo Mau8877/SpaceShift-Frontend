@@ -1,37 +1,66 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { useMemo, useState } from "react"
+import {
+  PencilEdit01Icon,
+  RefreshIcon,
+  UserAdd01Icon,
+  ViewIcon,
+} from "hugeicons-react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
+import { useAppSelector } from "@/app/store"
+import type { DataTableRowAction } from "@/components/DataTable"
+import { DataTable } from "@/components/DataTable"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+
+import {
+  UsuarioDetalleDialog,
+  UsuarioEstadoBadge,
+  UsuarioFilters,
+  UsuarioFormDialog,
+  UsuarioStatsCards,
+} from "../components"
 import {
   useActivarUsuarioMutation,
   useDesactivarUsuarioMutation,
   useGetUsuariosQuery,
 } from "../store"
 import type { UsuarioListItem } from "../types"
-import type { DataTableRowAction } from "@/components/DataTable"
-import { DataTable } from "@/components/DataTable"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+
+const EMPTY_STATS = {
+  totalUsuarios: 0,
+  usuariosActivos: 0,
+  usuariosInactivos: 0,
+  totalPublicaciones: 0,
+}
 
 export function GestionarUsuariosScreen() {
+  const currentUser = useAppSelector((state) => state.auth.user)
+
   const [page, setPage] = useState(0)
   const [size, setSize] = useState(10)
+  const [searchInput, setSearchInput] = useState("")
   const [search, setSearch] = useState("")
   const [estadoFilter, setEstadoFilter] = useState<string>("all")
   const [estadoConexionFilter, setEstadoConexionFilter] = useState<string>("all")
-  const [selectedUser, setSelectedUser] = useState<UsuarioListItem | null>(null)
-  const [dialogMode, setDialogMode] = useState<"detail" | "edit">("detail")
+
+  const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null)
+  const [formMode, setFormMode] = useState<"create" | "edit">("create")
+  const [selectedEditUser, setSelectedEditUser] = useState<UsuarioListItem | null>(null)
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setSearch(searchInput)
+    }, 300)
+
+    return () => window.clearTimeout(timeout)
+  }, [searchInput])
 
   const estado =
     estadoFilter === "all" ? null : estadoFilter === "true" ? true : false
+
   const estadoConexion =
     estadoConexionFilter === "all"
       ? null
@@ -39,13 +68,7 @@ export function GestionarUsuariosScreen() {
         ? true
         : false
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useGetUsuariosQuery({
+  const { data, isLoading, isFetching, isError, error, refetch } = useGetUsuariosQuery({
     page,
     size,
     search,
@@ -59,43 +82,37 @@ export function GestionarUsuariosScreen() {
 
   const isMutating = isActivando || isDesactivando
 
-  const stats = data?.stats ?? {
-    totalUsuarios: 0,
-    usuariosActivos: 0,
-    usuariosInactivos: 0,
-    totalPublicaciones: 0,
-  }
-
+  const stats = data?.stats ?? EMPTY_STATS
   const rows = data?.content ?? []
 
-  const handleEstadoFilterChange = (value: string) => {
-    setEstadoFilter(value)
-    setPage(0)
+  const isForbidden =
+    (error as any)?.status === 403 || (error as any)?.originalStatus === 403
+
+  const handleOpenCreate = () => {
+    setFormMode("create")
+    setSelectedEditUser(null)
+    setIsFormDialogOpen(true)
   }
 
-  const handleEstadoConexionFilterChange = (value: string) => {
-    setEstadoConexionFilter(value)
-    setPage(0)
-  }
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value)
-    setPage(0)
+  const handleOpenEdit = (row: UsuarioListItem) => {
+    setFormMode("edit")
+    setSelectedEditUser(row)
+    setIsFormDialogOpen(true)
   }
 
   const handleToggleEstado = async (usuario: UsuarioListItem) => {
     if (usuario.estado) {
-      const confirmed = window.confirm(
-        `Deseas desactivar al usuario ${usuario.nombre} ${usuario.apellido ?? ""}?`
-      )
-      if (!confirmed) return
+      const confirmed = window.confirm("¿Seguro que deseas desactivar este usuario?")
+      if (!confirmed) {
+        return
+      }
 
       try {
         await desactivarUsuario(usuario.id).unwrap()
         toast.success("Usuario desactivado correctamente")
-      } catch (error: any) {
+      } catch (mutationError: any) {
         toast.error("No se pudo desactivar el usuario", {
-          description: error?.data?.message ?? "Intenta nuevamente.",
+          description: mutationError?.data?.message ?? "Intenta nuevamente.",
         })
       }
       return
@@ -104,9 +121,9 @@ export function GestionarUsuariosScreen() {
     try {
       await activarUsuario(usuario.id).unwrap()
       toast.success("Usuario activado correctamente")
-    } catch (error: any) {
+    } catch (mutationError: any) {
       toast.error("No se pudo activar el usuario", {
-        description: error?.data?.message ?? "Intenta nuevamente.",
+        description: mutationError?.data?.message ?? "Intenta nuevamente.",
       })
     }
   }
@@ -128,11 +145,6 @@ export function GestionarUsuariosScreen() {
       {
         accessorKey: "correo",
         header: "Correo",
-        cell: ({ row }) => (
-          <span className="text-sm font-medium text-slate-900">
-            {row.original.correo}
-          </span>
-        ),
       },
       {
         accessorKey: "nombre",
@@ -163,22 +175,16 @@ export function GestionarUsuariosScreen() {
       {
         accessorKey: "estado",
         header: "Estado",
-        cell: ({ row }) =>
-          row.original.estado ? (
-            <Badge className="bg-emerald-100 text-emerald-800">Activo</Badge>
-          ) : (
-            <Badge className="bg-rose-100 text-rose-800">Inactivo</Badge>
-          ),
+        cell: ({ row }) => (
+          <UsuarioEstadoBadge tipo="estado" valor={row.original.estado} />
+        ),
       },
       {
         accessorKey: "estadoConexion",
-        header: "Conexion",
-        cell: ({ row }) =>
-          row.original.estadoConexion ? (
-            <Badge className="bg-cyan-100 text-cyan-800">Conectado</Badge>
-          ) : (
-            <Badge className="bg-slate-100 text-slate-700">Desconectado</Badge>
-          ),
+        header: "Estado conexion",
+        cell: ({ row }) => (
+          <UsuarioEstadoBadge tipo="conexion" valor={row.original.estadoConexion} />
+        ),
       },
     ],
     []
@@ -189,18 +195,14 @@ export function GestionarUsuariosScreen() {
       {
         id: "detail",
         label: "Ver detalle",
-        onClick: (row) => {
-          setDialogMode("detail")
-          setSelectedUser(row)
-        },
+        icon: ViewIcon,
+        onClick: (row) => setSelectedDetailId(row.id),
       },
       {
         id: "edit",
         label: "Editar",
-        onClick: (row) => {
-          setDialogMode("edit")
-          setSelectedUser(row)
-        },
+        icon: PencilEdit01Icon,
+        onClick: handleOpenEdit,
       },
       {
         id: "deactivate",
@@ -221,14 +223,34 @@ export function GestionarUsuariosScreen() {
     [isMutating]
   )
 
+  if (currentUser?.rol !== "ROLE_ADMIN") {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-slate-950">Gestion de Usuarios</h2>
+        <Card className="border-slate-200 p-6">
+          <p className="text-sm text-slate-600">No tienes permisos para administrar usuarios.</p>
+        </Card>
+      </section>
+    )
+  }
+
+  if (isForbidden) {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-slate-950">Gestion de Usuarios</h2>
+        <Card className="border-slate-200 p-6">
+          <p className="text-sm text-slate-600">No tienes permisos para administrar usuarios.</p>
+        </Card>
+      </section>
+    )
+  }
+
   if (isError) {
     return (
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-slate-950">Gestion de Usuarios</h2>
         <Card className="border-slate-200 p-6">
-          <p className="text-sm text-slate-600">
-            No se pudo cargar la lista de usuarios.
-          </p>
+          <p className="text-sm text-slate-600">No se pudo cargar la lista de usuarios.</p>
           <Button className="mt-4" onClick={() => refetch()}>
             Reintentar
           </Button>
@@ -242,118 +264,83 @@ export function GestionarUsuariosScreen() {
       <div>
         <h2 className="text-lg font-semibold text-slate-950">Gestion de Usuarios</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Administra usuarios, roles y estado de actividad.
+          Administra usuarios, perfiles y estado de cuentas del sistema.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium text-slate-500">Total usuarios</p>
-          <p className="mt-3 text-2xl font-bold text-slate-950">{stats.totalUsuarios}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium text-slate-500">Usuarios activos</p>
-          <p className="mt-3 text-2xl font-bold text-slate-950">
-            {stats.usuariosActivos}
-          </p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium text-slate-500">Usuarios inactivos</p>
-          <p className="mt-3 text-2xl font-bold text-slate-950">
-            {stats.usuariosInactivos}
-          </p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium text-slate-500">Total publicaciones</p>
-          <p className="mt-3 text-2xl font-bold text-slate-950">
-            {stats.totalPublicaciones}
-          </p>
-        </article>
-      </div>
+      <UsuarioStatsCards stats={stats} />
 
       <DataTable
         columns={columns}
         data={rows}
         isLoading={isLoading || isFetching}
-        search={{
-          enabled: true,
-          placeholder: "Buscar por nombre, correo o telefono...",
-          value: search,
-          onChange: handleSearchChange,
-        }}
-        filters={[
-          {
-            id: "estado",
-            label: "Estado",
-            value: estadoFilter,
-            onChange: handleEstadoFilterChange,
-            options: [
-              { label: "Todos", value: "all" },
-              { label: "Activos", value: "true" },
-              { label: "Inactivos", value: "false" },
-            ],
-          },
-          {
-            id: "estadoConexion",
-            label: "Conexion",
-            value: estadoConexionFilter,
-            onChange: handleEstadoConexionFilterChange,
-            options: [
-              { label: "Todos", value: "all" },
-              { label: "Conectados", value: "true" },
-              { label: "Desconectados", value: "false" },
-            ],
-          },
-        ]}
+        toolbarContent={
+          <UsuarioFilters
+            search={searchInput}
+            estado={estadoFilter}
+            estadoConexion={estadoConexionFilter}
+            onSearchChange={(value) => {
+              setSearchInput(value)
+              setPage(0)
+            }}
+            onEstadoChange={(value) => {
+              setEstadoFilter(value)
+              setPage(0)
+            }}
+            onEstadoConexionChange={(value) => {
+              setEstadoConexionFilter(value)
+              setPage(0)
+            }}
+          />
+        }
+        rightActions={
+          <>
+            <Button type="button" onClick={handleOpenCreate}>
+              <UserAdd01Icon size={18} />
+              Crear usuario
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              title="Actualizar tabla"
+              aria-label="Actualizar tabla"
+              onClick={() => refetch()}
+            >
+              <RefreshIcon size={18} className={isFetching ? "animate-spin" : ""} />
+            </Button>
+          </>
+        }
         manualPagination
         pageIndex={data?.page ?? page}
         pageSize={data?.size ?? size}
         pageCount={Math.max(data?.totalPages ?? 1, 1)}
         totalRecords={data?.totalElements ?? 0}
         pageSizeOptions={[5, 10, 15]}
+        showPaginationSizeSelector
         onPageChange={setPage}
-        onPageSizeChange={(nextSize) => {
-          setSize(nextSize)
-          setPage(0)
-        }}
+        onPageSizeChange={setSize}
         actions={actions}
         emptyTitle="No se encontraron usuarios"
-        emptyMessage="Prueba cambiando los filtros o el texto de busqueda."
-        onRefresh={refetch}
+        emptyMessage="Prueba cambiando los filtros o los criterios de busqueda."
       />
 
-      <Dialog open={Boolean(selectedUser)} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {dialogMode === "detail" ? "Detalle de usuario" : "Editar usuario"}
-            </DialogTitle>
-            <DialogDescription>
-              {dialogMode === "detail"
-                ? "Vista rapida del usuario seleccionado."
-                : "Edicion de usuario pendiente de implementar en la siguiente iteracion."}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedUser ? (
-            <div className="space-y-2 text-sm text-slate-700">
-              <p>
-                <span className="font-semibold">Nombre:</span> {selectedUser.nombre}{" "}
-                {selectedUser.apellido ?? ""}
-              </p>
-              <p>
-                <span className="font-semibold">Correo:</span> {selectedUser.correo}
-              </p>
-              <p>
-                <span className="font-semibold">Telefono:</span>{" "}
-                {selectedUser.telefono || "-"}
-              </p>
-              <p>
-                <span className="font-semibold">Rol:</span> {selectedUser.rol}
-              </p>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
+      <UsuarioDetalleDialog
+        open={Boolean(selectedDetailId)}
+        userId={selectedDetailId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedDetailId(null)
+          }
+        }}
+      />
+
+      <UsuarioFormDialog
+        open={isFormDialogOpen}
+        mode={formMode}
+        user={selectedEditUser}
+        onOpenChange={setIsFormDialogOpen}
+      />
     </section>
   )
 }

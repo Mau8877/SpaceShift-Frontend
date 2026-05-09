@@ -1,6 +1,7 @@
 import type {
   ColumnDef,
   OnChangeFn,
+  PaginationState,
   Row,
   SortingState,
 } from "@tanstack/react-table"
@@ -85,6 +86,8 @@ export type DataTableProps<TData, TValue> = {
   onRefresh?: () => void
   onAdd?: () => void
   addLabel?: string
+  toolbarContent?: ReactNode
+  rightActions?: ReactNode
 
   actions?: Array<DataTableRowAction<TData>>
   onDetail?: (row: TData) => void
@@ -93,4 +96,6 @@ export type DataTableProps<TData, TValue> = {
 
   renderMobileCard?: DataTableRenderMobileCard<TData>
   getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string
+  showPaginationSizeSelector?: boolean
+  onPaginationChange?: OnChangeFn<PaginationState>
 }
