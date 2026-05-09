@@ -160,9 +160,11 @@ export function createBaseApi(config: ApiConfig) {
             }
             break
           case 403:
-            toast.error(t("toast.api.acceso-denegado.titulo"), {
-              description: t("toast.api.acceso-denegado.descripcion"),
-            })
+            if (!isAuthEndpoint) {
+              toast.error(t("toast.api.acceso-denegado.titulo"), {
+                description: t("toast.api.acceso-denegado.descripcion"),
+              })
+            }
             break
           case 500:
             toast.error(t("toast.api.error-servidor.titulo"), {
