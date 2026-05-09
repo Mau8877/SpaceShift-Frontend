@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useNavigate } from "@tanstack/react-router"
 import { Logout01Icon, Settings01Icon, UserIcon } from "hugeicons-react"
 import { useGetMiPerfilQuery } from "@/app/features/profile/store"
@@ -17,7 +16,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { logout, useAppDispatch, useAppSelector } from "@/app/store"
 
 export function UserDropdown() {
-  const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
 
@@ -79,14 +77,14 @@ export function UserDropdown() {
             onClick={() => navigate({ to: "/profile" })}
           >
             <UserIcon className="mr-2 h-4 w-4" />
-            <span>{t("header.dropdown-menu.perfil")}</span>
+            <span>Perfil</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => navigate({ to: "/settings" })}
           >
             <Settings01Icon className="mr-2 h-4 w-4" />
-            <span>{t("header.dropdown-menu.ajustes")}</span>
+            <span>Ajustes</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
@@ -97,7 +95,7 @@ export function UserDropdown() {
           className="focus:text-destructive-foreground cursor-pointer text-destructive focus:bg-destructive"
         >
           <Logout01Icon className="mr-2 h-4 w-4" />
-          <span>{t("header.dropdown-menu.cerrar-sesion")}</span>
+          <span>Cerrar sesión</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

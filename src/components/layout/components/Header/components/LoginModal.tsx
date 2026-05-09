@@ -8,7 +8,6 @@ import {
   ViewIcon,
   ViewOffIcon,
 } from "hugeicons-react"
-import { useTranslation } from "react-i18next"
 import { useState } from "react"
 import { toast } from "sonner"
 import { useLoginMutation } from "../store"
@@ -42,10 +41,9 @@ export function LoginModal({
   const [login, { isLoading }] = useLoginMutation()
   const [showPassword, setShowPassword] = useState(false)
   const dispatch = useAppDispatch()
-  const { t } = useTranslation()
   const router = useRouter()
 
-  const schema = getLoginSchema(t)
+  const schema = getLoginSchema()
 
   const zodValidator = (fieldName: keyof typeof schema.shape) => {
     return ({ value }: { value: any }) => {
@@ -67,8 +65,8 @@ export function LoginModal({
         router.invalidate()
         router.navigate({ to: "/dashboard" })
 
-        toast.success(t("header.login.toast.titulo"), {
-          description: t("header.login.toast.descripcion"),
+        toast.success("Inicio de sesión exitoso", {
+          description: "Bienvenido nuevamente.",
         })
 
         if (onClose) onClose()
@@ -95,10 +93,10 @@ export function LoginModal({
             </div>
             <div className="space-y-1">
               <DialogTitle className="text-2xl font-bold tracking-tight">
-                {t("header.login.titulo")}
+                Iniciar sesión
               </DialogTitle>
               <DialogDescription className="text-muted-foreground/80 max-w-[280px]">
-                {t("header.login.descripcion")}
+                Accede a tu cuenta para continuar.
               </DialogDescription>
             </div>
           </DialogHeader>
@@ -124,7 +122,7 @@ export function LoginModal({
                     htmlFor={field.name}
                     className="text-sm font-semibold tracking-wide"
                   >
-                    {t("header.login.correo")}
+                    Correo electrónico
                   </Label>
                   <div className="relative">
                     <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200 group-focus-within:text-primary">
@@ -161,7 +159,7 @@ export function LoginModal({
                       htmlFor={field.name}
                       className="text-sm font-semibold tracking-wide"
                     >
-                      {t("header.login.contrasena")}
+                      Contraseña
                     </Label>
                     <button
                       type="button"
@@ -213,19 +211,19 @@ export function LoginModal({
                 type="submit"
                 className="bg-primary hover:bg-primary/90 h-11 w-full text-base font-bold shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               >
-                {isLoading ? (
-                  <>
-                    <Loading01Icon className="mr-2 h-5 w-5 animate-spin" />
-                    {t("header.login.ingresando")}
-                  </>
-                ) : (
-                  t("header.login.iniciar-sesion")
-                )}
-              </Button>
+                  {isLoading ? (
+                    <>
+                      <Loading01Icon className="mr-2 h-5 w-5 animate-spin" />
+                      Ingresando...
+                    </>
+                  ) : (
+                    "Iniciar sesión"
+                  )}
+                </Button>
 
               <div className="flex flex-col items-center gap-3 pt-2">
                 <p className="text-muted-foreground text-sm font-medium">
-                  {t("header.login.sin-cuenta")}
+                  ¿No tienes una cuenta?
                 </p>
                 <Button
                   variant="outline"
@@ -233,7 +231,7 @@ export function LoginModal({
                   onClick={onSwitchToRegister}
                   className="hover:bg-primary/5 hover:text-primary h-11 w-full border-2 border-dashed font-bold transition-all duration-300"
                 >
-                  {t("header.login.registrate")}
+                  Regístrate
                 </Button>
               </div>
             </div>

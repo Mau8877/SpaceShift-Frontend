@@ -1,9 +1,7 @@
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 import { HelpCircleIcon, Login01Icon } from "hugeicons-react"
 import { Link, useNavigate } from "@tanstack/react-router"
 import {
-  IdiomaModal,
   LoginModal,
   RegisterModal,
   UserDropdown,
@@ -23,10 +21,8 @@ import {
 
 export function Header() {
   const navigate = useNavigate()
-  const { t, i18n } = useTranslation()
 
   // Estados para controlar los dos modales
-  const [langModalOpen, setLangModalOpen] = useState(false)
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [registerModalOpen, setRegisterModalOpen] = useState(false)
 
@@ -69,31 +65,6 @@ export function Header() {
 
         {/* --- PARTE DERECHA: Acciones --- */}
         <div className="flex min-w-0 items-center gap-1 sm:gap-3">
-          {/* Tooltip Idioma */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 overflow-hidden rounded-full hover:bg-white/10"
-                onClick={() => setLangModalOpen(true)}
-              >
-                <img
-                  src={
-                    i18n.language.includes("en")
-                      ? "https://flagcdn.com/w40/us.png"
-                      : "https://flagcdn.com/w40/bo.png"
-                  }
-                  alt="Flag"
-                  className="h-4 w-4 object-cover sm:h-5 sm:w-5"
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{t("header.tooltips.language")}</p>
-            </TooltipContent>
-          </Tooltip>
-
           {/* Ayuda */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -107,7 +78,7 @@ export function Header() {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{t("header.tooltips.help")}</p>
+              <p>Ayuda</p>
             </TooltipContent>
           </Tooltip>
 
@@ -117,12 +88,8 @@ export function Header() {
             onClick={() => handleProtectedAction("/publicar")}
             className="h-8 shrink-0 border-white bg-transparent px-2 text-[10px] font-semibold text-white transition-all hover:bg-white hover:text-primary sm:h-9 sm:px-4 sm:text-xs"
           >
-            <span className="hidden md:inline">
-              {t("header.buttons.publishLong")}
-            </span>
-            <span className="md:hidden">
-              {t("header.buttons.publishShort")}
-            </span>
+            <span className="hidden md:inline">Publica tu inmueble</span>
+            <span className="md:hidden">Publicar</span>
           </Button>
 
           {/* --- SECCIÓN DE USUARIO: Login vs Avatar --- */}
@@ -135,7 +102,7 @@ export function Header() {
                 onClick={() => setLoginModalOpen(true)}
                 className="hidden h-8 rounded-sm bg-white px-3 text-[10px] font-bold text-primary hover:bg-slate-100 sm:flex sm:h-9 sm:text-xs"
               >
-                {t("header.buttons.login")}
+                Iniciar sesión
               </Button>
               <Button
                 variant="secondary"
@@ -153,11 +120,6 @@ export function Header() {
       </header>
 
       {/* Modales */}
-      <IdiomaModal
-        isOpen={langModalOpen}
-        onClose={() => setLangModalOpen(false)}
-      />
-
       <LoginModal
         isOpen={loginModalOpen}
         onClose={() => setLoginModalOpen(false)}

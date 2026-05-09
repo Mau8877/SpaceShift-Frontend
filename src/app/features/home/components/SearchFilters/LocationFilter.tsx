@@ -7,26 +7,24 @@ import { locations } from "../../properties/datos"
 interface LocationFilterProps {
   location: string
   onSelect: (val: string) => void
-  t: any
 }
 
 export const LocationFilter = ({
   location,
   onSelect,
-  t,
 }: LocationFilterProps) => (
   <Popover>
     <PopoverTrigger asChild>
       <div className="flex flex-1">
         <SearchField
-          label={t("home.search.location.label", "Ubicación")}
+          label="Ubicación"
           icon={<MapsLocation01Icon size={18} />}
           className="w-full"
         >
           <span
             className={`truncate text-xs font-medium sm:text-sm ${location ? "text-slate-900 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"}`}
           >
-            {location || t("home.search.location.placeholder", "¿A dónde vas?")}
+            {location || "¿A dónde vas?"}
           </span>
         </SearchField>
       </div>

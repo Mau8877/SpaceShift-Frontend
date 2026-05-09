@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useForm } from "@tanstack/react-form"
-import { useTranslation } from "react-i18next"
 
 import {
   Home01Icon,
@@ -29,7 +28,6 @@ const STEPS = [
 ]
 
 export function PublicacionScreen() {
-  const { t } = useTranslation()
   const [currentStep, setCurrentStep] = useState(1)
   const navigate = useNavigate()
 

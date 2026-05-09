@@ -5,10 +5,8 @@ import {
   createRootRouteWithContext,
   Outlet,
 } from "@tanstack/react-router"
-import { I18nextProvider } from "react-i18next"
 import { Provider } from "react-redux"
 import appCss from "../styles.css?url"
-import i18n from "../i18n"
 import type { AuthState } from "@/app/store"
 import { Toaster } from "@/components/ui/sonner"
 import { store } from "@/app/store/redux"
@@ -32,12 +30,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootComponent() {
   return (
     <Provider store={store}>
-      <I18nextProvider i18n={i18n}>
-        <RootDocument lang={i18n.language}>
-          <Outlet />
-          <Toaster richColors position="bottom-right" />
-        </RootDocument>
-      </I18nextProvider>
+      <RootDocument lang="es">
+        <Outlet />
+        <Toaster richColors position="bottom-right" />
+      </RootDocument>
     </Provider>
   )
 }

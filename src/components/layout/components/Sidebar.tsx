@@ -22,10 +22,8 @@ import {
   UserGroup03Icon,
 } from "hugeicons-react"
 import * as React from "react"
-import { useTranslation } from "react-i18next"
 
 export function AppSidebar() {
-  const { t } = useTranslation()
   const { setOpenMobile, isMobile } = useSidebar()
   const user = useAppSelector((state) => state.auth.user)
 
@@ -68,7 +66,7 @@ export function AppSidebar() {
       {isMobile && (
         <SidebarHeader className="flex flex-row items-center justify-between p-4">
           <span className="text-xs font-bold tracking-widest text-sidebar-foreground uppercase">
-            {t("sidebar.header.menu")}
+            Menú
           </span>
           <Button
             variant="ghost"
@@ -84,7 +82,7 @@ export function AppSidebar() {
       <SidebarContent className={isMobile ? "mt-0" : "mt-4"}>
         <SidebarGroup>
           <SidebarGroupLabel className="px-4">
-            {t("sidebar.header.detail")}
+            Navegación
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
