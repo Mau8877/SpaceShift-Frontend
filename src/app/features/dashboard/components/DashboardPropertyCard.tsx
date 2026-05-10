@@ -38,7 +38,7 @@ export function DashboardPropertyCard({ property }: { property: any }) {
         <div className="absolute top-5 left-5 flex flex-col gap-2">
           <PropertyCardBadge variant="navy">{property.tipoTransaccion}</PropertyCardBadge>
           <PropertyCardBadge variant="gold">{property.estadoPublicacion}</PropertyCardBadge>
-          <PropertyCardBadge variant="white">{property.inmueble.estadoOperativo}</PropertyCardBadge>
+          <PropertyCardBadge variant="navy">{property.inmueble.estadoOperativo}</PropertyCardBadge>
         </div>
       </PropertyCardMedia>
 
@@ -52,7 +52,7 @@ export function DashboardPropertyCard({ property }: { property: any }) {
       <PropertyCardFooter>
         <div className="grid w-full grid-cols-2 gap-3">
           <Link to="/publicacion/$id" params={{ id: property.id }} className="w-full">
-            <PropertyCardButton variant="outline">Ver Detalle</PropertyCardButton>
+            <PropertyCardButton>Ver Detalle</PropertyCardButton>
           </Link>
           
           <PropertyCardButton onClick={handleEdit}>
