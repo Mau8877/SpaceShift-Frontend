@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
-import { Logout01Icon, Settings01Icon, UserIcon } from "hugeicons-react"
+import { Logout01Icon, UserIcon } from "hugeicons-react"
 import { useGetMiPerfilQuery } from "@/app/features/profile/store"
 import { api } from "@/app/store/api/api"
 import {
@@ -24,12 +24,21 @@ export function UserDropdown() {
     setMounted(true)
   }, [])
 
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth)
+  const { user, isAuthenticated, token } = useAppSelector((state) => state.auth)
   const { data: perfil } = useGetMiPerfilQuery(undefined, {
     skip: !isAuthenticated || !user?.id,
   })
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch(
+        `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8081/api'}/auth/logout`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+    } catch { /* continuar con logout local si falla */ }
     dispatch(logout())
     dispatch(api.util.resetApiState())
     navigate({ to: "/" })
@@ -78,13 +87,6 @@ export function UserDropdown() {
           >
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Perfil</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => navigate({ to: "/settings" })}
-          >
-            <Settings01Icon className="mr-2 h-4 w-4" />
-            <span>Ajustes</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
