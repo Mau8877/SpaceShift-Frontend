@@ -13,49 +13,45 @@ const statusFilters: Array<{
   label: string
   value: PropertyFilterStatus
 }> = [
-  {
-    label: "Todos",
-    value: "TODOS",
-  },
-  {
-    label: "Disponibles",
-    value: "DISPONIBLE",
-  },
-  {
-    label: "Ocupados",
-    value: "OCUPADO",
-  },
-  {
-    label: "Inactivos",
-    value: "INACTIVO",
-  },
-]
+    {
+      label: "Todos",
+      value: "TODOS",
+    },
+    {
+      label: "Disponibles",
+      value: "DISPONIBLE",
+    },
+    {
+      label: "Ocupados",
+      value: "OCUPADO",
+    },
+    {
+      label: "Inactivos",
+      value: "INACTIVO",
+    },
+  ]
 
 const transactionFilters: Array<{
   label: string
   value: PropertyFilterTransaction
 }> = [
-  {
-    label: "Todos",
-    value: "TODOS",
-  },
-  {
-    label: "Venta",
-    value: "VENTA",
-  },
-  {
-    label: "Alquiler",
-    value: "ALQUILER",
-  },
-  {
-    label: "Anticrético",
-    value: "ANTICRETICO",
-  },
-  {
-    label: "Airbnb",
-    value: "AIRBNB",
-  },
-]
+    {
+      label: "Todos",
+      value: "TODOS",
+    },
+    {
+      label: "Venta",
+      value: "VENTA",
+    },
+    {
+      label: "Alquiler",
+      value: "ALQUILER",
+    },
+    {
+      label: "Anticrético",
+      value: "ANTICRETICO",
+    },
+  ]
 
 export const MisInmueblesFilters = ({
   search,

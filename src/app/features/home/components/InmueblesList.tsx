@@ -39,7 +39,7 @@ export const InmueblesList = ({ filtro, filters }: InmueblesListProps) => {
 
   const filteredProperties = (publicaciones || []).filter((p) => {
     // 1. Filtro por categoría (VENTA, ALQUILER, etc.)
-    if (filtro !== "" && p.tipoTransaccion !== filtro) return false
+    if (filtro !== "" && p.tipoTransaccion.toLowerCase() !== filtro.toLowerCase()) return false
 
     // Si no hay filtros de búsqueda adicionales, filtramos solo por categoría
     if (!filters) return true

@@ -56,8 +56,8 @@ export function PasoDetalles({ form }: { form: any }) {
                 id={field.name}
                 type="number"
                 placeholder="Ej: 350000000"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(Number(e.target.value))}
+                value={field.state.value === 0 ? "" : field.state.value}
+                onChange={(e) => field.handleChange(e.target.value === "" ? 0 : Number(e.target.value))}
                 onBlur={field.handleBlur}
                 className={field.state.meta.errors.length ? "border-red-500" : ""}
               />
@@ -79,9 +79,10 @@ export function PasoDetalles({ form }: { form: any }) {
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="VENTA">Venta</SelectItem>
-                  <SelectItem value="ARRIENDO">Arriendo</SelectItem>
-                  <SelectItem value="VENTA_ARRIENDO">Venta / Arriendo</SelectItem>
+                  <SelectItem value="venta">Venta</SelectItem>
+                  <SelectItem value="alquiler">Alquiler</SelectItem>
+                  <SelectItem value="anticretico">Anticrético</SelectItem>
+                  <SelectItem value="alojamiento">Alojamiento</SelectItem>
                 </SelectContent>
               </Select>
               {field.state.meta.errors ? (

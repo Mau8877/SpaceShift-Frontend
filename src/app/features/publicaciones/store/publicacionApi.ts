@@ -36,6 +36,22 @@ export const publicacionApi = api.injectEndpoints({
       query: (id) => `/publicaciones/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Publicaciones", id }],
     }),
+
+    // 5. Obtener mis publicaciones
+    getMisPublicaciones: builder.query<any[], void>({
+      query: () => "/publicaciones/mis-publicaciones",
+      providesTags: ["Publicaciones"],
+    }),
+
+    // 6. Actualizar publicación
+    actualizarPublicacion: builder.mutation<any, { id: string; data: PublicacionRequestDTO }>({
+      query: ({ id, data }) => ({
+        url: `/publicaciones/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => ["Publicaciones", { type: "Publicaciones", id }],
+    }),
   }),
   overrideExisting: true,
 })
@@ -44,5 +60,7 @@ export const {
   useCrearInmuebleMutation, 
   useCrearPublicacionMutation, 
   useSubirImagenesMutation,
-  useGetPublicacionByIdQuery
+  useGetPublicacionByIdQuery,
+  useGetMisPublicacionesQuery,
+  useActualizarPublicacionMutation,
 } = publicacionApi

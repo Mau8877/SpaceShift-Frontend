@@ -26,19 +26,31 @@ const DEFAULT_CENTER: [number, number] = [-17.7833, -63.1821]
 
 // Subcomponente que intercepta los clics en el mapa
 function LocationMarker({ form }: { form: any }) {
-  const lat = form.getFieldValue("latitud")
-  const lng = form.getFieldValue("longitud")
+  return (
+    <form.Subscribe
+      selector={(state: any) => [state.values.latitud, state.values.longitud]}
+      children={([latitud, longitud]: [string, string]) => {
+        const position = latitud && longitud ? [Number(latitud), Number(longitud)] : null
 
-  const position = lat && lng ? { lat: Number(lat), lng: Number(lng) } : null
+        return (
+          <>
+            <MapClickHandler form={form} />
+            {position && <Marker position={position as any} />}
+          </>
+        )
+      }}
+    />
+  )
+}
 
+function MapClickHandler({ form }: { form: any }) {
   useMapEvents({
     click(e) {
       form.setFieldValue("latitud", e.latlng.lat.toString())
       form.setFieldValue("longitud", e.latlng.lng.toString())
     },
   })
-
-  return position === null ? null : <Marker position={position} />
+  return null
 }
 
 

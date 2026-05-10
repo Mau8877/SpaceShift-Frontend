@@ -25,6 +25,8 @@ export function PasoInmueble({ form }: { form: any }) {
                 <SelectContent>
                   <SelectItem value="DEPARTAMENTO">Departamento</SelectItem>
                   <SelectItem value="CASA">Casa</SelectItem>
+                  <SelectItem value="TERRENO">Terreno</SelectItem>
+                  <SelectItem value="OFICINA">Oficina</SelectItem>
                   {/*<SelectItem value="terreno">Terreno</SelectItem>
                   <SelectItem value="local">Local Comercial</SelectItem>*/}
                 </SelectContent>
@@ -45,8 +47,8 @@ export function PasoInmueble({ form }: { form: any }) {
                 id={field.name}
                 type="number"
                 placeholder="Ej: 120"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(Number(e.target.value))}
+                value={field.state.value === 0 ? "" : field.state.value}
+                onChange={(e) => field.handleChange(e.target.value === "" ? 0 : Number(e.target.value))}
                 onBlur={field.handleBlur}
                 className={field.state.meta.errors.length ? "border-red-500" : ""}
               />
@@ -66,8 +68,8 @@ export function PasoInmueble({ form }: { form: any }) {
                 id={field.name}
                 type="number"
                 placeholder="Ej: 85"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(Number(e.target.value))}
+                value={field.state.value === 0 ? "" : field.state.value}
+                onChange={(e) => field.handleChange(e.target.value === "" ? 0 : Number(e.target.value))}
                 onBlur={field.handleBlur}
                 className={field.state.meta.errors.length ? "border-red-500" : ""}
               />
@@ -87,8 +89,8 @@ export function PasoInmueble({ form }: { form: any }) {
                 id={field.name}
                 type="number"
                 placeholder="Ej: 3"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(Number(e.target.value))}
+                value={field.state.value === 0 ? "" : field.state.value}
+                onChange={(e) => field.handleChange(e.target.value === "" ? 0 : Number(e.target.value))}
                 onBlur={field.handleBlur}
                 className={field.state.meta.errors.length ? "border-red-500" : ""}
               />
@@ -108,8 +110,8 @@ export function PasoInmueble({ form }: { form: any }) {
                 id={field.name}
                 type="number"
                 placeholder="Ej: 2"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(Number(e.target.value))}
+                value={field.state.value === 0 ? "" : field.state.value}
+                onChange={(e) => field.handleChange(e.target.value === "" ? 0 : Number(e.target.value))}
                 onBlur={field.handleBlur}
                 className={field.state.meta.errors.length ? "border-red-500" : ""}
               />
@@ -129,8 +131,8 @@ export function PasoInmueble({ form }: { form: any }) {
                 id={field.name}
                 type="number"
                 placeholder="Ej: 1"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(Number(e.target.value))}
+                value={field.state.value === 0 ? "" : field.state.value}
+                onChange={(e) => field.handleChange(e.target.value === "" ? 0 : Number(e.target.value))}
                 onBlur={field.handleBlur}
                 className={field.state.meta.errors.length ? "border-red-500" : ""}
               />
@@ -150,8 +152,8 @@ export function PasoInmueble({ form }: { form: any }) {
                 id={field.name}
                 type="number"
                 placeholder="Ej: 5"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(Number(e.target.value))}
+                value={field.state.value === 0 ? "" : field.state.value}
+                onChange={(e) => field.handleChange(e.target.value === "" ? 0 : Number(e.target.value))}
                 onBlur={field.handleBlur}
                 className={field.state.meta.errors.length ? "border-red-500" : ""}
               />
