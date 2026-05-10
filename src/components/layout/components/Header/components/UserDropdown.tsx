@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
-import { Logout01Icon, Settings01Icon, UserIcon } from "hugeicons-react"
+import { Logout01Icon, UserIcon } from "hugeicons-react"
 import { useGetMiPerfilQuery } from "@/app/features/profile/store"
 import { api } from "@/app/store/api/api"
 import {
@@ -78,13 +78,6 @@ export function UserDropdown() {
           >
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Perfil</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => navigate({ to: "/settings" })}
-          >
-            <Settings01Icon className="mr-2 h-4 w-4" />
-            <span>Ajustes</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
