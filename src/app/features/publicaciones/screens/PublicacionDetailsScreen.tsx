@@ -1,17 +1,17 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { useParams, useNavigate } from "@tanstack/react-router"
-import { 
-  useGetPublicacionByIdQuery 
+import {
+  useGetPublicacionByIdQuery
 } from "../store/publicacionApi"
 import { useCreateChatMutation } from "@/app/store/api/chatApi"
 import { useAppDispatch, useAppSelector } from "@/app/store"
 import { openChatWithConversation } from "@/app/store/chatUiSlice"
-import { 
-  Building03Icon, 
-  Square01Icon, 
-  BedIcon, 
-  Bathtub01Icon, 
+import {
+  Building03Icon,
+  Square01Icon,
+  BedIcon,
+  Bathtub01Icon,
   GarageIcon,
   Message01Icon,
   ArrowLeft01Icon,
@@ -25,15 +25,33 @@ import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import useEmblaCarousel from "embla-carousel-react"
+import { MapContainer, TileLayer, Marker } from "react-leaflet"
+import "leaflet/dist/leaflet.css"
+import L from "leaflet"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+
+// Fix para iconos de Leaflet en Vite
+import icon from "leaflet/dist/images/marker-icon.png"
+import iconShadow from "leaflet/dist/images/marker-shadow.png"
+import iconRetina from "leaflet/dist/images/marker-icon-2x.png"
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconRetinaUrl: iconRetina,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+})
+L.Marker.prototype.options.icon = DefaultIcon
 
 export function PublicacionDetailsScreen() {
   const { id } = useParams({ from: "/_public/publicacion/$id" })
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
-  
+
   const { data: publicacion, isLoading, error } = useGetPublicacionByIdQuery(id)
   const [createChat, { isLoading: isCreatingChat }] = useCreateChatMutation()
 
@@ -84,7 +102,7 @@ export function PublicacionDetailsScreen() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -92,7 +110,7 @@ export function PublicacionDetailsScreen() {
     >
       {/* Back & Actions */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" className="gap-2" onClick={() => navigate({ to: ".." })}>
+        <Button variant="ghost" className="gap-2" onClick={() => navigate({ to: "/" })}>
           <ArrowLeft01Icon className="h-5 w-5" />
           <span>Volver</span>
         </Button>
@@ -112,8 +130,8 @@ export function PublicacionDetailsScreen() {
           <div className="flex">
             {publicacion.imagenes.map((img: any, i: number) => (
               <div key={i} className="flex-[0_0_100%] min-w-0 relative h-[300px] md:h-[500px]">
-                <img 
-                  src={img.urlImage} 
+                <img
+                  src={img.urlImage}
                   alt={publicacion.titulo}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -121,13 +139,14 @@ export function PublicacionDetailsScreen() {
             ))}
           </div>
         </div>
-        
+
         {/* Badges Over Image */}
         <div className="absolute top-6 left-6 flex flex-col gap-2">
           <Badge className="bg-primary hover:bg-primary px-4 py-1.5 text-sm font-bold shadow-lg">
             {publicacion.tipoTransaccion}
           </Badge>
-          <Badge variant="secondary" className="bg-background/80 backdrop-blur-md px-4 py-1.5 text-sm font-bold shadow-lg border-none">
+          <Badge variant="outline" className="bg-background/90 backdrop-blur-md px-4 py-1.5 text-sm font-bold shadow-lg border-none text-foreground flex items-center">
+            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-2" />
             {publicacion.estadoPublicacion}
           </Badge>
         </div>
@@ -149,7 +168,7 @@ export function PublicacionDetailsScreen() {
             </div>
 
             <Separator className="bg-border/50" />
-            
+
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center text-center gap-1 border border-border/50 backdrop-blur-sm">
@@ -183,10 +202,15 @@ export function PublicacionDetailsScreen() {
             </p>
           </section>
 
-          {/* Additional Info */}
           <section className="space-y-4">
             <h3 className="text-xl font-bold">Detalles adicionales</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex justify-between items-center p-3 rounded-xl bg-muted/10 border border-border/30">
+                <span className="text-sm text-muted-foreground">Precio por m²</span>
+                <span className="font-bold text-sm">
+                  {publicacion.moneda} {(publicacion.precio / publicacion.inmueble.areaConstruida).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                </span>
+              </div>
               <div className="flex justify-between items-center p-3 rounded-xl bg-muted/10 border border-border/30">
                 <span className="text-sm text-muted-foreground">Antigüedad</span>
                 <span className="font-bold text-sm">{publicacion.inmueble.antiguedadAnios} años</span>
@@ -200,8 +224,43 @@ export function PublicacionDetailsScreen() {
                 <span className="font-bold text-sm">{publicacion.inmueble.areaTerreno} m²</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-xl bg-muted/10 border border-border/30">
-                <span className="text-sm text-muted-foreground">Fecha Publicación</span>
+                <span className="text-sm text-muted-foreground">Publicado</span>
                 <span className="font-bold text-sm">{new Date(publicacion.fechaPublicacion).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Ubicación Map Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold">Ubicación de la propiedad</h3>
+              <div className="text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-wider">
+                Sector: {publicacion.inmueble.ubicacion.zonaBarrios}
+              </div>
+            </div>
+
+            <div className="w-full h-[400px] rounded-[32px] overflow-hidden border-4 border-muted shadow-2xl z-0 group">
+              <MapContainer 
+                center={[Number(publicacion.inmueble.ubicacion.latitud), Number(publicacion.inmueble.ubicacion.longitud)]} 
+                zoom={15} 
+                scrollWheelZoom={false} 
+                className="h-full w-full grayscale-[0.2] contrast-[1.1] transition-all group-hover:grayscale-0"
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={[Number(publicacion.inmueble.ubicacion.latitud), Number(publicacion.inmueble.ubicacion.longitud)]} />
+              </MapContainer>
+            </div>
+
+            <div className="bg-muted/30 p-4 rounded-2xl border border-border/50 flex gap-4 items-start">
+              <div className="p-2 bg-background rounded-lg shadow-sm">
+                <Building03Icon className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-bold">Dirección de referencia</p>
+                <p className="text-sm text-muted-foreground">{publicacion.inmueble.ubicacion.direccionExacta}</p>
               </div>
             </div>
           </section>
@@ -219,8 +278,8 @@ export function PublicacionDetailsScreen() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="w-full text-base font-bold gap-3 h-14 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
                   onClick={handleContactOwner}
                   disabled={isCreatingChat}
@@ -246,7 +305,7 @@ export function PublicacionDetailsScreen() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-muted/30 p-4 text-center">
               <p className="text-[10px] text-muted-foreground leading-tight px-4 font-medium uppercase tracking-widest">
                 Seguridad garantizada por SpaceShift AR
