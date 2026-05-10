@@ -3,6 +3,7 @@ import { HelpCircleIcon, Login01Icon } from "hugeicons-react"
 import { Link, useNavigate } from "@tanstack/react-router"
 import {
   LoginModal,
+  NotificationBell,
   RegisterModal,
   UserDropdown,
 } from "../components"
@@ -114,7 +115,10 @@ export function Header() {
               </Button>
             </>
           ) : (
-            <UserDropdown />
+            <>
+              <NotificationBell />
+              <UserDropdown />
+            </>
           )}
         </div>
       </header>

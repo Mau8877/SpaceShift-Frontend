@@ -24,12 +24,21 @@ export function UserDropdown() {
     setMounted(true)
   }, [])
 
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth)
+  const { user, isAuthenticated, token } = useAppSelector((state) => state.auth)
   const { data: perfil } = useGetMiPerfilQuery(undefined, {
     skip: !isAuthenticated || !user?.id,
   })
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch(
+        `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8081/api'}/auth/logout`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+    } catch { /* continuar con logout local si falla */ }
     dispatch(logout())
     dispatch(api.util.resetApiState())
     navigate({ to: "/" })

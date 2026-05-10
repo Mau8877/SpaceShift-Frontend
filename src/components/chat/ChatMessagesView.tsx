@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback } from "react"
 import { useGetChatMessagesQuery, useGetChatsQuery } from "@/app/store/api/chatApi"
 import { useAppSelector, useAppDispatch } from "@/app/store"
 import { setTyping, setUserOnline } from "@/app/store/chatUiSlice"
+import { addNotificacion } from "@/app/store/notificacionesSlice"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -74,6 +75,17 @@ export function ChatMessagesView({ conversacionId, onBack }: ChatMessagesViewPro
         if (prev.some(m => m.id === msg.id)) return prev
         return [...prev, msg]
       })
+      if (msg.remitenteId !== user?.id) {
+        dispatch(addNotificacion({
+          id: crypto.randomUUID(),
+          title: "Nuevo mensaje",
+          body: msg.contenido ?? "",
+          type: "NEW_MESSAGE",
+          data: { conversacionId: msg.conversacionId ?? conversacionId },
+          receivedAt: new Date().toISOString(),
+          read: false,
+        }))
+      }
     } else if (msg.conversacionId !== conversacionId && msg.tipo !== "TYPING") {
       console.warn("[STOMP] Conversacion ID mismatch:", msg.conversacionId, "vs", conversacionId)
     }

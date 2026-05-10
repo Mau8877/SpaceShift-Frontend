@@ -10,6 +10,7 @@ import appCss from "../styles.css?url"
 import type { AuthState } from "@/app/store"
 import { Toaster } from "@/components/ui/sonner"
 import { store } from "@/app/store/redux"
+import { useFirebaseMessaging } from "@/hooks/useFirebaseMessaging"
 
 interface MyRouterContext {
   auth: AuthState
@@ -27,10 +28,16 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootComponent,
 })
 
+function FirebaseInit() {
+  useFirebaseMessaging()
+  return null
+}
+
 function RootComponent() {
   return (
     <Provider store={store}>
       <RootDocument lang="es">
+        <FirebaseInit />
         <Outlet />
         <Toaster richColors position="bottom-right" />
       </RootDocument>
