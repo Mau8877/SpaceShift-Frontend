@@ -104,7 +104,7 @@ export function RegisterModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="overflow-hidden p-0 sm:max-w-[425px]">
+      <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-[425px] flex-col overflow-hidden p-0">
         <div className="bg-primary/5 absolute top-0 left-0 h-1 w-full" />
         <div className="px-6 pt-8 pb-4">
           <DialogHeader className="flex flex-col items-center gap-2 text-center">
@@ -119,7 +119,7 @@ export function RegisterModal({
           </DialogHeader>
         </div>
 
-        <div className="px-6 pb-8">
+        <div className="overflow-y-auto px-6 pb-8">
           {/* Switch de Tipo de Cuenta con Tabs */}
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             <Tabs
