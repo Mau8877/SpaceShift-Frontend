@@ -11,16 +11,23 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as PublicVerificarCodigoRouteImport } from './routes/_public/verificar-codigo'
+import { Route as PublicRecuperarPasswordRouteImport } from './routes/_public/recuperar-password'
 import { Route as PublicFaqRouteImport } from './routes/_public/faq'
-import { Route as AuthTenantsRouteImport } from './routes/_auth/tenants'
+import { Route as PublicCambiarPasswordRouteImport } from './routes/_public/cambiar-password'
 import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
+import { Route as AuthReportesRouteImport } from './routes/_auth/reportes'
 import { Route as AuthPublicarRouteImport } from './routes/_auth/publicar'
-import { Route as AuthPropertiesRouteImport } from './routes/_auth/properties'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
-import { Route as AuthLeasesRouteImport } from './routes/_auth/leases'
+import { Route as AuthGestionarUsuariosRouteImport } from './routes/_auth/gestionar-usuarios'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
+import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
+import { Route as AuthDashboardInmueblesRouteImport } from './routes/_auth/dashboard/inmuebles'
+import { Route as AuthDashboardContratosRouteImport } from './routes/_auth/dashboard/contratos'
+import { Route as AuthDashboardClientesRouteImport } from './routes/_auth/dashboard/clientes'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -30,9 +37,24 @@ const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PublicIndexRoute = PublicIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicVerificarCodigoRoute = PublicVerificarCodigoRouteImport.update({
+  id: '/verificar-codigo',
+  path: '/verificar-codigo',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicRecuperarPasswordRoute = PublicRecuperarPasswordRouteImport.update({
+  id: '/recuperar-password',
+  path: '/recuperar-password',
   getParentRoute: () => PublicRoute,
 } as any)
 const PublicFaqRoute = PublicFaqRouteImport.update({
@@ -40,14 +62,19 @@ const PublicFaqRoute = PublicFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => PublicRoute,
 } as any)
-const AuthTenantsRoute = AuthTenantsRouteImport.update({
-  id: '/tenants',
-  path: '/tenants',
-  getParentRoute: () => AuthRoute,
+const PublicCambiarPasswordRoute = PublicCambiarPasswordRouteImport.update({
+  id: '/cambiar-password',
+  path: '/cambiar-password',
+  getParentRoute: () => PublicRoute,
 } as any)
 const AuthSettingsRoute = AuthSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthReportesRoute = AuthReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthPublicarRoute = AuthPublicarRouteImport.update({
@@ -55,19 +82,14 @@ const AuthPublicarRoute = AuthPublicarRouteImport.update({
   path: '/publicar',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthPropertiesRoute = AuthPropertiesRouteImport.update({
-  id: '/properties',
-  path: '/properties',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthProfileRoute = AuthProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthLeasesRoute = AuthLeasesRouteImport.update({
-  id: '/leases',
-  path: '/leases',
+const AuthGestionarUsuariosRoute = AuthGestionarUsuariosRouteImport.update({
+  id: '/gestionar-usuarios',
+  path: '/gestionar-usuarios',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthDashboardRoute = AuthDashboardRouteImport.update({
@@ -75,93 +97,154 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
 const PublicPublicacionIdRoute = PublicPublicacionIdRouteImport.update({
   id: '/publicacion/$id',
   path: '/publicacion/$id',
   getParentRoute: () => PublicRoute,
 } as any)
+const AuthDashboardInmueblesRoute = AuthDashboardInmueblesRouteImport.update({
+  id: '/inmuebles',
+  path: '/inmuebles',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
+const AuthDashboardContratosRoute = AuthDashboardContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
+const AuthDashboardClientesRoute = AuthDashboardClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AuthDashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
+  '/$': typeof SplatRoute
   '/': typeof PublicIndexRoute
-  '/dashboard': typeof AuthDashboardRoute
-  '/leases': typeof AuthLeasesRoute
+  '/dashboard': typeof AuthDashboardRouteWithChildren
+  '/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/profile': typeof AuthProfileRoute
-  '/properties': typeof AuthPropertiesRoute
   '/publicar': typeof AuthPublicarRoute
+  '/reportes': typeof AuthReportesRoute
   '/settings': typeof AuthSettingsRoute
-  '/tenants': typeof AuthTenantsRoute
+  '/cambiar-password': typeof PublicCambiarPasswordRoute
   '/faq': typeof PublicFaqRoute
+  '/recuperar-password': typeof PublicRecuperarPasswordRoute
+  '/verificar-codigo': typeof PublicVerificarCodigoRoute
+  '/dashboard/clientes': typeof AuthDashboardClientesRoute
+  '/dashboard/contratos': typeof AuthDashboardContratosRoute
+  '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
+  '/dashboard/': typeof AuthDashboardIndexRoute
 }
 export interface FileRoutesByTo {
+  '/$': typeof SplatRoute
   '/': typeof PublicIndexRoute
-  '/dashboard': typeof AuthDashboardRoute
-  '/leases': typeof AuthLeasesRoute
+  '/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/profile': typeof AuthProfileRoute
-  '/properties': typeof AuthPropertiesRoute
   '/publicar': typeof AuthPublicarRoute
+  '/reportes': typeof AuthReportesRoute
   '/settings': typeof AuthSettingsRoute
-  '/tenants': typeof AuthTenantsRoute
+  '/cambiar-password': typeof PublicCambiarPasswordRoute
   '/faq': typeof PublicFaqRoute
+  '/recuperar-password': typeof PublicRecuperarPasswordRoute
+  '/verificar-codigo': typeof PublicVerificarCodigoRoute
+  '/dashboard/clientes': typeof AuthDashboardClientesRoute
+  '/dashboard/contratos': typeof AuthDashboardContratosRoute
+  '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
+  '/dashboard': typeof AuthDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/$': typeof SplatRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
-  '/_auth/dashboard': typeof AuthDashboardRoute
-  '/_auth/leases': typeof AuthLeasesRoute
+  '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
+  '/_auth/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/_auth/profile': typeof AuthProfileRoute
-  '/_auth/properties': typeof AuthPropertiesRoute
   '/_auth/publicar': typeof AuthPublicarRoute
+  '/_auth/reportes': typeof AuthReportesRoute
   '/_auth/settings': typeof AuthSettingsRoute
-  '/_auth/tenants': typeof AuthTenantsRoute
+  '/_public/cambiar-password': typeof PublicCambiarPasswordRoute
   '/_public/faq': typeof PublicFaqRoute
+  '/_public/recuperar-password': typeof PublicRecuperarPasswordRoute
+  '/_public/verificar-codigo': typeof PublicVerificarCodigoRoute
   '/_public/': typeof PublicIndexRoute
+  '/_auth/dashboard/clientes': typeof AuthDashboardClientesRoute
+  '/_auth/dashboard/contratos': typeof AuthDashboardContratosRoute
+  '/_auth/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/_public/publicacion/$id': typeof PublicPublicacionIdRoute
+  '/_auth/dashboard/': typeof AuthDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/$'
     | '/'
     | '/dashboard'
-    | '/leases'
+    | '/gestionar-usuarios'
     | '/profile'
-    | '/properties'
     | '/publicar'
+    | '/reportes'
     | '/settings'
-    | '/tenants'
+    | '/cambiar-password'
     | '/faq'
+    | '/recuperar-password'
+    | '/verificar-codigo'
+    | '/dashboard/clientes'
+    | '/dashboard/contratos'
+    | '/dashboard/inmuebles'
     | '/publicacion/$id'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/$'
     | '/'
-    | '/dashboard'
-    | '/leases'
+    | '/gestionar-usuarios'
     | '/profile'
-    | '/properties'
     | '/publicar'
+    | '/reportes'
     | '/settings'
-    | '/tenants'
+    | '/cambiar-password'
     | '/faq'
+    | '/recuperar-password'
+    | '/verificar-codigo'
+    | '/dashboard/clientes'
+    | '/dashboard/contratos'
+    | '/dashboard/inmuebles'
     | '/publicacion/$id'
+    | '/dashboard'
   id:
     | '__root__'
+    | '/$'
     | '/_auth'
     | '/_public'
     | '/_auth/dashboard'
-    | '/_auth/leases'
+    | '/_auth/gestionar-usuarios'
     | '/_auth/profile'
-    | '/_auth/properties'
     | '/_auth/publicar'
+    | '/_auth/reportes'
     | '/_auth/settings'
-    | '/_auth/tenants'
+    | '/_public/cambiar-password'
     | '/_public/faq'
+    | '/_public/recuperar-password'
+    | '/_public/verificar-codigo'
     | '/_public/'
+    | '/_auth/dashboard/clientes'
+    | '/_auth/dashboard/contratos'
+    | '/_auth/dashboard/inmuebles'
     | '/_public/publicacion/$id'
+    | '/_auth/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
 }
@@ -182,11 +265,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_public/': {
       id: '/_public/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/verificar-codigo': {
+      id: '/_public/verificar-codigo'
+      path: '/verificar-codigo'
+      fullPath: '/verificar-codigo'
+      preLoaderRoute: typeof PublicVerificarCodigoRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/recuperar-password': {
+      id: '/_public/recuperar-password'
+      path: '/recuperar-password'
+      fullPath: '/recuperar-password'
+      preLoaderRoute: typeof PublicRecuperarPasswordRouteImport
       parentRoute: typeof PublicRoute
     }
     '/_public/faq': {
@@ -196,18 +300,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicFaqRouteImport
       parentRoute: typeof PublicRoute
     }
-    '/_auth/tenants': {
-      id: '/_auth/tenants'
-      path: '/tenants'
-      fullPath: '/tenants'
-      preLoaderRoute: typeof AuthTenantsRouteImport
-      parentRoute: typeof AuthRoute
+    '/_public/cambiar-password': {
+      id: '/_public/cambiar-password'
+      path: '/cambiar-password'
+      fullPath: '/cambiar-password'
+      preLoaderRoute: typeof PublicCambiarPasswordRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/_auth/settings': {
       id: '/_auth/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthSettingsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/reportes': {
+      id: '/_auth/reportes'
+      path: '/reportes'
+      fullPath: '/reportes'
+      preLoaderRoute: typeof AuthReportesRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/publicar': {
@@ -217,13 +328,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPublicarRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/properties': {
-      id: '/_auth/properties'
-      path: '/properties'
-      fullPath: '/properties'
-      preLoaderRoute: typeof AuthPropertiesRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/profile': {
       id: '/_auth/profile'
       path: '/profile'
@@ -231,11 +335,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProfileRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/leases': {
-      id: '/_auth/leases'
-      path: '/leases'
-      fullPath: '/leases'
-      preLoaderRoute: typeof AuthLeasesRouteImport
+    '/_auth/gestionar-usuarios': {
+      id: '/_auth/gestionar-usuarios'
+      path: '/gestionar-usuarios'
+      fullPath: '/gestionar-usuarios'
+      preLoaderRoute: typeof AuthGestionarUsuariosRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/dashboard': {
@@ -245,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/dashboard/': {
+      id: '/_auth/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthDashboardIndexRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
     '/_public/publicacion/$id': {
       id: '/_public/publicacion/$id'
       path: '/publicacion/$id'
@@ -252,39 +363,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicPublicacionIdRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_auth/dashboard/inmuebles': {
+      id: '/_auth/dashboard/inmuebles'
+      path: '/inmuebles'
+      fullPath: '/dashboard/inmuebles'
+      preLoaderRoute: typeof AuthDashboardInmueblesRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
+    '/_auth/dashboard/contratos': {
+      id: '/_auth/dashboard/contratos'
+      path: '/contratos'
+      fullPath: '/dashboard/contratos'
+      preLoaderRoute: typeof AuthDashboardContratosRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
+    '/_auth/dashboard/clientes': {
+      id: '/_auth/dashboard/clientes'
+      path: '/clientes'
+      fullPath: '/dashboard/clientes'
+      preLoaderRoute: typeof AuthDashboardClientesRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
   }
 }
 
+interface AuthDashboardRouteChildren {
+  AuthDashboardClientesRoute: typeof AuthDashboardClientesRoute
+  AuthDashboardContratosRoute: typeof AuthDashboardContratosRoute
+  AuthDashboardInmueblesRoute: typeof AuthDashboardInmueblesRoute
+  AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
+}
+
+const AuthDashboardRouteChildren: AuthDashboardRouteChildren = {
+  AuthDashboardClientesRoute: AuthDashboardClientesRoute,
+  AuthDashboardContratosRoute: AuthDashboardContratosRoute,
+  AuthDashboardInmueblesRoute: AuthDashboardInmueblesRoute,
+  AuthDashboardIndexRoute: AuthDashboardIndexRoute,
+}
+
+const AuthDashboardRouteWithChildren = AuthDashboardRoute._addFileChildren(
+  AuthDashboardRouteChildren,
+)
+
 interface AuthRouteChildren {
-  AuthDashboardRoute: typeof AuthDashboardRoute
-  AuthLeasesRoute: typeof AuthLeasesRoute
+  AuthDashboardRoute: typeof AuthDashboardRouteWithChildren
+  AuthGestionarUsuariosRoute: typeof AuthGestionarUsuariosRoute
   AuthProfileRoute: typeof AuthProfileRoute
-  AuthPropertiesRoute: typeof AuthPropertiesRoute
   AuthPublicarRoute: typeof AuthPublicarRoute
+  AuthReportesRoute: typeof AuthReportesRoute
   AuthSettingsRoute: typeof AuthSettingsRoute
-  AuthTenantsRoute: typeof AuthTenantsRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
-  AuthDashboardRoute: AuthDashboardRoute,
-  AuthLeasesRoute: AuthLeasesRoute,
+  AuthDashboardRoute: AuthDashboardRouteWithChildren,
+  AuthGestionarUsuariosRoute: AuthGestionarUsuariosRoute,
   AuthProfileRoute: AuthProfileRoute,
-  AuthPropertiesRoute: AuthPropertiesRoute,
   AuthPublicarRoute: AuthPublicarRoute,
+  AuthReportesRoute: AuthReportesRoute,
   AuthSettingsRoute: AuthSettingsRoute,
-  AuthTenantsRoute: AuthTenantsRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface PublicRouteChildren {
+  PublicCambiarPasswordRoute: typeof PublicCambiarPasswordRoute
   PublicFaqRoute: typeof PublicFaqRoute
+  PublicRecuperarPasswordRoute: typeof PublicRecuperarPasswordRoute
+  PublicVerificarCodigoRoute: typeof PublicVerificarCodigoRoute
   PublicIndexRoute: typeof PublicIndexRoute
   PublicPublicacionIdRoute: typeof PublicPublicacionIdRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
+  PublicCambiarPasswordRoute: PublicCambiarPasswordRoute,
   PublicFaqRoute: PublicFaqRoute,
+  PublicRecuperarPasswordRoute: PublicRecuperarPasswordRoute,
+  PublicVerificarCodigoRoute: PublicVerificarCodigoRoute,
   PublicIndexRoute: PublicIndexRoute,
   PublicPublicacionIdRoute: PublicPublicacionIdRoute,
 }
@@ -293,6 +447,7 @@ const PublicRouteWithChildren =
   PublicRoute._addFileChildren(PublicRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  SplatRoute: SplatRoute,
   AuthRoute: AuthRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
 }

@@ -10,7 +10,6 @@ import {
   ViewIcon,
   ViewOffIcon,
 } from "hugeicons-react"
-import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useRegisterMutation } from "../store"
 import { getRegisterSchema } from "../schema"
@@ -42,9 +41,8 @@ export function RegisterModal({
 }: RegisterModalProps) {
   const [registerUser, { isLoading }] = useRegisterMutation()
   const dispatch = useAppDispatch()
-  const { t } = useTranslation()
 
-  const schema = getRegisterSchema(t)
+  const schema = getRegisterSchema()
 
   const [tipoCliente, setTipoCliente] = useState<"PERSONAL" | "EMPRESA">(
     "PERSONAL"
@@ -73,7 +71,7 @@ export function RegisterModal({
           tipoCliente === "PERSONAL" &&
           (!value.apellido || value.apellido.trim().length < 2)
         ) {
-          toast.error(t("header.register.apellido.advertencia"))
+          toast.error("El apellido debe tener al menos 2 caracteres")
           return
         }
 
@@ -88,7 +86,7 @@ export function RegisterModal({
         const response = await registerUser(payload).unwrap()
         dispatch(setCredentials({ token: response.token }))
 
-        toast.success(t("header.register.toast.cuenta-creada"))
+        toast.success("Cuenta creada correctamente")
 
         if (onClose) onClose()
         form.reset()
@@ -112,10 +110,10 @@ export function RegisterModal({
           <DialogHeader className="flex flex-col items-center gap-2 text-center">
             <div className="space-y-1">
               <DialogTitle className="text-2xl font-bold tracking-tight">
-                {t("header.register.title")}
+                Crear cuenta
               </DialogTitle>
               <DialogDescription className="text-muted-foreground/80 max-w-[280px]">
-                {t("header.register.descripcion")}
+                Completa tus datos para registrarte.
               </DialogDescription>
             </div>
           </DialogHeader>
@@ -142,14 +140,14 @@ export function RegisterModal({
                   className="rounded-lg text-sm font-bold transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm"
                 >
                   <UserIcon className="mr-2 h-4 w-4" />
-                  {t("header.register.personal")}
+                  Personal
                 </TabsTrigger>
                 <TabsTrigger
                   value="EMPRESA"
                   className="rounded-lg text-sm font-bold transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm"
                 >
                   <UserIcon className="mr-2 h-4 w-4" />
-                  {t("header.register.empresa")}
+                  Empresa
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -170,8 +168,8 @@ export function RegisterModal({
                 <div className="animate-in fade-in slide-in-from-bottom-2 group space-y-2 delay-75 duration-500">
                   <Label htmlFor={field.name} className="text-sm font-semibold">
                     {tipoCliente === "EMPRESA"
-                      ? t("header.register.razon-social")
-                      : t("header.register.nombre")}
+                      ? "Razón social"
+                      : "Nombre"}
                   </Label>
                   <div className="relative">
                     <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200 group-focus-within:text-primary">
@@ -207,13 +205,13 @@ export function RegisterModal({
                 validators={{
                   onChange: ({ value }) =>
                     !value || value.length < 2
-                      ? t("header.register.apellido.advertencia")
+                      ? "El apellido debe tener al menos 2 caracteres"
                       : undefined,
                 }}
                 children={(field) => (
                   <div className="animate-in fade-in slide-in-from-bottom-2 group space-y-2 delay-100 duration-500">
                     <Label htmlFor={field.name} className="text-sm font-semibold">
-                      {t("header.register.apellido.titulo")}
+                      Apellido
                     </Label>
                     <div className="relative">
                       <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200 group-focus-within:text-primary">
@@ -246,7 +244,7 @@ export function RegisterModal({
               children={(field) => (
                 <div className="animate-in fade-in slide-in-from-bottom-2 group space-y-2 delay-150 duration-500">
                   <Label htmlFor={field.name} className="text-sm font-semibold">
-                    {t("header.login.correo")}
+                    Correo electrónico
                   </Label>
                   <div className="relative">
                     <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200 group-focus-within:text-primary">
@@ -279,7 +277,7 @@ export function RegisterModal({
                 children={(field) => (
                   <div className="animate-in fade-in slide-in-from-bottom-2 group space-y-2 delay-200 duration-500">
                     <Label htmlFor={field.name} className="text-sm font-semibold">
-                      {t("header.login.contrasena")}
+                      Contraseña
                     </Label>
                     <div className="relative">
                       <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200 group-focus-within:text-primary">
@@ -323,7 +321,7 @@ export function RegisterModal({
                   onChangeListenTo: ["password"],
                   onChange: ({ value, fieldApi }) => {
                     if (value !== fieldApi.form.getFieldValue("password")) {
-                      return t("auth.register.validation.passwords-mismatch")
+                      return "Las contraseñas no coinciden"
                     }
                     return undefined
                   },
@@ -331,7 +329,7 @@ export function RegisterModal({
                 children={(field) => (
                   <div className="animate-in fade-in slide-in-from-bottom-2 group space-y-2 delay-250 duration-500">
                     <Label htmlFor={field.name} className="text-sm font-semibold">
-                      {t("header.register.confirmar-contrasena")}
+                      Confirmar contraseña
                     </Label>
                     <div className="relative">
                       <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200 group-focus-within:text-primary">
@@ -380,10 +378,10 @@ export function RegisterModal({
                 {isLoading ? (
                   <>
                     <Loading01Icon className="mr-2 h-5 w-5 animate-spin" />
-                    {t("header.register.creando-cuenta")}
+                    Creando cuenta...
                   </>
                 ) : (
-                  t("header.register.registrarse")
+                  "Registrarse"
                 )}
               </Button>
 

@@ -1,75 +1,101 @@
-import { ColumnDef, OnChangeFn, SortingState } from "@tanstack/react-table"
+import type {
+  ColumnDef,
+  OnChangeFn,
+  PaginationState,
+  Row,
+  SortingState,
+} from "@tanstack/react-table"
+import type { ReactNode } from "react"
+import type { DateRange } from "react-day-picker"
 
-// 1. Interfaz para los filtros y buscador (Header)
-export interface DataTableHeaderProps<TData> {
-  // Búsqueda
-  enableSearch?: boolean
-  searchPlaceholder?: string
-  searchValue: string
-  onSearchValueChange: (value: string) => void
-  onSearchTrigger: () => void
-  
-  // Filtros Extra
-  enableStatusFilter?: boolean
-  statusValue?: string
-  onStatusChange?: (value: string) => void
-  
-  enableDateFilter?: boolean
-  dateRange?: any // Tipar según tu librería de fechas si es necesario
-  onDateRangeChange?: (range: any) => void
-  
-  // Acciones Globales
-  onRefresh?: () => void
-  onAdd?: () => void
-  isLoading?: boolean
-  
-  // Botón Reset
-  onReset?: () => void
-  isFiltered: boolean
+export type DataTableActionIcon = React.ComponentType<{
+  size?: number
+  className?: string
+}>
+
+export type DataTableFilterOption = {
+  label: string
+  value: string
 }
 
-// 2. Interfaz para la paginación (Footer)
-export interface DataTablePaginationProps {
-  pageIndex: number
-  pageCount: number
-  totalRecords: number
-  onPageChange: (index: number) => void
-  pageSize: number
+export type DataTableSelectFilter = {
+  id: string
+  label: string
+  placeholder?: string
+  value?: string
+  allValue?: string
+  columnId?: string
+  options: DataTableFilterOption[]
+  onChange?: (value: string) => void
 }
 
-// 3. Propiedades principales de la DataTable (El Ensamble)
-export interface DataTableProps<TData, TValue> {
+export type DataTableSearchConfig = {
+  enabled?: boolean
+  placeholder?: string
+  value?: string
+  onChange?: (value: string) => void
+  onSearch?: () => void
+}
+
+export type DataTableDateFilterConfig = {
+  enabled?: boolean
+  label?: string
+  placeholder?: string
+  value?: DateRange
+  onChange?: (value: DateRange | undefined) => void
+}
+
+export type DataTableRowAction<TData> = {
+  id: string
+  label: string
+  icon?: DataTableActionIcon
+  onClick: (row: TData) => void
+  variant?: "default" | "muted" | "destructive"
+  hidden?: (row: TData) => boolean
+  disabled?: (row: TData) => boolean
+}
+
+export type DataTableRenderMobileCard<TData> = (row: Row<TData>) => ReactNode
+
+export type DataTableProps<TData, TValue> = {
   columns: Array<ColumnDef<TData, TValue>>
   data: Array<TData>
+
   isLoading?: boolean
-  
-  // Configuración de UI
-  searchPlaceholder?: string
-  enableSearch?: boolean
-  enableStatusFilter?: boolean
-  enableDateFilter?: boolean
-  
-  // Estado Controlado (Search)
-  searchValue: string
-  onSearchValueChange: (value: string) => void
-  onSearchTrigger: () => void
-  
-  // Estado Controlado (Pagination)
+  className?: string
+
+  search?: DataTableSearchConfig
+  filters?: DataTableSelectFilter[]
+  dateFilter?: DataTableDateFilterConfig
+
+  emptyTitle?: string
+  emptyMessage?: string
+
   manualPagination?: boolean
-  pageCount: number
-  pageIndex: number
-  onPageChange: (index: number) => void
-  totalRecords: number
-  
-  // Estado Controlado (Sorting)
+  pageCount?: number
+  pageIndex?: number
+  pageSize?: number
+  totalRecords?: number
+  pageSizeOptions?: number[]
+  onPageChange?: (pageIndex: number) => void
+  onPageSizeChange?: (pageSize: number) => void
+
   sorting?: SortingState
   onSortingChange?: OnChangeFn<SortingState>
-  
-  // Callbacks de fila
+
   onRefresh?: () => void
   onAdd?: () => void
+  addLabel?: string
+  toolbarContent?: ReactNode
+  rightActions?: ReactNode
+
+  actions?: Array<DataTableRowAction<TData>>
   onDetail?: (row: TData) => void
   onEdit?: (row: TData) => void
   onDelete?: (row: TData) => void
-  onReset?: () => void
+
+  renderMobileCard?: DataTableRenderMobileCard<TData>
+  getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string
+  showPaginationSizeSelector?: boolean
+  onPaginationChange?: OnChangeFn<PaginationState>
 }

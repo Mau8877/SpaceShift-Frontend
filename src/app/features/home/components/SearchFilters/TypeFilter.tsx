@@ -6,24 +6,22 @@ import { SearchField } from "./SearchField"
 interface TypeFilterProps {
   selectedType: string | null
   onSelect: (val: string | null) => void
-  t: any
 }
 
 export const TypeFilter = ({
   selectedType,
   onSelect,
-  t,
 }: TypeFilterProps) => (
   <Popover>
     <PopoverTrigger asChild>
       <div className="flex flex-1">
         <SearchField
-          label={t("home.search.type.label", "Tipo")}
+          label="Tipo"
           icon={<House01Icon size={18} />}
           className="w-full"
         >
           <span className={`truncate text-xs font-medium sm:text-sm ${selectedType ? "text-slate-900 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"}`}>
-            {selectedType || t("home.search.type.placeholder", "Cualquier tipo")}
+            {selectedType || "Cualquier tipo"}
           </span>
         </SearchField>
       </div>

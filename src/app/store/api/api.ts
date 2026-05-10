@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react"
-import { createBaseApi } from "./createBaseApi"
 import type { ApiConfig } from "../types"
+import { createBaseApi } from "./createBaseApi"
 
 const apiConfig: ApiConfig = {
   // Usamos las variables de entorno de Vite (.env)
@@ -13,7 +13,14 @@ const apiConfig: ApiConfig = {
 export const api = createApi({
   reducerPath: "api",
   baseQuery: createBaseApi(apiConfig),
-  tagTypes: ["Auth", "Publicaciones", "Chat", "Messages"],
+  tagTypes: [
+    "Auth",
+    "Publicaciones",
+    "Chat",
+    "Messages",
+    "Profile",
+    "USUARIOS",
+  ],
 
   endpoints: () => ({}),
 })

@@ -1,14 +1,4 @@
-import * as React from "react"
-import { useTranslation } from "react-i18next"
-import {
-  Building01Icon,
-  Cancel01Icon,
-  DashboardSquare02Icon,
-  File02Icon,
-  Home01Icon,
-  UserGroupIcon,
-} from "hugeicons-react"
-import { Link } from "@tanstack/react-router"
+import { useAppSelector } from "@/app/store"
 import { Button } from "@/components/ui/button"
 import {
   Sidebar,
@@ -23,10 +13,19 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Link } from "@tanstack/react-router"
+import {
+  AnalyticsUpIcon,
+  Cancel01Icon,
+  DashboardSquare02Icon,
+  Home01Icon,
+  UserGroup03Icon,
+} from "hugeicons-react"
+import * as React from "react"
 
 export function AppSidebar() {
-  const { t } = useTranslation()
   const { setOpenMobile, isMobile } = useSidebar()
+  const user = useAppSelector((state) => state.auth.user)
 
   // 1. Agregamos el estado de montado
   const [mounted, setMounted] = React.useState(false)
@@ -38,36 +37,36 @@ export function AppSidebar() {
   const menuItems = [
     { title: "Home", icon: Home01Icon, to: "/" },
     { title: "Dashboard", icon: DashboardSquare02Icon, to: "/dashboard" },
-    {
-      title: t("sidebar.menu.inmuebles"),
-      icon: Building01Icon,
-      to: "/properties",
-    },
-    {
-      title: t("sidebar.menu.inquilinos"),
-      icon: UserGroupIcon,
-      to: "/tenants",
-    },
-    { title: t("sidebar.menu.contratos"), icon: File02Icon, to: "/leases" },
+    ...(user?.rol === "ROLE_ADMIN"
+      ? [
+          {
+            title: "Gestionar Usuarios",
+            icon: UserGroup03Icon,
+            to: "/gestionar-usuarios",
+          },
+          {
+            title: "Reportes del Sistema",
+            icon: AnalyticsUpIcon,
+            to: "/reportes",
+          },
+        ]
+      : []),
   ]
 
   // 2. Si no está montado, devolvemos un Sidebar básico o nulo para que coincida con el servidor
   if (!mounted) {
     return (
-      <Sidebar
-        collapsible="icon"
-        className="w-[75vw] border-r-0 sm:w-[260px]"
-      />
+      <Sidebar collapsible="icon" className="w-[75vw] border-r-0 sm:w-65" />
     )
   }
 
   return (
-    <Sidebar collapsible="icon" className="w-[75vw] border-r-0 sm:w-[260px]">
+    <Sidebar collapsible="icon" className="w-[75vw] border-r-0 sm:w-65">
       {/* 3. Ahora isMobile es seguro de usar porque estamos en el cliente */}
       {isMobile && (
         <SidebarHeader className="flex flex-row items-center justify-between p-4">
           <span className="text-xs font-bold tracking-widest text-sidebar-foreground uppercase">
-            {t("sidebar.header.menu")}
+            Menú
           </span>
           <Button
             variant="ghost"
@@ -83,7 +82,7 @@ export function AppSidebar() {
       <SidebarContent className={isMobile ? "mt-0" : "mt-4"}>
         <SidebarGroup>
           <SidebarGroupLabel className="px-4">
-            {t("sidebar.header.detail")}
+            Navegación
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -97,7 +96,8 @@ export function AppSidebar() {
                     <Link
                       to={item.to}
                       activeProps={{
-                        className: "bg-sidebar-accent text-sidebar-accent-foreground font-bold",
+                        className:
+                          "bg-sidebar-accent text-sidebar-accent-foreground font-bold",
                       }}
                     >
                       <item.icon size={20} />

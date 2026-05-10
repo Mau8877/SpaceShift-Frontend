@@ -1,15 +1,14 @@
 import * as z from "zod"
-import type { TFunction } from "i18next"
 
-export const getLoginSchema = (t: TFunction) =>
+export const getLoginSchema = () =>
   z.object({
     correo: z
       .string()
-      .min(1, { message: t("auth.login.validation.email-required") })
-      .email({ message: t("auth.login.validation.email-invalid") }),
+      .min(1, { message: "El correo es obligatorio" })
+      .email({ message: "Ingresa un correo válido" }),
     password: z
       .string()
-      .min(6, { message: t("auth.login.validation.password-min") }),
+      .min(6, { message: "La contraseña debe tener al menos 6 caracteres" }),
   })
 
 export type LoginSchema = z.infer<ReturnType<typeof getLoginSchema>>

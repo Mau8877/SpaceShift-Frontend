@@ -3,7 +3,6 @@ import { toast } from "sonner"
 import Cookies from "js-cookie"
 import { logout, setCredentials } from "../authSlice"
 import type { ApiConfig } from "../types"
-import i18n from "@/i18n"
 
 let refreshPromise: Promise<{ token: string }> | null = null
 
@@ -104,8 +103,6 @@ export function createBaseApi(config: ApiConfig) {
 
     const url = typeof args === "string" ? args : args.url
 
-    const t = i18n.t.bind(i18n)
-
     // 2. MANEJO DE ERRORES Y RE-AUTENTICACIÓN
     if (result.error) {
       const errorStatus = result.error.status
@@ -144,34 +141,36 @@ export function createBaseApi(config: ApiConfig) {
       // Si después del intento de refresh sigue habiendo error, mostramos el toast
       if (result.error) {
         const errorMessage =
-          errorData?.message || t("toast.api.error-inesperado")
+          errorData?.message || "Ocurrio un error inesperado."
 
         switch (errorStatus) {
           case 400:
-            toast.error(t("toast.api.datos-invalidos"), {
+            toast.error("Datos inválidos", {
               description: errorMessage,
             })
             break
           case 401:
             if (!isAuthEndpoint) {
-              toast.error(t("toast.api.sesion-expirada.titulo"), {
-                description: t("toast.api.sesion-expirada.descripcion"),
+              toast.error("Sesión expirada", {
+                description: "Vuelve a iniciar sesión para continuar.",
               })
             }
             break
           case 403:
-            toast.error(t("toast.api.acceso-denegado.titulo"), {
-              description: t("toast.api.acceso-denegado.descripcion"),
-            })
+            if (!isAuthEndpoint) {
+              toast.error("Acceso denegado", {
+                description: "No tienes permisos para realizar esta acción.",
+              })
+            }
             break
           case 500:
-            toast.error(t("toast.api.error-servidor.titulo"), {
-              description: t("toast.api.error-servidor.descripcion"),
+            toast.error("Error del servidor", {
+              description: "Ocurrió un problema inesperado en el servidor.",
             })
             break
           case "FETCH_ERROR":
-            toast.error(t("toast.api.error-conexion.titulo"), {
-              description: t("toast.api.error-conexion.descripcion"),
+            toast.error("Error de conexión", {
+              description: "No se pudo conectar con el servidor.",
             })
             break
         }

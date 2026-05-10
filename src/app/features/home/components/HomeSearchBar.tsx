@@ -1,5 +1,4 @@
 import React, { useState } from "react"
-import { useTranslation } from "react-i18next"
 import {
   Search01Icon,
 } from "hugeicons-react"
@@ -11,7 +10,6 @@ import { TypeFilter } from "./SearchFilters/TypeFilter"
 import { PriceFilter } from "./SearchFilters/PriceFilter"
 
 export function HomeSearchBar({ onSearch }: { onSearch?: (filters: SearchFilters) => void }) {
-  const { t } = useTranslation()
   const [location, setLocation] = useState("")
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [priceRange, setPriceRange] = useState<{ min: number; max: number | null }>({
@@ -34,11 +32,11 @@ export function HomeSearchBar({ onSearch }: { onSearch?: (filters: SearchFilters
     <div className="mx-auto -mt-[1px] w-full max-w-4xl px-4 relative z-20">
       <div className="flex h-16 items-stretch gap-1 border border-slate-200 bg-white p-1 shadow-xl transition-all hover:shadow-2xl dark:border-slate-800 dark:bg-slate-950 sm:h-20 sm:gap-2 sm:p-2 rounded-b-[32px] rounded-t-none">
 
-        <LocationFilter location={location} onSelect={setLocation} t={t} />
+        <LocationFilter location={location} onSelect={setLocation} />
         <Separator orientation="vertical" className="my-auto h-8 bg-slate-100 dark:bg-slate-800" />
-        <TypeFilter selectedType={selectedType} onSelect={setSelectedType} t={t} />
+        <TypeFilter selectedType={selectedType} onSelect={setSelectedType} />
         <Separator orientation="vertical" className="my-auto h-8 bg-slate-100 dark:bg-slate-800" />
-        <PriceFilter priceRange={priceRange} onPriceChange={setPriceRange} t={t} />
+        <PriceFilter priceRange={priceRange} onPriceChange={setPriceRange} />
         {/* Botón Buscar */}
         <div className="flex items-center px-1 sm:px-2">
           <Button
@@ -47,7 +45,7 @@ export function HomeSearchBar({ onSearch }: { onSearch?: (filters: SearchFilters
           >
             <Search01Icon size={20} strokeWidth={2.5} className="text-white sm:size-6" />
             <span className="hidden font-bold text-white sm:inline-block">
-              {t("home.search.button", "Buscar")}
+              Buscar
             </span>
           </Button>
         </div>
