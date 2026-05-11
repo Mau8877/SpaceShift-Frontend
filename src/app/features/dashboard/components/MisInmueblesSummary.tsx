@@ -1,13 +1,13 @@
 type MisInmueblesSummaryProps = {
   total: number
-  publicados: number
+  inactivos: number
   disponibles: number
   ocupados: number
 }
 
 export const MisInmueblesSummary = ({
   total,
-  publicados,
+  inactivos,
   disponibles,
   ocupados,
 }: MisInmueblesSummaryProps) => {
@@ -18,11 +18,6 @@ export const MisInmueblesSummary = ({
       helper: "Inmuebles registrados",
     },
     {
-      label: "Publicados",
-      value: publicados,
-      helper: "Visibles actualmente",
-    },
-    {
       label: "Disponibles",
       value: disponibles,
       helper: "Listos para contrato",
@@ -30,7 +25,12 @@ export const MisInmueblesSummary = ({
     {
       label: "Ocupados",
       value: ocupados,
-      helper: "Con uso o contrato activo",
+      helper: "Con contrato activo",
+    },
+    {
+      label: "Inactivos",
+      value: inactivos,
+      helper: "Pausados o eliminados",
     },
   ]
 

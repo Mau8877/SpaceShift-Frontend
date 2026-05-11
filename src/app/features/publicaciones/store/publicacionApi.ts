@@ -52,6 +52,14 @@ export const publicacionApi = api.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { id }) => ["Publicaciones", { type: "Publicaciones", id }],
     }),
+    // 7. Eliminar publicación
+    eliminarPublicacion: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/publicaciones/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Publicaciones"],
+    }),
   }),
   overrideExisting: true,
 })
@@ -63,4 +71,5 @@ export const {
   useGetPublicacionByIdQuery,
   useGetMisPublicacionesQuery,
   useActualizarPublicacionMutation,
+  useEliminarPublicacionMutation,
 } = publicacionApi

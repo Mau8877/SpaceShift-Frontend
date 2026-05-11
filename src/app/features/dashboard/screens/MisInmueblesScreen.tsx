@@ -18,14 +18,14 @@ export const MisInmueblesScreen = () => {
   const summary = useMemo(() => {
     return {
       total: misPublicaciones.length,
-      publicados: misPublicaciones.filter(
-        (property) => property.estadoPublicacion === "ACTIVO"
-      ).length,
       disponibles: misPublicaciones.filter(
-        (property) => property.inmueble.estadoOperativo === "DISPONIBLE"
+        (property) => property.inmueble.estadoOperativo === "DISPONIBLE" && property.estadoPublicacion !== "ELIMINADO"
       ).length,
       ocupados: misPublicaciones.filter(
         (property) => property.inmueble.estadoOperativo === "OCUPADO"
+      ).length,
+      inactivos: misPublicaciones.filter(
+        (property) => property.estadoPublicacion === "INACTIVO" || property.estadoPublicacion === "ELIMINADO" || property.inmueble.estadoOperativo === "INACTIVO"
       ).length,
     }
   }, [misPublicaciones])
@@ -34,8 +34,15 @@ export const MisInmueblesScreen = () => {
     const searchValue = search.trim().toLowerCase()
 
     return misPublicaciones.filter((property: any) => {
-      if (status !== "TODOS" && property.inmueble.estadoOperativo !== status) {
-        return false
+      if (status !== "TODOS") {
+        const est = property.estadoPublicacion;
+        if (status === "DISPONIBLE") {
+          if (est !== "DISPONIBLE" && est !== "ACTIVO" && est !== "ACTIVA") return false;
+        } else if (status === "OCUPADO") {
+          if (est !== "OCUPADO") return false;
+        } else if (status === "INACTIVO") {
+          if (est !== "INACTIVO" && est !== "ELIMINADO") return false;
+        }
       }
 
       if (transaction !== "TODOS" && property.tipoTransaccion !== transaction) {
@@ -85,7 +92,7 @@ export const MisInmueblesScreen = () => {
 
       <MisInmueblesSummary
         total={summary.total}
-        publicados={summary.publicados}
+        inactivos={summary.inactivos}
         disponibles={summary.disponibles}
         ocupados={summary.ocupados}
       />

@@ -109,11 +109,27 @@ export function PublicacionScreen() {
               idInmueble: publicationToEdit.inmueble.id,
               titulo: value.titulo,
               descripcionGeneral: value.descripcionGeneral,
-              tipoTransaccion: value.tipoTransaccion,
+              tipoTransaccion: value.tipoTransaccion.toUpperCase(),
               precio: value.precio,
               moneda: value.moneda,
               estadoPublicacion: "ACTIVO",
               imagenesUrls: finalUrls,
+              inmueble: {
+                tipoInmueble: value.tipoInmueble,
+                areaTerreno: value.areaTerreno,
+                areaConstruida: value.areaConstruida,
+                habitaciones: value.habitaciones,
+                banos: value.banos,
+                garajes: value.garajes,
+                antiguedadAnios: value.antiguedadAnios,
+                ubicacion: {
+                  ciudad: value.ciudad,
+                  zonaBarrios: value.zonaBarrios,
+                  direccionExacta: value.direccionExacta,
+                  latitud: value.latitud,
+                  longitud: value.longitud,
+                }
+              }
             }
           }).unwrap()
           
