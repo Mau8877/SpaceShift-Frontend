@@ -7,8 +7,25 @@ export const homeApi = api.injectEndpoints({
       query: () => "/publicaciones",
       providesTags: ["Publicaciones"],
     }),
+    getUbicaciones: builder.query<string[], void>({
+      query: () => "/inmuebles/ubicaciones",
+      providesTags: ["Publicaciones"],
+    }),
+    getTiposInmueble: builder.query<string[], void>({
+      query: () => "/inmuebles/tipos",
+      providesTags: ["Publicaciones"],
+    }),
+    getTiposTransaccion: builder.query<string[], void>({
+      query: () => "/publicaciones/tipos-transaccion",
+      providesTags: ["Publicaciones"],
+    }),
   }),
   overrideExisting: true,
 })
 
-export const { useGetPublicacionesQuery } = homeApi
+export const { 
+  useGetPublicacionesQuery, 
+  useGetUbicacionesQuery, 
+  useGetTiposInmuebleQuery,
+  useGetTiposTransaccionQuery
+} = homeApi
