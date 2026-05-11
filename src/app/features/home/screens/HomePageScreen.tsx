@@ -13,7 +13,7 @@ export const HomePageScreen = () => {
     ANTICRETICO: "en anticrético",
     ALOJAMIENTO: "para alojamiento",
   }
-  
+
   const tituloVisual = filtro ? (mapping[filtro] || "disponibles") : "disponibles"
 
   return (
