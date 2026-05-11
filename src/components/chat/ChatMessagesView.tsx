@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from "react"
-import { useGetChatMessagesQuery, useGetChatsQuery } from "@/app/store/api/chatApi"
+import { useGetChatMessagesQuery, useGetChatsQuery, chatApi, useMarkAsReadMutation } from "@/app/store/api/chatApi"
 import { useAppSelector, useAppDispatch } from "@/app/store"
 import { setTyping, setUserOnline } from "@/app/store/chatUiSlice"
 import { addNotificacion } from "@/app/store/notificacionesSlice"
@@ -25,24 +25,29 @@ export function ChatMessagesView({ conversacionId, onBack }: ChatMessagesViewPro
   const dispatch = useAppDispatch()
   const isOtherTyping = useAppSelector((state) => state.chatUi.typingUsers[conversacionId] ?? false)
 
-  const { data: messagesData, isLoading } = useGetChatMessagesQuery({ conversacionId })
+  const [page, setPage] = React.useState(0)
+  const { data: messagesData, isLoading, isFetching } = useGetChatMessagesQuery({ conversacionId, page })
   const { data: chats } = useGetChatsQuery()
+  const [markAsRead] = useMarkAsReadMutation()
 
   const activeChat = chats?.find((c) => c.conversacionId === conversacionId)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [inputText, setInputText] = React.useState("")
-  const [realTimeMessages, setRealTimeMessages] = React.useState<ChatMessage[]>([])
 
   // Timer para limpiar el indicador de typing automáticamente
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Timer para limpiar el estado online por inactividad (60s)
   const onlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Limpiar mensajes en tiempo real al cambiar de conversación
+  // Limpiar indicador de typing al cambiar de conversación
   useEffect(() => {
-    setRealTimeMessages([])
     dispatch(setTyping({ conversacionId, isTyping: false }))
   }, [conversacionId, dispatch])
+
+  // Mark messages as read as soon as the conversation is opened
+  useEffect(() => {
+    markAsRead(conversacionId)
+  }, [conversacionId, markAsRead])
 
   const onMessageReceived = useCallback((msg: any) => {
     console.log("[STOMP RCV]", msg)
@@ -70,11 +75,20 @@ export function ChatMessagesView({ conversacionId, onBack }: ChatMessagesViewPro
     }
     // Mensaje normal - si tiene ID, es un mensaje confirmado desde el backend
     if (msg.id && (msg.conversacionId === conversacionId || msg.conversacionId == null)) {
-      setRealTimeMessages((prev) => {
-        // Evitar duplicados (por si RTK Query lo trae al mismo tiempo)
-        if (prev.some(m => m.id === msg.id)) return prev
-        return [...prev, msg]
-      })
+      // Inyectar en caché de mensajes
+      dispatch(
+        chatApi.util.updateQueryData("getChatMessages", { conversacionId }, (draft) => {
+          if (!draft.content.some(m => m.id === msg.id)) {
+            draft.content.unshift(msg)
+          }
+        })
+      )
+
+      // Mark as read immediately since we are viewing this conversation
+      if (msg.remitenteId !== user?.id) {
+        markAsRead(conversacionId)
+      }
+
       if (msg.remitenteId !== user?.id) {
         dispatch(addNotificacion({
           id: crypto.randomUUID(),
@@ -89,7 +103,7 @@ export function ChatMessagesView({ conversacionId, onBack }: ChatMessagesViewPro
     } else if (msg.conversacionId !== conversacionId && msg.tipo !== "TYPING") {
       console.warn("[STOMP] Conversacion ID mismatch:", msg.conversacionId, "vs", conversacionId)
     }
-  }, [conversacionId, dispatch])
+  }, [conversacionId, dispatch, user?.id])
 
   const { sendMessage } = useChatSocket({
     onMessageReceived,
@@ -119,19 +133,43 @@ export function ChatMessagesView({ conversacionId, onBack }: ChatMessagesViewPro
     }, 2000)
   }, [conversacionId, sendMessage])
 
-  // Combinamos historial REST con mensajes en tiempo real
-  // Asumimos que messagesData.content viene de más reciente a más antiguo (por eso el reverse original)
-  const historyMessages = messagesData?.content.slice().reverse() || []
-  const allMessages = [...historyMessages, ...realTimeMessages]
+  // Asumimos que messagesData.content viene de más reciente a más antiguo (por eso el reverse)
+  const allMessages = messagesData?.content.slice().reverse() || []
+
+  const prevMessagesLength = useRef(0)
+  const prevScrollHeight = useRef(0)
 
   useEffect(() => {
-    if (scrollRef.current) {
-      const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]')
-      if (scrollContainer) {
+    const scrollContainer = scrollRef.current?.querySelector('[data-slot="scroll-area-viewport"], [data-radix-scroll-area-viewport]') as HTMLElement
+    if (!scrollContainer) return
+
+    if (allMessages.length > prevMessagesLength.current) {
+      if (page === 0) {
+        // Scroll al fondo en carga inicial o nuevo mensaje
         scrollContainer.scrollTop = scrollContainer.scrollHeight
+      } else {
+        // Mantener posición tras cargar historial viejo
+        scrollContainer.scrollTop = scrollContainer.scrollHeight - prevScrollHeight.current
       }
     }
-  }, [allMessages, isLoading])
+
+    prevMessagesLength.current = allMessages.length
+    prevScrollHeight.current = scrollContainer.scrollHeight
+  }, [allMessages, page])
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current?.querySelector('[data-slot="scroll-area-viewport"], [data-radix-scroll-area-viewport]') as HTMLElement
+    if (!scrollContainer) return
+
+    const handleScroll = () => {
+      if (scrollContainer.scrollTop <= 5 && !isFetching && messagesData && !messagesData.last) {
+        setPage((p) => p + 1)
+      }
+    }
+
+    scrollContainer.addEventListener("scroll", handleScroll)
+    return () => scrollContainer.removeEventListener("scroll", handleScroll)
+  }, [isFetching, messagesData])
 
   const handleSendMessage = (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -184,7 +222,12 @@ export function ChatMessagesView({ conversacionId, onBack }: ChatMessagesViewPro
       {/* Messages */}
       <ScrollArea ref={scrollRef} className="flex-1 min-h-0 p-4">
         <div className="space-y-4">
-          {isLoading ? (
+          {page > 0 && isFetching && (
+            <div className="flex justify-center py-2">
+              <Skeleton className="h-6 w-24 rounded-full" />
+            </div>
+          )}
+          {isLoading && page === 0 ? (
             Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className={cn("flex gap-2", i % 2 === 0 ? "flex-row" : "flex-row-reverse")}>
                 <Skeleton className="h-8 w-8 rounded-full" />

@@ -4,6 +4,7 @@ import { useAppSelector } from "@/app/store"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { Search01Icon, Message01Icon } from "hugeicons-react"
@@ -19,8 +20,8 @@ export function ChatInboxView({ onSelectChat }: ChatInboxViewProps) {
   const onlineUsers = useAppSelector((state) => state.chatUi.onlineUsers)
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="p-4 border-b bg-muted/30">
+    <div className="flex h-full flex-col min-h-0">
+      <div className="p-4 border-b bg-muted/30 shrink-0">
         <h3 className="text-lg font-bold flex items-center gap-2">
           <Message01Icon className="h-5 w-5 text-primary" />
           Mensajes
@@ -34,7 +35,7 @@ export function ChatInboxView({ onSelectChat }: ChatInboxViewProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="flex flex-col">
           {isLoading ? (
             Array.from({ length: 5 }).map((_, i) => (
@@ -69,15 +70,22 @@ export function ChatInboxView({ onSelectChat }: ChatInboxViewProps) {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-baseline gap-2">
-                    <span className="font-semibold truncate text-sm">
+                    <span className={`font-semibold truncate text-sm ${chat.mensajesSinLeer > 0 ? "text-foreground" : ""}`}>
                       {chat.nombreOtroUsuario}
                     </span>
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(new Date(chat.ultimoMensajeFecha), {
-                        addSuffix: true,
-                        locale: es,
-                      })}
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                        {formatDistanceToNow(new Date(chat.ultimoMensajeFecha), {
+                          addSuffix: true,
+                          locale: es,
+                        })}
+                      </span>
+                      {chat.mensajesSinLeer > 0 && (
+                        <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none">
+                          {chat.mensajesSinLeer > 99 ? "99+" : chat.mensajesSinLeer}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {/* Estado de presencia / typing */}
                   {typingUsers[chat.conversacionId] ? (

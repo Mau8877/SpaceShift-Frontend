@@ -5,6 +5,7 @@ export interface ChatConversation {
   nombreOtroUsuario: string
   fotoOtroUsuario: string
   ultimoMensajeFecha: string
+  mensajesSinLeer: number
 }
 
 export interface ChatMessage {
