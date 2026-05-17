@@ -20,6 +20,7 @@ import {
   DashboardSquare02Icon,
   Home01Icon,
   UserGroup03Icon,
+  FavouriteIcon,
 } from "hugeicons-react"
 import * as React from "react"
 
@@ -37,6 +38,7 @@ export function AppSidebar() {
   const menuItems = [
     { title: "Home", icon: Home01Icon, to: "/" },
     { title: "Dashboard", icon: DashboardSquare02Icon, to: "/dashboard" },
+    { title: "Mis Favoritos", icon: FavouriteIcon, to: "/favoritos" },
     ...(user?.rol === "ROLE_ADMIN"
       ? [
           {

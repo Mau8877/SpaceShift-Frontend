@@ -22,6 +22,7 @@ import { Route as AuthReportesRouteImport } from './routes/_auth/reportes'
 import { Route as AuthPublicarRouteImport } from './routes/_auth/publicar'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
 import { Route as AuthGestionarUsuariosRouteImport } from './routes/_auth/gestionar-usuarios'
+import { Route as AuthFavoritosRouteImport } from './routes/_auth/favoritos'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
@@ -92,6 +93,11 @@ const AuthGestionarUsuariosRoute = AuthGestionarUsuariosRouteImport.update({
   path: '/gestionar-usuarios',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthFavoritosRoute = AuthFavoritosRouteImport.update({
+  id: '/favoritos',
+  path: '/favoritos',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthDashboardRoute = AuthDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/': typeof PublicIndexRoute
   '/dashboard': typeof AuthDashboardRouteWithChildren
+  '/favoritos': typeof AuthFavoritosRoute
   '/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/profile': typeof AuthProfileRoute
   '/publicar': typeof AuthPublicarRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/': typeof PublicIndexRoute
+  '/favoritos': typeof AuthFavoritosRoute
   '/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/profile': typeof AuthProfileRoute
   '/publicar': typeof AuthPublicarRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
   '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
+  '/_auth/favoritos': typeof AuthFavoritosRoute
   '/_auth/gestionar-usuarios': typeof AuthGestionarUsuariosRoute
   '/_auth/profile': typeof AuthProfileRoute
   '/_auth/publicar': typeof AuthPublicarRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/'
     | '/dashboard'
+    | '/favoritos'
     | '/gestionar-usuarios'
     | '/profile'
     | '/publicar'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
   to:
     | '/$'
     | '/'
+    | '/favoritos'
     | '/gestionar-usuarios'
     | '/profile'
     | '/publicar'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_public'
     | '/_auth/dashboard'
+    | '/_auth/favoritos'
     | '/_auth/gestionar-usuarios'
     | '/_auth/profile'
     | '/_auth/publicar'
@@ -342,6 +354,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthGestionarUsuariosRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/favoritos': {
+      id: '/_auth/favoritos'
+      path: '/favoritos'
+      fullPath: '/favoritos'
+      preLoaderRoute: typeof AuthFavoritosRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/dashboard': {
       id: '/_auth/dashboard'
       path: '/dashboard'
@@ -407,6 +426,7 @@ const AuthDashboardRouteWithChildren = AuthDashboardRoute._addFileChildren(
 
 interface AuthRouteChildren {
   AuthDashboardRoute: typeof AuthDashboardRouteWithChildren
+  AuthFavoritosRoute: typeof AuthFavoritosRoute
   AuthGestionarUsuariosRoute: typeof AuthGestionarUsuariosRoute
   AuthProfileRoute: typeof AuthProfileRoute
   AuthPublicarRoute: typeof AuthPublicarRoute
@@ -416,6 +436,7 @@ interface AuthRouteChildren {
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthDashboardRoute: AuthDashboardRouteWithChildren,
+  AuthFavoritosRoute: AuthFavoritosRoute,
   AuthGestionarUsuariosRoute: AuthGestionarUsuariosRoute,
   AuthProfileRoute: AuthProfileRoute,
   AuthPublicarRoute: AuthPublicarRoute,

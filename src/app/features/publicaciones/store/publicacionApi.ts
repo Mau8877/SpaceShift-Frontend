@@ -36,6 +36,19 @@ export const publicacionApi = api.injectEndpoints({
       query: (id) => `/publicaciones/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Publicaciones", id }],
     }),
+
+    // 5. Favoritos
+    getMisFavoritos: builder.query<any[], void>({
+      query: () => "/publicaciones/mis-favoritos",
+      providesTags: ["Favoritos", "Publicaciones"],
+    }),
+    toggleFavorito: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/publicaciones/${id}/favorito`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Favoritos", "Publicaciones"],
+    }),
   }),
   overrideExisting: true,
 })
@@ -44,5 +57,7 @@ export const {
   useCrearInmuebleMutation, 
   useCrearPublicacionMutation, 
   useSubirImagenesMutation,
-  useGetPublicacionByIdQuery
+  useGetPublicacionByIdQuery,
+  useGetMisFavoritosQuery,
+  useToggleFavoritoMutation
 } = publicacionApi

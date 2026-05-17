@@ -15,9 +15,22 @@ import {
 import { PropertyCardMedia } from "@/components/ui/property-card-media"
 import { Link } from "@tanstack/react-router"
 
+import { useGetMisFavoritosQuery, useToggleFavoritoMutation } from "../../publicaciones/store/publicacionApi"
 import type { Publicacion } from "../types/property.ts"
 
 export function PropertyCard({ data }: { data: Publicacion }) {
+  // Queries
+  const { data: misFavoritos = [] } = useGetMisFavoritosQuery()
+  const [toggleFavorito] = useToggleFavoritoMutation()
+
+  const isFavorito = misFavoritos.some((fav: any) => fav.id === data.id)
+
+  const handleToggleFavorito = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toggleFavorito(data.id)
+  }
+
   // Extraer URLs de las imágenes de la publicación
   const imagenes = data.imagenes?.length
     ? data.imagenes.map(img => img.urlImage)
@@ -37,7 +50,11 @@ export function PropertyCard({ data }: { data: Publicacion }) {
         {/* Acciones */}
         <div className="absolute top-5 right-5 flex gap-2">
           <PropertyCardAction icon={ViewIcon} />
-          <PropertyCardAction icon={FavouriteIcon} />
+          <PropertyCardAction 
+            icon={FavouriteIcon} 
+            isActive={isFavorito}
+            onClick={handleToggleFavorito}
+          />
         </div>
       </PropertyCardMedia>
 

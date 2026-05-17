@@ -20,6 +20,7 @@ export const api = createApi({
     "Messages",
     "Profile",
     "USUARIOS",
+    "Favoritos",
   ],
 
   endpoints: () => ({}),
