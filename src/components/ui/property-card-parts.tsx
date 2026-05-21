@@ -65,17 +65,18 @@ PropertyCardBadge.displayName = "PropertyCardBadge"
 
 const PropertyCardAction = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { icon: React.ElementType }
->(({ className, icon: Icon, ...props }, ref) => (
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { icon: React.ElementType; isActive?: boolean }
+>(({ className, icon: Icon, isActive, ...props }, ref) => (
   <button
     ref={ref}
     className={cn(
       "flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-md transition-all duration-300 hover:bg-black/60 hover:scale-110 active:scale-95",
+      isActive && "bg-red-500/20 text-red-500 border-red-500/50 hover:bg-red-500/40",
       className
     )}
     {...props}
   >
-    <Icon size={16} strokeWidth={2} />
+    <Icon size={16} strokeWidth={2} fill={isActive ? "currentColor" : "none"} />
   </button>
 ))
 PropertyCardAction.displayName = "PropertyCardAction"

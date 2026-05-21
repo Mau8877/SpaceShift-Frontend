@@ -52,6 +52,7 @@ export const publicacionApi = api.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { id }) => ["Publicaciones", { type: "Publicaciones", id }],
     }),
+
     // 7. Eliminar publicación
     eliminarPublicacion: builder.mutation<void, string>({
       query: (id) => ({
@@ -59,6 +60,19 @@ export const publicacionApi = api.injectEndpoints({
         method: "DELETE",
       }),
       invalidatesTags: ["Publicaciones"],
+    }),
+
+    // 8. Favoritos
+    getMisFavoritos: builder.query<any[], void>({
+      query: () => "/publicaciones/mis-favoritos",
+      providesTags: ["Favoritos", "Publicaciones"],
+    }),
+    toggleFavorito: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/publicaciones/${id}/favorito`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Favoritos", "Publicaciones"],
     }),
   }),
   overrideExisting: true,
@@ -72,4 +86,6 @@ export const {
   useGetMisPublicacionesQuery,
   useActualizarPublicacionMutation,
   useEliminarPublicacionMutation,
+  useGetMisFavoritosQuery,
+  useToggleFavoritoMutation
 } = publicacionApi
