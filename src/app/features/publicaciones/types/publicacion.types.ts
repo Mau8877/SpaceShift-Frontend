@@ -37,4 +37,5 @@ export interface PublicacionRequestDTO {
   moneda: string;
   estadoPublicacion: string;
   imagenesUrls: string[];
+  inmueble?: InmuebleRequestDTO;
 }

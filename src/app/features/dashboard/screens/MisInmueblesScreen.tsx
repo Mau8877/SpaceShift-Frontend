@@ -5,10 +5,11 @@ import {
   MisInmueblesFilters,
   MisInmueblesSummary,
 } from "../components"
-import { misInmueblesMock } from "../mocks"
+import { useGetMisPublicacionesQuery } from "../../publicaciones/store/publicacionApi"
 import type { PropertyFilterStatus, PropertyFilterTransaction } from "../types"
 
 export const MisInmueblesScreen = () => {
+  const { data: misPublicaciones = [], isLoading } = useGetMisPublicacionesQuery()
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState<PropertyFilterStatus>("TODOS")
   const [transaction, setTransaction] =
@@ -16,25 +17,32 @@ export const MisInmueblesScreen = () => {
 
   const summary = useMemo(() => {
     return {
-      total: misInmueblesMock.length,
-      publicados: misInmueblesMock.filter(
-        (property) => property.estadoPublicacion === "ACTIVO"
+      total: misPublicaciones.length,
+      disponibles: misPublicaciones.filter(
+        (property) => property.inmueble.estadoOperativo === "DISPONIBLE" && property.estadoPublicacion !== "ELIMINADO"
       ).length,
-      disponibles: misInmueblesMock.filter(
-        (property) => property.estadoOperativo === "DISPONIBLE"
+      ocupados: misPublicaciones.filter(
+        (property) => property.inmueble.estadoOperativo === "OCUPADO"
       ).length,
-      ocupados: misInmueblesMock.filter(
-        (property) => property.estadoOperativo === "OCUPADO"
+      inactivos: misPublicaciones.filter(
+        (property) => property.estadoPublicacion === "INACTIVO" || property.estadoPublicacion === "ELIMINADO" || property.inmueble.estadoOperativo === "INACTIVO"
       ).length,
     }
-  }, [])
+  }, [misPublicaciones])
 
   const filteredProperties = useMemo(() => {
     const searchValue = search.trim().toLowerCase()
 
-    return misInmueblesMock.filter((property) => {
-      if (status !== "TODOS" && property.estadoOperativo !== status) {
-        return false
+    return misPublicaciones.filter((property: any) => {
+      if (status !== "TODOS") {
+        const est = property.estadoPublicacion;
+        if (status === "DISPONIBLE") {
+          if (est !== "DISPONIBLE" && est !== "ACTIVO" && est !== "ACTIVA") return false;
+        } else if (status === "OCUPADO") {
+          if (est !== "OCUPADO") return false;
+        } else if (status === "INACTIVO") {
+          if (est !== "INACTIVO" && est !== "ELIMINADO") return false;
+        }
       }
 
       if (transaction !== "TODOS" && property.tipoTransaccion !== transaction) {
@@ -49,7 +57,7 @@ export const MisInmueblesScreen = () => {
         property.titulo,
         property.tipoTransaccion,
         property.estadoPublicacion,
-        property.estadoOperativo,
+        property.inmueble.estadoOperativo,
         property.inmueble.tipoInmueble,
         property.inmueble.ubicacion.ciudad,
         property.inmueble.ubicacion.zonaBarrios,
@@ -60,7 +68,15 @@ export const MisInmueblesScreen = () => {
 
       return searchableText.includes(searchValue)
     })
-  }, [search, status, transaction])
+  }, [search, status, transaction, misPublicaciones])
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-950 border-t-transparent"></div>
+      </div>
+    )
+  }
 
   return (
     <section className="space-y-6">
@@ -76,7 +92,7 @@ export const MisInmueblesScreen = () => {
 
       <MisInmueblesSummary
         total={summary.total}
-        publicados={summary.publicados}
+        inactivos={summary.inactivos}
         disponibles={summary.disponibles}
         ocupados={summary.ocupados}
       />

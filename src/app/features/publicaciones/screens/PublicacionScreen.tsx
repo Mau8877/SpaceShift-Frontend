@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useForm } from "@tanstack/react-form"
+import { Route } from "@/routes/_auth/publicar"
 
 import {
   Home01Icon,
@@ -15,7 +16,13 @@ import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 
 import { useAppSelector } from "@/app/store"
-import { useCrearInmuebleMutation, useCrearPublicacionMutation, useSubirImagenesMutation } from "../store/publicacionApi"
+import { 
+  useCrearInmuebleMutation, 
+  useCrearPublicacionMutation, 
+  useSubirImagenesMutation,
+  useGetPublicacionByIdQuery,
+  useActualizarPublicacionMutation
+} from "../store/publicacionApi"
 import { crearPublicacionWizardSchema } from "../schemas/publicacionSchema"
 
 import { PasoInmueble, PasoUbicacion, PasoDetalles, PasoImagenes } from "../components/wizard"
@@ -32,8 +39,16 @@ export function PublicacionScreen() {
   const navigate = useNavigate()
 
   // RTK Query Mutations
+  const { edit: editId } = Route.useSearch()
+  const isEditMode = !!editId
+
+  const { data: publicationToEdit, isLoading: isLoadingData } = useGetPublicacionByIdQuery(editId!, {
+    skip: !isEditMode,
+  })
+
   const [crearInmueble, { isLoading: isCreatingInmueble }] = useCrearInmuebleMutation()
   const [crearPublicacion, { isLoading: isCreatingPublicacion }] = useCrearPublicacionMutation()
+  const [actualizarPublicacion, { isLoading: isUpdating }] = useActualizarPublicacionMutation()
   const [subirImagenes, { isLoading: isUploading }] = useSubirImagenesMutation()
 
   // Usuario extraido de Redux Auth
@@ -68,57 +83,123 @@ export function PublicacionScreen() {
           return
         }
 
-        // 1. SUBIR IMAGENES A CLOUDINARY (SI HAY)
-        let uploadedUrls: string[] = [];
-        if (value.imagenesUrls && value.imagenesUrls.length > 0) {
-          toast.loading("Subiendo imágenes a la nube...", { id: "upload-toast" })
+        // 1. SUBIR IMAGENES A CLOUDINARY (SI HAY NUEVAS)
+        // Nota: Esta lógica asume que si hay archivos (Files), son nuevos.
+        // Si ya son strings (URLs), se mantienen.
+        let finalUrls: string[] = value.imagenesUrls.filter((img: any) => typeof img === 'string');
+        const newFiles = value.imagenesUrls.filter((img: any) => typeof img !== 'string');
+
+        if (newFiles.length > 0) {
+          toast.loading("Subiendo nuevas imágenes...", { id: "upload-toast" })
           const formData = new FormData()
-          value.imagenesUrls.forEach((file: File) => {
+          newFiles.forEach((file: File) => {
             formData.append("files", file)
           })
-          uploadedUrls = await subirImagenes(formData).unwrap()
+          const uploadedUrls = await subirImagenes(formData).unwrap()
+          finalUrls = [...finalUrls, ...uploadedUrls]
           toast.dismiss("upload-toast")
         }
 
-        // 2. CREAR EL INMUEBLE
-        const inmuebleRes = await crearInmueble({
-          tipoInmueble: value.tipoInmueble,
-          areaTerreno: value.areaTerreno,
-          areaConstruida: value.areaConstruida,
-          habitaciones: value.habitaciones,
-          banos: value.banos,
-          garajes: value.garajes,
-          antiguedadAnios: value.antiguedadAnios,
-          ubicacion: {
-            ciudad: value.ciudad,
-            zonaBarrios: value.zonaBarrios,
-            direccionExacta: value.direccionExacta,
-            latitud: value.latitud,
-            longitud: value.longitud,
-          }
-        }).unwrap()
+        if (isEditMode) {
+          // ACTUALIZAR PUBLICACIÓN EXISTENTE
+          await actualizarPublicacion({
+            id: editId!,
+            data: {
+              idUsuario: user.id,
+              idInmueble: publicationToEdit.inmueble.id,
+              titulo: value.titulo,
+              descripcionGeneral: value.descripcionGeneral,
+              tipoTransaccion: value.tipoTransaccion.toUpperCase(),
+              precio: value.precio,
+              moneda: value.moneda,
+              estadoPublicacion: "ACTIVO",
+              imagenesUrls: finalUrls,
+              inmueble: {
+                tipoInmueble: value.tipoInmueble,
+                areaTerreno: value.areaTerreno,
+                areaConstruida: value.areaConstruida,
+                habitaciones: value.habitaciones,
+                banos: value.banos,
+                garajes: value.garajes,
+                antiguedadAnios: value.antiguedadAnios,
+                ubicacion: {
+                  ciudad: value.ciudad,
+                  zonaBarrios: value.zonaBarrios,
+                  direccionExacta: value.direccionExacta,
+                  latitud: value.latitud,
+                  longitud: value.longitud,
+                }
+              }
+            }
+          }).unwrap()
+          
+          toast.success("¡Actualizado!", { description: "Propiedad actualizada correctamente" })
+        } else {
+          // 2. CREAR EL INMUEBLE
+          const inmuebleRes = await crearInmueble({
+            tipoInmueble: value.tipoInmueble,
+            areaTerreno: value.areaTerreno,
+            areaConstruida: value.areaConstruida,
+            habitaciones: value.habitaciones,
+            banos: value.banos,
+            garajes: value.garajes,
+            antiguedadAnios: value.antiguedadAnios,
+            ubicacion: {
+              ciudad: value.ciudad,
+              zonaBarrios: value.zonaBarrios,
+              direccionExacta: value.direccionExacta,
+              latitud: value.latitud,
+              longitud: value.longitud,
+            }
+          }).unwrap()
 
-        // 3. CREAR LA PUBLICACIÓN (CON LAS URLs DE CLOUDINARY)
-        await crearPublicacion({
-          idUsuario: user.id,
-          idInmueble: inmuebleRes.id,
-          titulo: value.titulo,
-          descripcionGeneral: value.descripcionGeneral,
-          tipoTransaccion: value.tipoTransaccion,
-          precio: value.precio,
-          moneda: value.moneda,
-          estadoPublicacion: "ACTIVO",
-          imagenesUrls: uploadedUrls,
-        }).unwrap()
+          // 3. CREAR LA PUBLICACIÓN (CON LAS URLs DE CLOUDINARY)
+          await crearPublicacion({
+            idUsuario: user.id,
+            idInmueble: inmuebleRes.id,
+            titulo: value.titulo,
+            descripcionGeneral: value.descripcionGeneral,
+            tipoTransaccion: value.tipoTransaccion,
+            precio: value.precio,
+            moneda: value.moneda,
+            estadoPublicacion: "ACTIVO",
+            imagenesUrls: finalUrls,
+          }).unwrap()
 
-        toast.success("¡Éxito!", { description: "Propiedad publicada correctamente" })
-        navigate({ to: "/dashboard" }) // Redirigir al dashboard
+          toast.success("¡Éxito!", { description: "Propiedad publicada correctamente" })
+        }
+        
+        navigate({ to: "/dashboard/inmuebles" })
 
       } catch (error: any) {
         toast.error("Error al publicar", { description: error?.data?.message || "Revisa los campos e intenta de nuevo" })
       }
     },
   })
+
+  // Precarga de datos en modo edición
+  useEffect(() => {
+    if (isEditMode && publicationToEdit) {
+      form.setFieldValue("tipoInmueble", publicationToEdit.inmueble.tipoInmueble)
+      form.setFieldValue("areaTerreno", publicationToEdit.inmueble.areaTerreno)
+      form.setFieldValue("areaConstruida", publicationToEdit.inmueble.areaConstruida)
+      form.setFieldValue("habitaciones", publicationToEdit.inmueble.habitaciones)
+      form.setFieldValue("banos", publicationToEdit.inmueble.banos)
+      form.setFieldValue("garajes", publicationToEdit.inmueble.garajes)
+      form.setFieldValue("antiguedadAnios", publicationToEdit.inmueble.antiguedadAnios)
+      form.setFieldValue("ciudad", publicationToEdit.inmueble.ubicacion.ciudad)
+      form.setFieldValue("zonaBarrios", publicationToEdit.inmueble.ubicacion.zonaBarrios)
+      form.setFieldValue("direccionExacta", publicationToEdit.inmueble.ubicacion.direccionExacta)
+      form.setFieldValue("latitud", publicationToEdit.inmueble.ubicacion.latitud)
+      form.setFieldValue("longitud", publicationToEdit.inmueble.ubicacion.longitud)
+      form.setFieldValue("titulo", publicationToEdit.titulo)
+      form.setFieldValue("descripcionGeneral", publicationToEdit.descripcionGeneral)
+      form.setFieldValue("precio", publicationToEdit.precio)
+      form.setFieldValue("tipoTransaccion", publicationToEdit.tipoTransaccion.toLowerCase())
+      form.setFieldValue("moneda", publicationToEdit.moneda)
+      form.setFieldValue("imagenesUrls", publicationToEdit.imagenes.map((img: any) => img.urlImage))
+    }
+  }, [isEditMode, publicationToEdit, form])
 
   // Controladores del Stepper
   const handleNextStep = async () => {
@@ -139,15 +220,19 @@ export function PublicacionScreen() {
     }
   }
 
-  const isLoading = isCreatingInmueble || isCreatingPublicacion || isUploading;
+  const isLoading = isCreatingInmueble || isCreatingPublicacion || isUploading || isUpdating || isLoadingData;
 
   return (
     <div className="container py-10 max-w-4xl mx-auto min-h-[80vh] flex items-center justify-center">
       <Card className="w-full bg-background border border-border shadow-lg">
         {/* Header */}
         <div className="border-b border-border px-8 py-6">
-          <h1 className="text-2xl font-semibold text-foreground">Publicar Inmueble</h1>
-          <p className="text-muted-foreground text-sm mt-1">Completa todos los pasos para publicar tu propiedad</p>
+          <h1 className="text-2xl font-semibold text-foreground">
+            {isEditMode ? "Editar Inmueble" : "Publicar Inmueble"}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {isEditMode ? "Modifica los datos de tu publicación" : "Completa todos los pasos para publicar tu propiedad"}
+          </p>
         </div>
 
         {/* Stepper Superior */}
@@ -223,10 +308,10 @@ export function PublicacionScreen() {
                   disabled={!canSubmit || isLoading}
                   className="gap-2 bg-primary hover:bg-primary/90"
                 >
-                  {isLoading ? "Publicando..." : (
+                  {isLoading ? (isEditMode ? "Guardando..." : "Publicando...") : (
                     <>
                       <CheckmarkCircle01Icon className="w-4 h-4" />
-                      Publicar
+                      {isEditMode ? "Guardar Cambios" : "Publicar"}
                     </>
                   )}
                 </Button>

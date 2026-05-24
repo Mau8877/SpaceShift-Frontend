@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, type ChangeEvent } from "react"
+import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { Outlet } from "@tanstack/react-router"
 import { PencilEdit01Icon, UserCircleIcon } from "hugeicons-react"
 import { toast } from "sonner"
@@ -25,6 +25,13 @@ import {
   useUploadProfileImageMutation,
 } from "../store"
 import type { PerfilResponseDTO, UpdatePerfilRequestDTO } from "../types"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import {
+  useGetMiSaldoQuery,
+  useGetMiHistorialQuery,
+  CreditBalanceCard,
+  TransactionHistoryTable
+} from "@/app/features/tokens"
 
 type ProfileFormState = {
   nombre: string
@@ -246,73 +253,92 @@ export function ProfileScreen() {
 
   return (
     <section className="mx-auto w-full max-w-5xl space-y-6">
-      <Card className="relative overflow-hidden border-slate-200 p-6 sm:p-8">
-        <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-slate-50 via-blue-50 to-slate-50" />
-        <div className="relative">
-          <div className="absolute right-0 top-0">
-            <Button
-              variant="outline"
-              size="icon-sm"
-              onClick={handleOpenEdit}
-              aria-label="Editar perfil"
-            >
-              <PencilEdit01Icon className="size-4" />
-            </Button>
+      <Tabs defaultValue="perfil" className="w-full space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/60 pb-4">
+          <div className="space-y-0.5">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Configuración de Cuenta</h2>
+            <p className="text-xs text-slate-500">Administra la información de tu perfil y monedero de tokens.</p>
           </div>
+          <TabsList>
+            <TabsTrigger value="perfil" className="px-4 py-1.5 text-xs">Mi Información</TabsTrigger>
+            <TabsTrigger value="monedero" className="px-4 py-1.5 text-xs">Mi Monedero</TabsTrigger>
+          </TabsList>
+        </div>
 
-          <div className="mt-6 flex flex-col items-center gap-6 sm:mt-8 sm:flex-row sm:items-start">
-            <Avatar className="h-28 w-28 border-4 border-white shadow-sm sm:h-32 sm:w-32">
-              <AvatarImage src={photoPreview || undefined} alt={fullName || "Perfil"} />
-              <AvatarFallback className="text-base">
-                <UserCircleIcon className="size-6 text-slate-500" />
-              </AvatarFallback>
-            </Avatar>
+        <TabsContent value="perfil" className="space-y-6 mt-0">
+          <Card className="relative overflow-hidden border-slate-200 p-6 sm:p-8">
+            <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-slate-50 via-blue-50 to-slate-50" />
+            <div className="relative">
+              <div className="absolute right-0 top-0">
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={handleOpenEdit}
+                  aria-label="Editar perfil"
+                >
+                  <PencilEdit01Icon className="size-4" />
+                </Button>
+              </div>
 
-            <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-3 text-center sm:grid-cols-2 sm:text-left">
-              <div className="sm:col-span-2">
-                <p className="text-xl font-semibold text-slate-950">
-                  {fullName || "Usuario sin nombre"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Correo</p>
-                <p className="text-sm text-slate-800">{form.correo || "No disponible"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Rol</p>
-                <p className="text-sm text-slate-800">{form.tipoPerfil || "No disponible"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Estado</p>
-                <p className="text-sm text-slate-800">
-                  {form.estadoConexion ? "Conectado" : "Desconectado"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Teléfono
-                </p>
-                <p className="text-sm text-slate-800">{form.telefono || "No disponible"}</p>
-              </div>
-              <div className="sm:col-span-2">
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Descripción
-                </p>
-                <p className="text-sm text-slate-800">{form.descripcion || "No disponible"}</p>
+              <div className="mt-6 flex flex-col items-center gap-6 sm:mt-8 sm:flex-row sm:items-start">
+                <Avatar className="h-28 w-28 border-4 border-white shadow-sm sm:h-32 sm:w-32">
+                  <AvatarImage src={photoPreview || undefined} alt={fullName || "Perfil"} />
+                  <AvatarFallback className="text-base">
+                    <UserCircleIcon className="size-6 text-slate-500" />
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-3 text-center sm:grid-cols-2 sm:text-left">
+                  <div className="sm:col-span-2">
+                    <p className="text-xl font-semibold text-slate-950">
+                      {fullName || "Usuario sin nombre"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Correo</p>
+                    <p className="text-sm text-slate-800">{form.correo || "No disponible"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Rol</p>
+                    <p className="text-sm text-slate-800">{form.tipoPerfil || "No disponible"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Estado</p>
+                    <p className="text-sm text-slate-800">
+                      {form.estadoConexion ? "Conectado" : "Desconectado"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Teléfono
+                    </p>
+                    <p className="text-sm text-slate-800">{form.telefono || "No disponible"}</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Descripción
+                    </p>
+                    <p className="text-sm text-slate-800">{form.descripcion || "No disponible"}</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </Card>
+          </Card>
 
-      <Card className="border border-dashed border-slate-200 p-6">
-        <p className="mb-4 text-sm font-medium text-slate-700">
-          Secciones adicionales del perfil
-        </p>
-        <div className="min-h-24 rounded-lg bg-slate-50 p-3">
-          <Outlet />
-        </div>
-      </Card>
+          <Card className="border border-dashed border-slate-200 p-6">
+            <p className="mb-4 text-sm font-medium text-slate-700">
+              Secciones adicionales del perfil
+            </p>
+            <div className="min-h-24 rounded-lg bg-slate-50 p-3">
+              <Outlet />
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="monedero" className="mt-0">
+          <MonederoSection fullName={fullName} />
+        </TabsContent>
+      </Tabs>
 
       <Dialog
         open={isEditOpen}
@@ -441,3 +467,48 @@ export function ProfileScreen() {
     </section>
   )
 }
+
+function MonederoSection({ fullName }: { fullName: string }) {
+  const { data: saldoData, isLoading: isLoadingSaldo } = useGetMiSaldoQuery()
+  const { data: historialData, isLoading: isLoadingHistorial } = useGetMiHistorialQuery()
+
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-1 space-y-6">
+        <CreditBalanceCard
+          saldo={saldoData?.saldoCreditos ?? 0}
+          fullName={fullName}
+        />
+        
+        <Card className="p-5 border-slate-200/80 bg-slate-50/50 shadow-none">
+          <h4 className="text-sm font-semibold text-slate-900 mb-2.5">
+            ¿Cómo funcionan los créditos?
+          </h4>
+          <ul className="text-xs text-slate-600 space-y-2.5 list-disc pl-4">
+            <li>
+              <span className="font-semibold text-slate-800">Costo de Generación:</span> Cada segundo de video procesado consume <span className="font-semibold text-slate-800">2 créditos</span>.
+            </li>
+            <li>
+              <span className="font-semibold text-slate-800">Bono de Bienvenida:</span> Al registrarte por primera vez, recibes <span className="font-semibold text-slate-800">1,000 créditos gratis</span>.
+            </li>
+            <li>
+              <span className="font-semibold text-slate-800">Garantía SpaceShift:</span> Si el procesamiento de la IA llega a fallar por algún error de digitalización, tus créditos serán <span className="font-semibold text-slate-800">reembolsados de inmediato</span>.
+            </li>
+          </ul>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-2 space-y-4">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-base font-semibold text-slate-900">Historial de Tokens</h3>
+          <p className="text-xs text-slate-500">Consulta los movimientos y consumos de tu saldo.</p>
+        </div>
+        <TransactionHistoryTable
+          transactions={historialData ?? []}
+          isLoading={isLoadingHistorial}
+        />
+      </div>
+    </div>
+  )
+}
+

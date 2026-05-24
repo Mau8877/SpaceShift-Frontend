@@ -16,6 +16,7 @@ import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicVerificarCodigoRouteImport } from './routes/_public/verificar-codigo'
 import { Route as PublicRecuperarPasswordRouteImport } from './routes/_public/recuperar-password'
 import { Route as PublicFaqRouteImport } from './routes/_public/faq'
+import { Route as PublicCreditosRouteImport } from './routes/_public/creditos'
 import { Route as PublicCambiarPasswordRouteImport } from './routes/_public/cambiar-password'
 import { Route as AuthSettingsRouteImport } from './routes/_auth/settings'
 import { Route as AuthReportesRouteImport } from './routes/_auth/reportes'
@@ -61,6 +62,11 @@ const PublicRecuperarPasswordRoute = PublicRecuperarPasswordRouteImport.update({
 const PublicFaqRoute = PublicFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicCreditosRoute = PublicCreditosRouteImport.update({
+  id: '/creditos',
+  path: '/creditos',
   getParentRoute: () => PublicRoute,
 } as any)
 const PublicCambiarPasswordRoute = PublicCambiarPasswordRouteImport.update({
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/reportes': typeof AuthReportesRoute
   '/settings': typeof AuthSettingsRoute
   '/cambiar-password': typeof PublicCambiarPasswordRoute
+  '/creditos': typeof PublicCreditosRoute
   '/faq': typeof PublicFaqRoute
   '/recuperar-password': typeof PublicRecuperarPasswordRoute
   '/verificar-codigo': typeof PublicVerificarCodigoRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/reportes': typeof AuthReportesRoute
   '/settings': typeof AuthSettingsRoute
   '/cambiar-password': typeof PublicCambiarPasswordRoute
+  '/creditos': typeof PublicCreditosRoute
   '/faq': typeof PublicFaqRoute
   '/recuperar-password': typeof PublicRecuperarPasswordRoute
   '/verificar-codigo': typeof PublicVerificarCodigoRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/_auth/reportes': typeof AuthReportesRoute
   '/_auth/settings': typeof AuthSettingsRoute
   '/_public/cambiar-password': typeof PublicCambiarPasswordRoute
+  '/_public/creditos': typeof PublicCreditosRoute
   '/_public/faq': typeof PublicFaqRoute
   '/_public/recuperar-password': typeof PublicRecuperarPasswordRoute
   '/_public/verificar-codigo': typeof PublicVerificarCodigoRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/settings'
     | '/cambiar-password'
+    | '/creditos'
     | '/faq'
     | '/recuperar-password'
     | '/verificar-codigo'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/settings'
     | '/cambiar-password'
+    | '/creditos'
     | '/faq'
     | '/recuperar-password'
     | '/verificar-codigo'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/_auth/reportes'
     | '/_auth/settings'
     | '/_public/cambiar-password'
+    | '/_public/creditos'
     | '/_public/faq'
     | '/_public/recuperar-password'
     | '/_public/verificar-codigo'
@@ -310,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof PublicFaqRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/creditos': {
+      id: '/_public/creditos'
+      path: '/creditos'
+      fullPath: '/creditos'
+      preLoaderRoute: typeof PublicCreditosRouteImport
       parentRoute: typeof PublicRoute
     }
     '/_public/cambiar-password': {
@@ -448,6 +467,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface PublicRouteChildren {
   PublicCambiarPasswordRoute: typeof PublicCambiarPasswordRoute
+  PublicCreditosRoute: typeof PublicCreditosRoute
   PublicFaqRoute: typeof PublicFaqRoute
   PublicRecuperarPasswordRoute: typeof PublicRecuperarPasswordRoute
   PublicVerificarCodigoRoute: typeof PublicVerificarCodigoRoute
@@ -457,6 +477,7 @@ interface PublicRouteChildren {
 
 const PublicRouteChildren: PublicRouteChildren = {
   PublicCambiarPasswordRoute: PublicCambiarPasswordRoute,
+  PublicCreditosRoute: PublicCreditosRoute,
   PublicFaqRoute: PublicFaqRoute,
   PublicRecuperarPasswordRoute: PublicRecuperarPasswordRoute,
   PublicVerificarCodigoRoute: PublicVerificarCodigoRoute,

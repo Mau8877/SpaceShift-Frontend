@@ -1,9 +1,24 @@
-import { useState } from "react"
-
+import { useEffect, useState } from "react"
 import { Upload01Icon } from "hugeicons-react"
 
 export function PasoImagenes({ form }: { form: any }) {
-  const [imagePreviews, setImagePreviews] = useState<{ src: string; file: File }[]>([])
+  // Estado local para previsualizaciones, ahora soporta tanto File como string (URL externa)
+  const [imagePreviews, setImagePreviews] = useState<{ src: string; file: File | null }[]>([])
+
+  // Sincronizar con el estado inicial del formulario (especialmente útil para edición)
+  useEffect(() => {
+    const currentImages = form.getFieldValue("imagenesUrls") || []
+    if (currentImages.length > 0 && imagePreviews.length === 0) {
+      const initialPreviews = currentImages.map((img: any) => {
+        if (typeof img === 'string') {
+          return { src: img, file: null }
+        }
+        return null
+      }).filter(Boolean) as { src: string; file: File | null }[]
+      
+      setImagePreviews(initialPreviews)
+    }
+  }, [])
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: any[]) => void) => {
     if (!e.target.files) return
@@ -13,7 +28,7 @@ export function PasoImagenes({ form }: { form: any }) {
     // Procesar previews localmente
     const base64Promises = newFiles.map(
       (file) =>
-        new Promise<{ src: string; file: File }>((resolve) => {
+        new Promise<{ src: string; file: File | null }>((resolve) => {
           const reader = new FileReader()
           reader.onloadend = () => {
             resolve({ src: reader.result as string, file })
@@ -23,18 +38,22 @@ export function PasoImagenes({ form }: { form: any }) {
     )
 
     Promise.all(base64Promises).then((newPreviews) => {
-      const allPreviews = [...imagePreviews, ...newPreviews].slice(0, 10) // Limit to 10
+      const allPreviews = [...imagePreviews, ...newPreviews].slice(0, 10)
       setImagePreviews(allPreviews)
 
-      // Actualizar el valor en el estado del formulario general
-      fieldChange(allPreviews.map((p) => p.file))
+      // Actualizar el formulario: enviamos una mezcla de URLs (strings) y Files
+      const formValue = allPreviews.map((p) => p.file || p.src)
+      fieldChange(formValue)
     })
   }
 
   const removeImage = (index: number, fieldChange: (value: any[]) => void) => {
     const updated = imagePreviews.filter((_, i) => i !== index)
     setImagePreviews(updated)
-    fieldChange(updated.map((p) => p.file))
+    
+    // Actualizar el formulario con los elementos restantes (URLs o Files)
+    const formValue = updated.map((p) => p.file || p.src)
+    fieldChange(formValue)
   }
 
   return (
