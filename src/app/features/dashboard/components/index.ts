@@ -8,3 +8,7 @@ export * from "./DashboardRecentActivityCard"
 export * from "./DashboardTabs"
 export * from "./MisInmueblesFilters"
 export * from "./MisInmueblesSummary"
+export * from "./ContractDetailModal"
+
+
+

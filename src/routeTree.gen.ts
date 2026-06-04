@@ -27,9 +27,12 @@ import { Route as AuthFavoritosRouteImport } from './routes/_auth/favoritos'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
+import { Route as AuthDashboardProponerContratoRouteImport } from './routes/_auth/dashboard/proponer-contrato'
 import { Route as AuthDashboardInmueblesRouteImport } from './routes/_auth/dashboard/inmuebles'
 import { Route as AuthDashboardContratosRouteImport } from './routes/_auth/dashboard/contratos'
 import { Route as AuthDashboardClientesRouteImport } from './routes/_auth/dashboard/clientes'
+import { Route as AuthDashboardContratosIndexRouteImport } from './routes/_auth/dashboard/contratos.index'
+import { Route as AuthDashboardContratosIdRouteImport } from './routes/_auth/dashboard/contratos.$id'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -119,6 +122,12 @@ const PublicPublicacionIdRoute = PublicPublicacionIdRouteImport.update({
   path: '/publicacion/$id',
   getParentRoute: () => PublicRoute,
 } as any)
+const AuthDashboardProponerContratoRoute =
+  AuthDashboardProponerContratoRouteImport.update({
+    id: '/proponer-contrato',
+    path: '/proponer-contrato',
+    getParentRoute: () => AuthDashboardRoute,
+  } as any)
 const AuthDashboardInmueblesRoute = AuthDashboardInmueblesRouteImport.update({
   id: '/inmuebles',
   path: '/inmuebles',
@@ -134,6 +143,18 @@ const AuthDashboardClientesRoute = AuthDashboardClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthDashboardRoute,
 } as any)
+const AuthDashboardContratosIndexRoute =
+  AuthDashboardContratosIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthDashboardContratosRoute,
+  } as any)
+const AuthDashboardContratosIdRoute =
+  AuthDashboardContratosIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthDashboardContratosRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
@@ -151,10 +172,13 @@ export interface FileRoutesByFullPath {
   '/recuperar-password': typeof PublicRecuperarPasswordRoute
   '/verificar-codigo': typeof PublicVerificarCodigoRoute
   '/dashboard/clientes': typeof AuthDashboardClientesRoute
-  '/dashboard/contratos': typeof AuthDashboardContratosRoute
+  '/dashboard/contratos': typeof AuthDashboardContratosRouteWithChildren
   '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
+  '/dashboard/proponer-contrato': typeof AuthDashboardProponerContratoRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
+  '/dashboard/contratos/$id': typeof AuthDashboardContratosIdRoute
+  '/dashboard/contratos/': typeof AuthDashboardContratosIndexRoute
 }
 export interface FileRoutesByTo {
   '/$': typeof SplatRoute
@@ -171,10 +195,12 @@ export interface FileRoutesByTo {
   '/recuperar-password': typeof PublicRecuperarPasswordRoute
   '/verificar-codigo': typeof PublicVerificarCodigoRoute
   '/dashboard/clientes': typeof AuthDashboardClientesRoute
-  '/dashboard/contratos': typeof AuthDashboardContratosRoute
   '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
+  '/dashboard/proponer-contrato': typeof AuthDashboardProponerContratoRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
   '/dashboard': typeof AuthDashboardIndexRoute
+  '/dashboard/contratos/$id': typeof AuthDashboardContratosIdRoute
+  '/dashboard/contratos': typeof AuthDashboardContratosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -195,10 +221,13 @@ export interface FileRoutesById {
   '/_public/verificar-codigo': typeof PublicVerificarCodigoRoute
   '/_public/': typeof PublicIndexRoute
   '/_auth/dashboard/clientes': typeof AuthDashboardClientesRoute
-  '/_auth/dashboard/contratos': typeof AuthDashboardContratosRoute
+  '/_auth/dashboard/contratos': typeof AuthDashboardContratosRouteWithChildren
   '/_auth/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
+  '/_auth/dashboard/proponer-contrato': typeof AuthDashboardProponerContratoRoute
   '/_public/publicacion/$id': typeof PublicPublicacionIdRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
+  '/_auth/dashboard/contratos/$id': typeof AuthDashboardContratosIdRoute
+  '/_auth/dashboard/contratos/': typeof AuthDashboardContratosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -220,8 +249,11 @@ export interface FileRouteTypes {
     | '/dashboard/clientes'
     | '/dashboard/contratos'
     | '/dashboard/inmuebles'
+    | '/dashboard/proponer-contrato'
     | '/publicacion/$id'
     | '/dashboard/'
+    | '/dashboard/contratos/$id'
+    | '/dashboard/contratos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/$'
@@ -238,10 +270,12 @@ export interface FileRouteTypes {
     | '/recuperar-password'
     | '/verificar-codigo'
     | '/dashboard/clientes'
-    | '/dashboard/contratos'
     | '/dashboard/inmuebles'
+    | '/dashboard/proponer-contrato'
     | '/publicacion/$id'
     | '/dashboard'
+    | '/dashboard/contratos/$id'
+    | '/dashboard/contratos'
   id:
     | '__root__'
     | '/$'
@@ -263,8 +297,11 @@ export interface FileRouteTypes {
     | '/_auth/dashboard/clientes'
     | '/_auth/dashboard/contratos'
     | '/_auth/dashboard/inmuebles'
+    | '/_auth/dashboard/proponer-contrato'
     | '/_public/publicacion/$id'
     | '/_auth/dashboard/'
+    | '/_auth/dashboard/contratos/$id'
+    | '/_auth/dashboard/contratos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -401,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicPublicacionIdRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_auth/dashboard/proponer-contrato': {
+      id: '/_auth/dashboard/proponer-contrato'
+      path: '/proponer-contrato'
+      fullPath: '/dashboard/proponer-contrato'
+      preLoaderRoute: typeof AuthDashboardProponerContratoRouteImport
+      parentRoute: typeof AuthDashboardRoute
+    }
     '/_auth/dashboard/inmuebles': {
       id: '/_auth/dashboard/inmuebles'
       path: '/inmuebles'
@@ -422,20 +466,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardClientesRouteImport
       parentRoute: typeof AuthDashboardRoute
     }
+    '/_auth/dashboard/contratos/': {
+      id: '/_auth/dashboard/contratos/'
+      path: '/'
+      fullPath: '/dashboard/contratos/'
+      preLoaderRoute: typeof AuthDashboardContratosIndexRouteImport
+      parentRoute: typeof AuthDashboardContratosRoute
+    }
+    '/_auth/dashboard/contratos/$id': {
+      id: '/_auth/dashboard/contratos/$id'
+      path: '/$id'
+      fullPath: '/dashboard/contratos/$id'
+      preLoaderRoute: typeof AuthDashboardContratosIdRouteImport
+      parentRoute: typeof AuthDashboardContratosRoute
+    }
   }
 }
 
+interface AuthDashboardContratosRouteChildren {
+  AuthDashboardContratosIdRoute: typeof AuthDashboardContratosIdRoute
+  AuthDashboardContratosIndexRoute: typeof AuthDashboardContratosIndexRoute
+}
+
+const AuthDashboardContratosRouteChildren: AuthDashboardContratosRouteChildren =
+  {
+    AuthDashboardContratosIdRoute: AuthDashboardContratosIdRoute,
+    AuthDashboardContratosIndexRoute: AuthDashboardContratosIndexRoute,
+  }
+
+const AuthDashboardContratosRouteWithChildren =
+  AuthDashboardContratosRoute._addFileChildren(
+    AuthDashboardContratosRouteChildren,
+  )
+
 interface AuthDashboardRouteChildren {
   AuthDashboardClientesRoute: typeof AuthDashboardClientesRoute
-  AuthDashboardContratosRoute: typeof AuthDashboardContratosRoute
+  AuthDashboardContratosRoute: typeof AuthDashboardContratosRouteWithChildren
   AuthDashboardInmueblesRoute: typeof AuthDashboardInmueblesRoute
+  AuthDashboardProponerContratoRoute: typeof AuthDashboardProponerContratoRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
 }
 
 const AuthDashboardRouteChildren: AuthDashboardRouteChildren = {
   AuthDashboardClientesRoute: AuthDashboardClientesRoute,
-  AuthDashboardContratosRoute: AuthDashboardContratosRoute,
+  AuthDashboardContratosRoute: AuthDashboardContratosRouteWithChildren,
   AuthDashboardInmueblesRoute: AuthDashboardInmueblesRoute,
+  AuthDashboardProponerContratoRoute: AuthDashboardProponerContratoRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
 }
 

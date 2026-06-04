@@ -21,7 +21,10 @@ export const api = createApi({
     "Profile",
     "USUARIOS",
     "Favoritos",
+    "Contratos",
+    "Pagos",
   ],
 
   endpoints: () => ({}),
 })
+
