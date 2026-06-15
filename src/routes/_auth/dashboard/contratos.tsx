@@ -1,7 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router"
-
-import { MisContratosScreen } from "@/app/features/dashboard/screens"
+import { createFileRoute, Outlet } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/_auth/dashboard/contratos")({
-  component: MisContratosScreen,
+  component: Outlet,
 })

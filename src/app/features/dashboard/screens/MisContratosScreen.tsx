@@ -1,27 +1,37 @@
+import * as React from "react"
 import type { ColumnDef, Row } from "@tanstack/react-table"
-import { useMemo } from "react"
-
+import { useMemo, useState } from "react"
+import { Link, useNavigate } from "@tanstack/react-router"
 import { DataTable } from "@/components/DataTable"
-
-import { misContratosMock } from "../mocks"
+import { toast } from "sonner"
+import {
+  useGetContratosComoPropietarioQuery,
+  useGetContratosComoClienteQuery,
+  useEliminarContratoMutation,
+  useCancelarContratoMutation,
+} from "../store"
 import type {
   ContractStatus,
   ContractType,
-  DashboardContract,
-} from "../types"
+  ContratoResponseDTO,
+} from "../types/mis-contratos.types"
+import { Button } from "@/components/ui/button"
+import { ViewIcon } from "hugeicons-react"
+
 
 const contractTypeLabels: Record<ContractType, string> = {
   ALQUILER: "Alquiler",
   VENTA: "Venta",
   ANTICRETICO: "Anticretico",
-  RESERVA_TEMPORAL: "Reserva temporal",
+  ALOJAMIENTO: "Alojamiento",
 }
 
 const contractStatusLabels: Record<ContractStatus, string> = {
-  ACTIVO: "Activo",
-  POR_VENCER: "Por vencer",
-  VENCIDO: "Vencido",
   BORRADOR: "Borrador",
+  PENDIENTE_FIRMA: "Pendiente de firma",
+  VIGENTE: "Activo",
+  FINALIZADO: "Concluido",
+  CANCELADO: "Cancelado",
 }
 
 const getContractTypeClassName = (type: ContractType) => {
@@ -37,31 +47,36 @@ const getContractTypeClassName = (type: ContractType) => {
     return "bg-purple-50 text-purple-700 ring-purple-200"
   }
 
-  return "bg-orange-50 text-orange-700 ring-orange-200"
+  return "bg-orange-50 text-orange-700 ring-orange-200" // ALOJAMIENTO
 }
 
 const getContractStatusClassName = (status: ContractStatus) => {
-  if (status === "ACTIVO") {
+  if (status === "VIGENTE") {
     return "bg-emerald-50 text-emerald-700 ring-emerald-200"
   }
 
-  if (status === "POR_VENCER") {
+  if (status === "PENDIENTE_FIRMA") {
     return "bg-amber-50 text-amber-700 ring-amber-200"
   }
 
-  if (status === "VENCIDO") {
+  if (status === "FINALIZADO") {
+    return "bg-slate-50 text-slate-600 ring-slate-200"
+  }
+
+  if (status === "CANCELADO") {
     return "bg-rose-50 text-rose-700 ring-rose-200"
   }
 
-  return "bg-slate-50 text-slate-600 ring-slate-200"
+  return "bg-slate-50 text-slate-500 ring-slate-200" // BORRADOR
 }
 
-const formatAmount = (moneda: string, amount: number) => {
-  return `${moneda} ${amount.toLocaleString("es-BO")}`
+const formatAmount = (moneda: string, amount?: number) => {
+  const safeAmount = amount ?? 0
+  return `${moneda} ${safeAmount.toLocaleString("es-BO")}`
 }
 
 const equalsFilter = (
-  row: Row<DashboardContract>,
+  row: Row<ContratoResponseDTO>,
   columnId: string,
   filterValue: unknown
 ) => {
@@ -92,23 +107,60 @@ const ContractStatusBadge = ({ status }: { status: ContractStatus }) => {
   )
 }
 
-const ContratoMobileCard = ({ contract }: { contract: DashboardContract }) => {
+const ContratoMobileCard = ({
+  contract,
+  activeRole,
+}: {
+  contract: ContratoResponseDTO
+  activeRole: "PROPIETARIO" | "CLIENTE"
+}) => {
+  const [eliminar] = useEliminarContratoMutation()
+  const [cancelar] = useCancelarContratoMutation()
+
+  const handleEliminar = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (window.confirm(`¿Estás seguro de eliminar el contrato ${contract.codigo}?`)) {
+      try {
+        await eliminar(contract.id).unwrap()
+        toast.success("Contrato eliminado correctamente")
+      } catch (err: any) {
+        toast.error(err?.data?.message || "Error al eliminar el contrato")
+      }
+    }
+  }
+
+  const handleCancelar = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (window.confirm(`¿Estás seguro de cancelar el contrato vigente ${contract.codigo}?`)) {
+      try {
+        await cancelar(contract.id).unwrap()
+        toast.success("Contrato cancelado correctamente")
+      } catch (err: any) {
+        toast.error(err?.data?.message || "Error al cancelar el contrato")
+      }
+    }
+  }
+
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-slate-950">{contract.codigo}</p>
-          <p className="mt-1 text-sm text-slate-500">{contract.cliente}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {activeRole === "PROPIETARIO"
+              ? `Cliente: ${contract.clienteNombre}`
+              : `Propietario: ${contract.propietarioNombre}`}
+          </p>
         </div>
 
-        <ContractStatusBadge status={contract.estado} />
+        <ContractStatusBadge status={contract.estadoContrato} />
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <ContractTypeBadge type={contract.tipoContrato} />
         {contract.renovacionAutomatica ? (
           <span className="inline-flex rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-700 ring-1 ring-cyan-200">
-            Renovacion auto
+            Renovación auto
           </span>
         ) : null}
       </div>
@@ -117,7 +169,7 @@ const ContratoMobileCard = ({ contract }: { contract: DashboardContract }) => {
         <div>
           <p className="text-xs font-medium text-slate-500">Inmueble</p>
           <p className="text-sm font-semibold text-slate-800">
-            {contract.inmueble}
+            {contract.inmuebleTitulo}
           </p>
         </div>
 
@@ -128,12 +180,14 @@ const ContratoMobileCard = ({ contract }: { contract: DashboardContract }) => {
               {contract.fechaInicio}
             </p>
           </div>
-          <div>
-            <p className="text-xs font-medium text-slate-500">Fin</p>
-            <p className="text-sm font-semibold text-slate-800">
-              {contract.fechaFin}
-            </p>
-          </div>
+          {contract.fechaFin && (
+            <div>
+              <p className="text-xs font-medium text-slate-500">Fin</p>
+              <p className="text-sm font-semibold text-slate-800">
+                {contract.fechaFin}
+              </p>
+            </div>
+          )}
         </div>
 
         <div>
@@ -144,37 +198,92 @@ const ContratoMobileCard = ({ contract }: { contract: DashboardContract }) => {
         </div>
       </div>
 
-      <p className="mt-3 text-xs font-medium text-slate-400">
-        Ultima actividad: {contract.ultimaActualizacion}
-      </p>
+      <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+        <Link
+          to="/dashboard/contratos/$id"
+          params={{ id: contract.id }}
+          className="text-slate-500 hover:text-indigo-600 p-1.5 hover:bg-indigo-50 rounded-xl transition-colors"
+          title="Visualizar Contrato"
+        >
+          <ViewIcon className="h-5 w-5" />
+        </Link>
+        {activeRole === "PROPIETARIO" && contract.estadoContrato === "PENDIENTE_FIRMA" && (
+          <button
+            onClick={handleEliminar}
+            className="text-xs font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition-colors"
+          >
+            Eliminar
+          </button>
+        )}
+        {activeRole === "PROPIETARIO" && contract.estadoContrato === "VIGENTE" && (
+          <button
+            onClick={handleCancelar}
+            className="text-xs font-bold text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl transition-colors"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
     </article>
   )
 }
 
 export const MisContratosScreen = () => {
+  const navigate = useNavigate()
+  const [activeRole, setActiveRole] = useState<"PROPIETARIO" | "CLIENTE">(
+    "PROPIETARIO"
+  )
+
+
+  const {
+    data: contratosOwner = [],
+    isLoading: isLoadingOwner,
+    refetch: refetchOwner,
+  } = useGetContratosComoPropietarioQuery()
+  const {
+    data: contratosClient = [],
+    isLoading: isLoadingClient,
+    refetch: refetchClient,
+  } = useGetContratosComoClienteQuery()
+
+  const listData = activeRole === "PROPIETARIO" ? contratosOwner : contratosClient
+  const isLoading = activeRole === "PROPIETARIO" ? isLoadingOwner : isLoadingClient
+
+  React.useEffect(() => {
+    if (activeRole === "PROPIETARIO") {
+      refetchOwner()
+    } else {
+      refetchClient()
+    }
+  }, [activeRole, refetchOwner, refetchClient])
+
   const summary = useMemo(() => {
     return {
-      total: misContratosMock.length,
-      activos: misContratosMock.filter((contract) => contract.estado === "ACTIVO")
+      total: listData.length,
+      activos: listData.filter((c) => c.estadoContrato === "VIGENTE").length,
+      pendientes: listData.filter((c) => c.estadoContrato === "PENDIENTE_FIRMA")
         .length,
-      porVencer: misContratosMock.filter(
-        (contract) => contract.estado === "POR_VENCER"
+      concluidos: listData.filter(
+        (c) => c.estadoContrato === "FINALIZADO" || c.estadoContrato === "CANCELADO"
       ).length,
-      vencidos: misContratosMock.filter((contract) => contract.estado === "VENCIDO")
-        .length,
     }
-  }, [])
+  }, [listData])
 
-  const columns = useMemo<Array<ColumnDef<DashboardContract>>>(
+  const columns = useMemo<Array<ColumnDef<ContratoResponseDTO>>>(
     () => [
       {
         id: "codigo",
-        accessorFn: (row) => `${row.codigo} ${row.cliente} ${row.inmueble}`,
+        accessorFn: (row) =>
+          `${row.codigo} ${row.clienteNombre} ${row.propietarioNombre} ${row.inmuebleTitulo}`,
         header: "Contrato",
         cell: ({ row }) => (
           <div>
             <p className="font-semibold text-slate-950">{row.original.codigo}</p>
-            <p className="mt-1 text-xs text-slate-500">{row.original.cliente}</p>
+            <p className="mt-1 text-xs text-slate-500">
+              {activeRole === "PROPIETARIO"
+                ? `Cliente: ${row.original.clienteNombre}`
+                : `Propietario: ${row.original.propietarioNombre}`}
+            </p>
           </div>
         ),
       },
@@ -185,30 +294,34 @@ export const MisContratosScreen = () => {
         cell: ({ row }) => <ContractTypeBadge type={row.original.tipoContrato} />,
       },
       {
-        accessorKey: "inmueble",
+        accessorKey: "inmuebleTitulo",
         header: "Inmueble",
         cell: ({ row }) => (
           <div className="max-w-[240px]">
             <p className="line-clamp-2 font-medium text-slate-800">
-              {row.original.inmueble}
+              {row.original.inmuebleTitulo}
             </p>
           </div>
         ),
       },
       {
-        accessorKey: "estado",
+        accessorKey: "estadoContrato",
         header: "Estado",
         filterFn: equalsFilter,
-        cell: ({ row }) => <ContractStatusBadge status={row.original.estado} />,
+        cell: ({ row }) => (
+          <ContractStatusBadge status={row.original.estadoContrato} />
+        ),
       },
       {
         id: "vigencia",
-        accessorFn: (row) => `${row.fechaInicio} ${row.fechaFin}`,
+        accessorFn: (row) => `${row.fechaInicio} ${row.fechaFin || ""}`,
         header: "Vigencia",
         cell: ({ row }) => (
           <div>
             <p className="text-xs text-slate-500">Inicio: {row.original.fechaInicio}</p>
-            <p className="text-xs text-slate-500">Fin: {row.original.fechaFin}</p>
+            {row.original.fechaFin && (
+              <p className="text-xs text-slate-500">Fin: {row.original.fechaFin}</p>
+            )}
           </div>
         ),
       },
@@ -222,101 +335,203 @@ export const MisContratosScreen = () => {
         ),
       },
       {
-        accessorKey: "ultimaActualizacion",
-        header: "Ultima actividad",
-        cell: ({ row }) => (
-          <span className="text-sm text-slate-500">
-            {row.original.ultimaActualizacion}
-          </span>
-        ),
+        id: "acciones",
+        header: "Acciones",
+        cell: ({ row }) => {
+          const contract = row.original
+          const [eliminar] = useEliminarContratoMutation()
+          const [cancelar] = useCancelarContratoMutation()
+
+          const handleEliminar = (e: React.MouseEvent) => {
+            e.stopPropagation()
+            if (window.confirm(`¿Estás seguro de eliminar el contrato ${contract.codigo}?`)) {
+              eliminar(contract.id)
+                .unwrap()
+                .then(() => toast.success("Contrato eliminado correctamente"))
+                .catch((err: any) => toast.error(err?.data?.message || "Error al eliminar el contrato"))
+            }
+          }
+
+          const handleCancelar = (e: React.MouseEvent) => {
+            e.stopPropagation()
+            if (window.confirm(`¿Estás seguro de cancelar el contrato vigente ${contract.codigo}?`)) {
+              cancelar(contract.id)
+                .unwrap()
+                .then(() => toast.success("Contrato cancelado correctamente"))
+                .catch((err: any) => toast.error(err?.data?.message || "Error al cancelar el contrato"))
+            }
+          }
+
+          return (
+            <div className="flex items-center gap-2 justify-center">
+              <Link
+                to="/dashboard/contratos/$id"
+                params={{ id: contract.id }}
+                className="text-slate-500 hover:text-indigo-600 p-1.5 hover:bg-indigo-50 rounded-xl transition-colors"
+                onClick={(e) => e.stopPropagation()}
+                title="Visualizar Contrato"
+              >
+                <ViewIcon className="h-5 w-5" />
+              </Link>
+              {activeRole === "PROPIETARIO" && contract.estadoContrato === "PENDIENTE_FIRMA" && (
+                <button
+                  onClick={handleEliminar}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition-colors"
+                >
+                  Eliminar
+                </button>
+              )}
+              {activeRole === "PROPIETARIO" && contract.estadoContrato === "VIGENTE" && (
+                <button
+                  onClick={handleCancelar}
+                  className="text-xs font-bold text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl transition-colors"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          )
+        },
       },
     ],
-    []
+    [activeRole]
   )
 
   return (
     <section className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-950">
-          Contratos registrados
-        </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-950 font-heading">
+            Contratos registrados
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Revisa los contratos asociados a tus inmuebles y su estado actual.
+          </p>
+        </div>
 
-        <p className="mt-1 text-sm text-slate-500">
-          Revisa los contratos asociados a tus inmuebles y su estado actual.
-        </p>
+        <div className="flex items-center gap-3 flex-wrap">
+          {activeRole === "PROPIETARIO" && (
+            <Link to="/dashboard/proponer-contrato">
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-md transition-all hover:scale-[1.02] active:scale-95"
+              >
+                + Proponer Contrato
+              </Button>
+            </Link>
+          )}
+
+          {/* Selector de Rol */}
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+            <Button
+              variant={activeRole === "PROPIETARIO" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveRole("PROPIETARIO")}
+              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                activeRole === "PROPIETARIO"
+                  ? "bg-white text-slate-900 shadow-sm border border-slate-200/50 hover:bg-white"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+              }`}
+            >
+              Como Propietario
+            </Button>
+            <Button
+              variant={activeRole === "CLIENTE" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveRole("CLIENTE")}
+              className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                activeRole === "CLIENTE"
+                  ? "bg-white text-slate-900 shadow-sm border border-slate-200/50 hover:bg-white"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+              }`}
+            >
+              Como Cliente
+            </Button>
+          </div>
+        </div>
+
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Total contratos</p>
           <p className="mt-3 text-2xl font-bold text-slate-950">{summary.total}</p>
-          <p className="mt-2 text-sm text-slate-500">Registrados en tu cuenta</p>
+          <p className="mt-2 text-sm text-slate-500">Asociados a tu cuenta</p>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Activos</p>
           <p className="mt-3 text-2xl font-bold text-slate-950">{summary.activos}</p>
-          <p className="mt-2 text-sm text-slate-500">En ejecucion actualmente</p>
+          <p className="mt-2 text-sm text-slate-500">Contratos vigentes hoy</p>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium text-slate-500">Por vencer</p>
+          <p className="text-sm font-medium text-slate-500">Pendientes de Firma</p>
           <p className="mt-3 text-2xl font-bold text-slate-950">
-            {summary.porVencer}
+            {summary.pendientes}
           </p>
-          <p className="mt-2 text-sm text-slate-500">Requieren seguimiento</p>
+          <p className="mt-2 text-sm text-slate-500">Requieren firma del cliente</p>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium text-slate-500">Vencidos</p>
+          <p className="text-sm font-medium text-slate-500">Concluidos / Cancelados</p>
           <p className="mt-3 text-2xl font-bold text-slate-950">
-            {summary.vencidos}
+            {summary.concluidos}
           </p>
-          <p className="mt-2 text-sm text-slate-500">Pendientes de renovacion</p>
+          <p className="mt-2 text-sm text-slate-500">Contratos finalizados</p>
         </article>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={misContratosMock}
-        search={{
-          enabled: true,
-          placeholder: "Buscar contrato, cliente o inmueble...",
-        }}
-        filters={[
-          {
-            id: "tipoContrato",
-            label: "Tipo",
-            columnId: "tipoContrato",
-            options: [
-              { label: "Todos", value: "all" },
-              { label: "Alquiler", value: "ALQUILER" },
-              { label: "Venta", value: "VENTA" },
-              { label: "Anticretico", value: "ANTICRETICO" },
-              { label: "Reserva temporal", value: "RESERVA_TEMPORAL" },
-            ],
-          },
-          {
-            id: "estado",
-            label: "Estado",
-            columnId: "estado",
-            options: [
-              { label: "Todos", value: "all" },
-              { label: "Activo", value: "ACTIVO" },
-              { label: "Por vencer", value: "POR_VENCER" },
-              { label: "Vencido", value: "VENCIDO" },
-              { label: "Borrador", value: "BORRADOR" },
-            ],
-          },
-        ]}
-        emptyTitle="No se encontraron contratos"
-        emptyMessage="Prueba cambiando los filtros o el texto de busqueda."
-        pageSize={5}
-        pageSizeOptions={[5, 10, 20]}
-        onDetail={(contract) => console.log("Ver contrato", contract)}
-        onEdit={(contract) => console.log("Editar contrato", contract)}
-        renderMobileCard={(row) => <ContratoMobileCard contract={row.original} />}
-      />
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-900 border-t-transparent"></div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={listData}
+          search={{
+            enabled: true,
+            placeholder: "Buscar contrato, cliente o inmueble...",
+          }}
+          filters={[
+            {
+              id: "tipoContrato",
+              label: "Tipo",
+              columnId: "tipoContrato",
+              options: [
+                { label: "Todos", value: "all" },
+                { label: "Alquiler", value: "ALQUILER" },
+                { label: "Venta", value: "VENTA" },
+                { label: "Anticretico", value: "ANTICRETICO" },
+                { label: "Alojamiento", value: "ALOJAMIENTO" },
+              ],
+            },
+            {
+              id: "estadoContrato",
+              label: "Estado",
+              columnId: "estadoContrato",
+              options: [
+                { label: "Todos", value: "all" },
+                { label: "Borrador", value: "BORRADOR" },
+                { label: "Pendiente Firma", value: "PENDIENTE_FIRMA" },
+                { label: "Activo", value: "VIGENTE" },
+                { label: "Concluido", value: "FINALIZADO" },
+                { label: "Cancelado", value: "CANCELADO" },
+              ],
+            },
+          ]}
+          emptyTitle="No se encontraron contratos"
+          emptyMessage="Prueba cambiando los filtros o el texto de búsqueda."
+          pageSize={5}
+          pageSizeOptions={[5, 10, 20]}
+          renderMobileCard={(row) => (
+            <ContratoMobileCard
+              contract={row.original}
+              activeRole={activeRole}
+            />
+          )}
+        />
+      )}
     </section>
   )
 }
