@@ -73,15 +73,18 @@ export function DetalleContratoScreen() {
   const fileInputRefs = React.useRef<Record<string, HTMLInputElement | null>>({})
 
   // Roles
-  const isOwner = contrato && user?.id === contrato.propietarioId
-  const isClient = contrato && user?.id === contrato.clienteId
+  const isOwner = contrato && (user?.id === contrato.idPropietario || user?.id === contrato.propietarioId)
+  const isClient = contrato && (user?.id === contrato.idCliente || user?.id === contrato.clienteId)
 
   const handleSign = async () => {
     if (!id) return
     try {
-      await firmar(id).unwrap()
+      toast.info("Firmando contrato...", {
+        description: "Registrando firma en base de datos y en libro mayor inmutable (Blockchain).",
+      })
+      await firmar({ id }).unwrap()
       toast.success("Contrato firmado correctamente", {
-        description: "El contrato ahora se encuentra activo.",
+        description: "El contrato se ha activado y registrado en la Blockchain con éxito.",
       })
     } catch (error: any) {
       toast.error("Error al firmar", {
@@ -350,8 +353,17 @@ export function DetalleContratoScreen() {
               </p>
             </div>
 
-            {/* Botón de Firma para el Cliente */}
-            {contrato.estadoContrato === "PENDIENTE_FIRMA" && isClient && (
+            {contrato.transactionHash && (
+              <div className="rounded-2xl border border-indigo-100 bg-indigo-50/30 p-3 mt-2">
+                <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Registro Blockchain</p>
+                <p className="text-xs text-indigo-950 font-mono mt-1 break-all select-all">
+                  Hash: {contrato.transactionHash}
+                </p>
+              </div>
+            )}
+
+            {/* Botón de Firma para Cliente o Propietario */}
+            {contrato.estadoContrato === "PENDIENTE_FIRMA" && (isClient || isOwner) && (
               <div className="pt-2">
                 <Button 
                   onClick={handleSign} 

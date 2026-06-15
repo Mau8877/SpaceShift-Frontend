@@ -49,7 +49,7 @@ const dashboardTabs: DashboardTab[] = [
     path: "/dashboard/contratos",
     action: {
       label: "+ Nuevo contrato",
-      path: "/leases",
+      path: "/dashboard/proponer-contrato",
     },
   },
 ]

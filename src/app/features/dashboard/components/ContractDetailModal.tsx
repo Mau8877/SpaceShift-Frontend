@@ -70,13 +70,13 @@ export function ContractDetailModal({
   const fileInputRefs = React.useRef<Record<string, HTMLInputElement | null>>({})
 
   // Roles
-  const isOwner = contrato && user?.id === contrato.propietarioId
-  const isClient = contrato && user?.id === contrato.clienteId
+  const isOwner = contrato && (user?.id === contrato.idPropietario || user?.id === contrato.propietarioId)
+  const isClient = contrato && (user?.id === contrato.idCliente || user?.id === contrato.clienteId)
 
   const handleSign = async () => {
     if (!contractId) return
     try {
-      await firmar(contractId).unwrap()
+      await firmar({ id: contractId }).unwrap()
       toast.success("Contrato firmado correctamente", {
         description: "El contrato ahora se encuentra activo.",
       })
@@ -214,8 +214,8 @@ export function ContractDetailModal({
               <p className="text-slate-800">{contrato.renovacionAutomatica ? "Sí, activa" : "No"}</p>
             </div>
 
-            {/* Botón de Firma para el Cliente */}
-            {contrato.estadoContrato === "PENDIENTE_FIRMA" && isClient && (
+            {/* Botón de Firma para Cliente o Propietario */}
+            {contrato.estadoContrato === "PENDIENTE_FIRMA" && (isClient || isOwner) && (
               <div className="pt-2">
                 <Button 
                   onClick={handleSign} 

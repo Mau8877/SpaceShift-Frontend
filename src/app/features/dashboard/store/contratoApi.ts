@@ -63,12 +63,15 @@ export const contratoApi = api.injectEndpoints({
         { type: "Contratos", id: "LIST_OWNER" },
       ],
     }),
-    firmarContrato: builder.mutation<ContratoResponseDTO, string>({
-      query: (id) => ({
+    firmarContrato: builder.mutation<
+      ContratoResponseDTO,
+      { id: string }
+    >({
+      query: ({ id }) => ({
         url: `/contratos/${id}/firmar`,
         method: "POST",
       }),
-      invalidatesTags: (_result, _error, id) => [
+      invalidatesTags: (_result, _error, { id }) => [
         { type: "Contratos", id },
         { type: "Contratos", id: "LIST_CLIENT" },
         { type: "Contratos", id: "LIST_OWNER" },

@@ -32,9 +32,11 @@ export interface ContratoResponseDTO {
   codigo: string
   tipoContrato: ContractType
   estadoContrato: ContractStatus
-  propietarioId: string
+  idPropietario: string
+  propietarioId?: string
   propietarioNombre: string
-  clienteId: string
+  idCliente: string
+  clienteId?: string
   clienteNombre: string
   inmuebleId: string
   inmuebleTitulo: string
@@ -46,6 +48,7 @@ export interface ContratoResponseDTO {
   especificaciones: Record<string, any>
   createdAt: string
   updatedAt: string
+  transactionHash?: string
 }
 
 export interface ContratoRequestDTO {
