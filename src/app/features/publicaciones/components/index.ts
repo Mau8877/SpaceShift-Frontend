@@ -1,1 +1,1 @@
-export { PublicacionModal } from "./PublicacionModal"
+// Wizard components are exported from their respective files.

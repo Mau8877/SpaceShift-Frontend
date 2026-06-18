@@ -8,6 +8,7 @@ import {
   Location01Icon,
   File01Icon,
   Image01Icon,
+  PlayIcon,
   CheckmarkCircle01Icon,
   ArrowRight01Icon
 } from "hugeicons-react"
@@ -21,21 +22,26 @@ import {
   useCrearPublicacionMutation, 
   useSubirImagenesMutation,
   useGetPublicacionByIdQuery,
-  useActualizarPublicacionMutation
+  useActualizarPublicacionMutation,
+  useGetS3PresignedUrlMutation,
+  useRegistrarVideoProcesamientoMutation
 } from "../store/publicacionApi"
 import { crearPublicacionWizardSchema } from "../schemas/publicacionSchema"
 
-import { PasoInmueble, PasoUbicacion, PasoDetalles, PasoImagenes } from "../components/wizard"
+import { PasoInmueble, PasoUbicacion, PasoDetalles, PasoImagenes, PasoVideo3D } from "../components/wizard"
+import { subirArchivoAS3 } from "@/app/utils/s3UploadHelper"
 
 const STEPS = [
   { id: 1, label: "Datos del Inmueble", icon: Home01Icon },
   { id: 2, label: "Ubicación", icon: Location01Icon },
   { id: 3, label: "Publicación", icon: File01Icon },
   { id: 4, label: "Imágenes", icon: Image01Icon },
+  { id: 5, label: "Video / 3D", icon: PlayIcon },
 ]
 
 export function PublicacionScreen() {
   const [currentStep, setCurrentStep] = useState(1)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const navigate = useNavigate()
 
   // RTK Query Mutations
@@ -50,6 +56,8 @@ export function PublicacionScreen() {
   const [crearPublicacion, { isLoading: isCreatingPublicacion }] = useCrearPublicacionMutation()
   const [actualizarPublicacion, { isLoading: isUpdating }] = useActualizarPublicacionMutation()
   const [subirImagenes, { isLoading: isUploading }] = useSubirImagenesMutation()
+  const [getS3PresignedUrl, { isLoading: isGettingPresigned }] = useGetS3PresignedUrlMutation()
+  const [registrarVideoProcesamiento, { isLoading: isRegisteringVideo }] = useRegistrarVideoProcesamientoMutation()
 
   // Usuario extraido de Redux Auth
   const user = useAppSelector((state) => state.auth.user)
@@ -75,6 +83,8 @@ export function PublicacionScreen() {
       tipoTransaccion: "",
       moneda: "USD",
       imagenesUrls: [],
+      videoFile: null,
+      videoDuration: 0,
     } as any,
     onSubmit: async ({ value }) => {
       try {
@@ -99,6 +109,8 @@ export function PublicacionScreen() {
           finalUrls = [...finalUrls, ...uploadedUrls]
           toast.dismiss("upload-toast")
         }
+
+        let createdPublicacionId = ""
 
         if (isEditMode) {
           // ACTUALIZAR PUBLICACIÓN EXISTENTE
@@ -132,7 +144,7 @@ export function PublicacionScreen() {
               }
             }
           }).unwrap()
-          
+          createdPublicacionId = editId!
           toast.success("¡Actualizado!", { description: "Propiedad actualizada correctamente" })
         } else {
           // 2. CREAR EL INMUEBLE
@@ -154,7 +166,7 @@ export function PublicacionScreen() {
           }).unwrap()
 
           // 3. CREAR LA PUBLICACIÓN (CON LAS URLs DE CLOUDINARY)
-          await crearPublicacion({
+          const publicacionRes = await crearPublicacion({
             idUsuario: user.id,
             idInmueble: inmuebleRes.id,
             titulo: value.titulo,
@@ -165,14 +177,63 @@ export function PublicacionScreen() {
             estadoPublicacion: "ACTIVO",
             imagenesUrls: finalUrls,
           }).unwrap()
-
+          createdPublicacionId = publicacionRes.id
           toast.success("¡Éxito!", { description: "Propiedad publicada correctamente" })
+        }
+
+        // 4. SUBIR VIDEO A S3 SI EXISTE
+        if (value.videoFile && createdPublicacionId) {
+          toast.loading("Obteniendo canal de subida para el video...", { id: "video-toast" })
+          
+          const filename = value.videoFile.name
+          const contentType = value.videoFile.type
+
+          // Obtener URL firmada
+          const s3Info = await getS3PresignedUrl({
+            filename,
+            contentType,
+            folder: "videos"
+          }).unwrap()
+
+          toast.loading("Subiendo video de recorrido...", { id: "video-toast" })
+          setUploadProgress(0)
+
+          // Subir a S3 con progreso
+          await subirArchivoAS3(
+            s3Info.uploadUrl,
+            value.videoFile,
+            contentType,
+            (porcentaje) => {
+              setUploadProgress(porcentaje)
+            }
+          )
+
+          setUploadProgress(100)
+          toast.loading("Registrando recorrido 3D en el sistema...", { id: "video-toast" })
+
+          // Registrar en el backend
+          await registrarVideoProcesamiento({
+            idPublicacion: createdPublicacionId,
+            data: {
+              urlVideo: s3Info.fileUrl,
+              nombreArchivo: filename,
+              tamanoBytes: value.videoFile.size,
+              duracionSegundos: value.videoDuration || 0
+            }
+          }).unwrap()
+
+          toast.success("¡Recorrido 3D en proceso!", {
+            description: "El video ha sido subido y se está procesando en segundo plano para generar el tour 3D."
+          })
         }
         
         navigate({ to: "/dashboard/inmuebles" })
 
       } catch (error: any) {
         toast.error("Error al publicar", { description: error?.data?.message || "Revisa los campos e intenta de nuevo" })
+      } finally {
+        toast.dismiss("video-toast")
+        setUploadProgress(null)
       }
     },
   })
@@ -220,7 +281,7 @@ export function PublicacionScreen() {
     }
   }
 
-  const isLoading = isCreatingInmueble || isCreatingPublicacion || isUploading || isUpdating || isLoadingData;
+  const isLoading = isCreatingInmueble || isCreatingPublicacion || isUploading || isUpdating || isLoadingData || isGettingPresigned || isRegisteringVideo;
 
   return (
     <div className="container py-10 max-w-4xl mx-auto min-h-[80vh] flex items-center justify-center">
@@ -282,7 +343,33 @@ export function PublicacionScreen() {
           {currentStep === 2 && <PasoUbicacion form={form} />}
           {currentStep === 3 && <PasoDetalles form={form} />}
           {currentStep === 4 && <PasoImagenes form={form} />}
+          {currentStep === 5 && <PasoVideo3D form={form} />}
         </div>
+
+        {/* Overlay no-bloqueante con indicador de progreso de subida del video */}
+        {uploadProgress !== null && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-background rounded-3xl p-8 max-w-sm w-full border border-border shadow-2xl space-y-6 text-center animate-in zoom-in-95 duration-200">
+              <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-4 border-muted" />
+                <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                <span className="text-xl font-bold text-foreground">{uploadProgress}%</span>
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-lg text-foreground">Subiendo Recorrido 3D</h3>
+                <p className="text-xs text-muted-foreground">
+                  Por favor, no cierres ni recargues esta página. El video se está subiendo de forma segura a S3.
+                </p>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-primary h-full rounded-full transition-all duration-300 ease-out" 
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* FOOTER - BOTONERA */}
         <div className="border-t border-border px-8 py-4 flex items-center justify-between bg-muted/30">

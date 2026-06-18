@@ -1,6 +1,18 @@
 import { api } from "@/app/store/api/api"
 import type { InmuebleRequestDTO, InmuebleResponseDTO, PublicacionRequestDTO } from "../types"
 
+export interface S3PresignedResponse {
+  uploadUrl: string;
+  fileUrl: string;
+}
+
+export interface VideoUploadRequestDTO {
+  urlVideo: string;
+  nombreArchivo: string;
+  tamanoBytes: number;
+  duracionSegundos: number;
+}
+
 export const publicacionApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // 1. Crear Inmueble primero
@@ -74,6 +86,25 @@ export const publicacionApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Favoritos", "Publicaciones"],
     }),
+
+    // 9. Obtener URL firmada de S3
+    getS3PresignedUrl: builder.mutation<S3PresignedResponse, { filename: string; contentType: string; folder: string }>({
+      query: (params) => ({
+        url: "/upload/s3/presigned-url",
+        method: "GET",
+        params,
+      }),
+    }),
+
+    // 10. Registrar video de publicación para procesar
+    registrarVideoProcesamiento: builder.mutation<any, { idPublicacion: string; data: VideoUploadRequestDTO }>({
+      query: ({ idPublicacion, data }) => ({
+        url: `/videos/publicaciones/${idPublicacion}`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Publicaciones", { type: "Profile", id: "SALDO" }, { type: "Profile", id: "HISTORIAL" }],
+    }),
   }),
   overrideExisting: true,
 })
@@ -87,5 +118,7 @@ export const {
   useActualizarPublicacionMutation,
   useEliminarPublicacionMutation,
   useGetMisFavoritosQuery,
-  useToggleFavoritoMutation
+  useToggleFavoritoMutation,
+  useGetS3PresignedUrlMutation,
+  useRegistrarVideoProcesamientoMutation,
 } = publicacionApi
