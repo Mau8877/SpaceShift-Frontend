@@ -21,6 +21,7 @@ export const api = createApi({
     "Profile",
     "USUARIOS",
     "Favoritos",
+    "Videos",
   ],
 
   endpoints: () => ({}),

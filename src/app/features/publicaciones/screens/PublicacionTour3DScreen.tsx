@@ -8,13 +8,38 @@ import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
 import { SpaceSplatViewer } from "@/components/space3d/SpaceSplatViewer"
-import { TOUR_3D_STATIC_RESULT } from "../store/tour3dMock"
+import { SpaceSogViewer } from "@/components/space3d/SpaceSogViewer"
+import { useGetVideosByPublicacionQuery } from "../store"
+import type { VideoPublicacionDTO } from "../types"
+
+const CAMERA = {
+  position: [0, 1.5, 4] as [number, number, number],
+  lookAt: [0, 0, 0] as [number, number, number],
+}
+
+/** Elige el video a mostrar: el primer COMPLETADO con modelo; si no, el más reciente. */
+function pickVideo(videos: VideoPublicacionDTO[]): VideoPublicacionDTO | null {
+  if (!videos.length) return null
+  const completados = videos.filter((v) => v.estadoProcesamiento === "COMPLETADO")
+  return (
+    completados.find((v) => v.urlSplat || v.urlSog) ??
+    completados[0] ??
+    videos[0]
+  )
+}
 
 export function PublicacionTour3DScreen() {
   const { id } = useParams({ from: "/_public/publicacion-tour-3d/$id" })
   const navigate = useNavigate()
 
-  const assets = TOUR_3D_STATIC_RESULT.output.assets
+  const {
+    data: videos,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetVideosByPublicacionQuery(id)
+
+  const video = videos ? pickVideo(videos) : null
 
   return (
     <motion.div
@@ -27,20 +52,25 @@ export function PublicacionTour3DScreen() {
         <Button
           variant="ghost"
           className="gap-2"
-          onClick={() =>
-            navigate({
-              to: "/publicacion/$id",
-              params: { id },
-            })
-          }
+          onClick={() => navigate({ to: "/publicacion/$id", params: { id } })}
         >
           <ArrowLeft01Icon className="h-5 w-5" />
           <span>Volver al inmueble</span>
         </Button>
 
-        <Badge variant="outline" className="rounded-full px-4 py-1.5">
-          Demo estática 3D
-        </Badge>
+        {video && (
+          <Badge
+            className={
+              video.estadoProcesamiento === "COMPLETADO"
+                ? "w-fit bg-green-500 hover:bg-green-500"
+                : video.estadoProcesamiento === "FALLIDO"
+                  ? "w-fit bg-red-500 hover:bg-red-500"
+                  : "w-fit bg-amber-500 hover:bg-amber-500"
+            }
+          >
+            {video.estadoProcesamiento}
+          </Badge>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -51,7 +81,7 @@ export function PublicacionTour3DScreen() {
         <div className="flex items-center gap-2 text-muted-foreground">
           <Building03Icon className="h-5 w-5 text-primary" />
           <span className="font-medium">
-            Modelo cargado desde S3 usando archivo .splat
+            Modelo generado a partir del video de la publicación
           </span>
         </div>
       </div>
@@ -60,40 +90,80 @@ export function PublicacionTour3DScreen() {
 
       <Card className="overflow-hidden rounded-[32px] border-2 border-primary/10 bg-background shadow-2xl">
         <div className="space-y-4 p-4 md:p-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-xl font-bold">Vista interactiva</h2>
-              <p className="text-sm text-muted-foreground">
-                Esta prueba usa URLs estáticas de S3: preview.webp +
-                model.splat.
-              </p>
+          {isLoading && (
+            <div className="flex h-[650px] items-center justify-center rounded-[24px] bg-muted/40 text-muted-foreground">
+              Cargando recorridos 3D...
             </div>
+          )}
 
-            <Badge className="w-fit bg-green-500 hover:bg-green-500">
-              {TOUR_3D_STATIC_RESULT.status}
-            </Badge>
-          </div>
+          {!isLoading && isError && (
+            <div className="flex h-[650px] flex-col items-center justify-center gap-4 rounded-[24px] bg-muted/40 text-muted-foreground">
+              <p>No se pudieron cargar los recorridos 3D.</p>
+              <Button variant="outline" onClick={() => refetch()}>
+                Reintentar
+              </Button>
+            </div>
+          )}
 
-          <SpaceSplatViewer
-            modelUrl={assets.model}
-            camera={{
-              position: [0, 1.5, 4],
-              lookAt: [0, 0, 0],
-            }}
-            className="h-[650px] rounded-[24px]"
-          />
+          {!isLoading && !isError && !video && (
+            <div className="flex h-[650px] items-center justify-center rounded-[24px] bg-muted/40 text-center text-muted-foreground">
+              Esta publicación todavía no tiene un recorrido 3D.
+            </div>
+          )}
 
-          <div className="space-y-2 rounded-2xl bg-muted/40 p-4 text-xs text-muted-foreground">
-            <p>
-              <strong>Modelo:</strong> {assets.model}
-            </p>
-            <p>
-              <strong>Preview:</strong> {assets.preview}
-            </p>
-            <p>
-              <strong>Metadata:</strong> {assets.metadata}
-            </p>
-          </div>
+          {video && video.estadoProcesamiento === "PROCESANDO" && (
+            <div className="flex h-[650px] items-center justify-center rounded-[24px] bg-muted/40 text-center text-muted-foreground">
+              El recorrido 3D se está generando. Vuelve en unos minutos.
+            </div>
+          )}
+
+          {video && video.estadoProcesamiento === "FALLIDO" && (
+            <div className="flex h-[650px] items-center justify-center rounded-[24px] bg-muted/40 text-center text-muted-foreground">
+              {video.errorMensaje ?? "La generación del modelo 3D falló."}
+            </div>
+          )}
+
+          {video &&
+            video.estadoProcesamiento === "COMPLETADO" &&
+            (video.urlSplat ? (
+              <SpaceSplatViewer
+                modelUrl={video.urlSplat}
+                previewUrl={video.urlPreviewWebp ?? undefined}
+                camera={CAMERA}
+                className="h-[650px] rounded-[24px]"
+              />
+            ) : video.urlSog ? (
+              <SpaceSogViewer
+                modelUrl={video.urlSog}
+                previewUrl={video.urlPreviewWebp ?? undefined}
+                camera={CAMERA}
+                className="h-[650px] rounded-[24px]"
+              />
+            ) : (
+              <div className="flex h-[650px] items-center justify-center rounded-[24px] bg-muted/40 text-center text-muted-foreground">
+                El modelo 3D no tiene un archivo visualizable.
+              </div>
+            ))}
+
+          {video && video.estadoProcesamiento === "COMPLETADO" && (
+            <div className="space-y-2 rounded-2xl bg-muted/40 p-4 text-xs text-muted-foreground">
+              {(video.urlSplat || video.urlSog) && (
+                <p>
+                  <strong>Modelo:</strong> {video.urlSplat ?? video.urlSog}
+                </p>
+              )}
+              {video.urlPreviewWebp && (
+                <p>
+                  <strong>Preview:</strong> {video.urlPreviewWebp}
+                </p>
+              )}
+              {video.urlJsonModelo && (
+                <p>
+                  <strong>Metadata:</strong> {video.urlJsonModelo}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </Card>
     </motion.div>
