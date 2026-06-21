@@ -1,39 +1,36 @@
-import * as React from "react"
-import { motion } from "framer-motion"
-import { useParams, useNavigate } from "@tanstack/react-router"
-import {
-  useGetPublicacionByIdQuery
-} from "../store/publicacionApi"
-import { useCreateChatMutation } from "@/app/store/api/chatApi"
 import { useAppDispatch, useAppSelector } from "@/app/store"
+import { useCreateChatMutation } from "@/app/store/api/chatApi"
 import { openChatWithConversation } from "@/app/store/chatUiSlice"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useNavigate, useParams } from "@tanstack/react-router"
+import useEmblaCarousel from "embla-carousel-react"
+import { motion } from "framer-motion"
 import {
-  Building03Icon,
-  Square01Icon,
-  BedIcon,
+  ArrowLeft01Icon,
   Bathtub01Icon,
+  BedIcon,
+  Building03Icon,
+  FavouriteIcon,
   GarageIcon,
   Message01Icon,
-  ArrowLeft01Icon,
+  SentIcon,
   Share01Icon,
-  FavouriteIcon,
-  SentIcon
+  Square01Icon,
 } from "hugeicons-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Separator } from "@/components/ui/separator"
-import useEmblaCarousel from "embla-carousel-react"
-import { MapContainer, TileLayer, Marker } from "react-leaflet"
-import "leaflet/dist/leaflet.css"
 import L from "leaflet"
+import "leaflet/dist/leaflet.css"
+import { MapContainer, Marker, TileLayer } from "react-leaflet"
 import { toast } from "sonner"
+import { useGetPublicacionByIdQuery } from "../store/publicacionApi"
 
 // Fix para iconos de Leaflet en Vite
+import iconRetina from "leaflet/dist/images/marker-icon-2x.png"
 import icon from "leaflet/dist/images/marker-icon.png"
 import iconShadow from "leaflet/dist/images/marker-shadow.png"
-import iconRetina from "leaflet/dist/images/marker-icon-2x.png"
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -74,31 +71,38 @@ export function PublicacionDetailsScreen() {
       })
     } catch (err: any) {
       toast.error("Error al iniciar chat", {
-        description: err?.data?.message || "No se pudo conectar con el propietario.",
+        description:
+          err?.data?.message || "No se pudo conectar con el propietario.",
       })
     }
   }
 
   if (isLoading) {
-    return <div className="container py-10 space-y-8 animate-pulse">
-      <Skeleton className="h-[400px] w-full rounded-3xl" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-4">
-          <Skeleton className="h-10 w-2/3" />
-          <Skeleton className="h-6 w-1/3" />
-          <Skeleton className="h-32 w-full" />
+    return (
+      <div className="container animate-pulse space-y-8 py-10">
+        <Skeleton className="h-[400px] w-full rounded-3xl" />
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+          <div className="space-y-4 md:col-span-2">
+            <Skeleton className="h-10 w-2/3" />
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+          <Skeleton className="h-64 w-full rounded-2xl" />
         </div>
-        <Skeleton className="h-64 w-full rounded-2xl" />
       </div>
-    </div>
+    )
   }
 
   if (error || !publicacion) {
-    return <div className="container py-20 text-center space-y-4">
-      <h2 className="text-2xl font-bold">Inmueble no encontrado</h2>
-      <p className="text-muted-foreground">La publicación que buscas no existe o ha sido dada de baja.</p>
-      <Button onClick={() => navigate({ to: "/" })}>Volver al inicio</Button>
-    </div>
+    return (
+      <div className="container space-y-4 py-20 text-center">
+        <h2 className="text-2xl font-bold">Inmueble no encontrado</h2>
+        <p className="text-muted-foreground">
+          La publicación que buscas no existe o ha sido dada de baja.
+        </p>
+        <Button onClick={() => navigate({ to: "/" })}>Volver al inicio</Button>
+      </div>
+    )
   }
 
   return (
@@ -106,34 +110,49 @@ export function PublicacionDetailsScreen() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="container py-6 md:py-10 max-w-7xl mx-auto space-y-8"
+      className="container mx-auto max-w-7xl space-y-8 py-6 md:py-10"
     >
       {/* Back & Actions */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" className="gap-2" onClick={() => navigate({ to: "/" })}>
+        <Button
+          variant="ghost"
+          className="gap-2"
+          onClick={() => navigate({ to: "/" })}
+        >
           <ArrowLeft01Icon className="h-5 w-5" />
           <span>Volver</span>
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" className="rounded-full shadow-sm">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full shadow-sm"
+          >
             <Share01Icon className="h-5 w-5" />
           </Button>
-          <Button variant="outline" size="icon" className="rounded-full shadow-sm hover:text-red-500">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full shadow-sm hover:text-red-500"
+          >
             <FavouriteIcon className="h-5 w-5" />
           </Button>
         </div>
       </div>
 
       {/* Hero Carousel */}
-      <div className="relative group overflow-hidden rounded-[32px] shadow-2xl bg-muted">
+      <div className="group relative overflow-hidden rounded-[32px] bg-muted shadow-2xl">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex">
             {publicacion.imagenes.map((img: any, i: number) => (
-              <div key={i} className="flex-[0_0_100%] min-w-0 relative h-[300px] md:h-[500px]">
+              <div
+                key={i}
+                className="relative h-[300px] min-w-0 flex-[0_0_100%] md:h-[500px]"
+              >
                 <img
                   src={img.urlImage}
                   alt={publicacion.titulo}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
             ))}
@@ -142,54 +161,76 @@ export function PublicacionDetailsScreen() {
 
         {/* Badges Over Image */}
         <div className="absolute top-6 left-6 flex flex-col gap-2">
-          <Badge className="bg-primary hover:bg-primary px-4 py-1.5 text-sm font-bold shadow-lg">
+          <Badge className="bg-primary px-4 py-1.5 text-sm font-bold shadow-lg hover:bg-primary">
             {publicacion.tipoTransaccion}
           </Badge>
-          <Badge variant="outline" className="bg-background/90 backdrop-blur-md px-4 py-1.5 text-sm font-bold shadow-lg border-none text-foreground flex items-center">
-            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse mr-2" />
+          <Badge
+            variant="outline"
+            className="flex items-center border-none bg-background/90 px-4 py-1.5 text-sm font-bold text-foreground shadow-lg backdrop-blur-md"
+          >
+            <span className="mr-2 h-2 w-2 animate-pulse rounded-full bg-green-500" />
             {publicacion.estadoPublicacion}
           </Badge>
         </div>
       </div>
 
       {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
+        <div className="space-y-8 lg:col-span-2">
           {/* Title & Location */}
           <section className="space-y-4">
             <div className="space-y-2">
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
+              <h1 className="text-3xl leading-tight font-black tracking-tight md:text-4xl">
                 {publicacion.titulo}
               </h1>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Building03Icon className="h-5 w-5 text-primary" />
-                <span className="font-medium">{publicacion.inmueble.ubicacion.zonaBarrios}, {publicacion.inmueble.ubicacion.ciudad}</span>
+                <span className="font-medium">
+                  {publicacion.inmueble.ubicacion.zonaBarrios},{" "}
+                  {publicacion.inmueble.ubicacion.ciudad}
+                </span>
               </div>
             </div>
 
             <Separator className="bg-border/50" />
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center text-center gap-1 border border-border/50 backdrop-blur-sm">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-border/50 bg-muted/30 p-4 text-center backdrop-blur-sm">
                 <Square01Icon className="h-5 w-5 text-primary" />
-                <span className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">Área</span>
-                <span className="font-bold text-sm">{publicacion.inmueble.areaConstruida} m²</span>
+                <span className="text-xs font-medium tracking-tighter text-muted-foreground uppercase">
+                  Área
+                </span>
+                <span className="text-sm font-bold">
+                  {publicacion.inmueble.areaConstruida} m²
+                </span>
               </div>
-              <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center text-center gap-1 border border-border/50 backdrop-blur-sm">
+              <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-border/50 bg-muted/30 p-4 text-center backdrop-blur-sm">
                 <BedIcon className="h-5 w-5 text-primary" />
-                <span className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">Habs.</span>
-                <span className="font-bold text-sm">{publicacion.inmueble.habitaciones}</span>
+                <span className="text-xs font-medium tracking-tighter text-muted-foreground uppercase">
+                  Habs.
+                </span>
+                <span className="text-sm font-bold">
+                  {publicacion.inmueble.habitaciones}
+                </span>
               </div>
-              <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center text-center gap-1 border border-border/50 backdrop-blur-sm">
+              <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-border/50 bg-muted/30 p-4 text-center backdrop-blur-sm">
                 <Bathtub01Icon className="h-5 w-5 text-primary" />
-                <span className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">Baños</span>
-                <span className="font-bold text-sm">{publicacion.inmueble.banos}</span>
+                <span className="text-xs font-medium tracking-tighter text-muted-foreground uppercase">
+                  Baños
+                </span>
+                <span className="text-sm font-bold">
+                  {publicacion.inmueble.banos}
+                </span>
               </div>
-              <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center text-center gap-1 border border-border/50 backdrop-blur-sm">
+              <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-border/50 bg-muted/30 p-4 text-center backdrop-blur-sm">
                 <GarageIcon className="h-5 w-5 text-primary" />
-                <span className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">Garajes</span>
-                <span className="font-bold text-sm">{publicacion.inmueble.garajes}</span>
+                <span className="text-xs font-medium tracking-tighter text-muted-foreground uppercase">
+                  Garajes
+                </span>
+                <span className="text-sm font-bold">
+                  {publicacion.inmueble.garajes}
+                </span>
               </div>
             </div>
           </section>
@@ -197,7 +238,7 @@ export function PublicacionDetailsScreen() {
           {/* Description */}
           <section className="space-y-4">
             <h3 className="text-xl font-bold">Acerca del inmueble</h3>
-            <p className="text-muted-foreground leading-relaxed text-balance">
+            <p className="leading-relaxed text-balance text-muted-foreground">
               {publicacion.descripcionGeneral}
             </p>
           </section>
@@ -205,27 +246,46 @@ export function PublicacionDetailsScreen() {
           <section className="space-y-4">
             <h3 className="text-xl font-bold">Detalles adicionales</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex justify-between items-center p-3 rounded-xl bg-muted/10 border border-border/30">
-                <span className="text-sm text-muted-foreground">Precio por m²</span>
-                <span className="font-bold text-sm">
-                  {publicacion.moneda} {(publicacion.precio / publicacion.inmueble.areaConstruida).toLocaleString(undefined, {maximumFractionDigits: 0})}
+              <div className="flex items-center justify-between rounded-xl border border-border/30 bg-muted/10 p-3">
+                <span className="text-sm text-muted-foreground">
+                  Precio por m²
+                </span>
+                <span className="text-sm font-bold">
+                  {publicacion.moneda}{" "}
+                  {(
+                    publicacion.precio / publicacion.inmueble.areaConstruida
+                  ).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-muted/10 border border-border/30">
-                <span className="text-sm text-muted-foreground">Antigüedad</span>
-                <span className="font-bold text-sm">{publicacion.inmueble.antiguedadAnios} años</span>
+              <div className="flex items-center justify-between rounded-xl border border-border/30 bg-muted/10 p-3">
+                <span className="text-sm text-muted-foreground">
+                  Antigüedad
+                </span>
+                <span className="text-sm font-bold">
+                  {publicacion.inmueble.antiguedadAnios} años
+                </span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-muted/10 border border-border/30">
-                <span className="text-sm text-muted-foreground">Tipo Inmueble</span>
-                <span className="font-bold text-sm uppercase">{publicacion.inmueble.tipoInmueble}</span>
+              <div className="flex items-center justify-between rounded-xl border border-border/30 bg-muted/10 p-3">
+                <span className="text-sm text-muted-foreground">
+                  Tipo Inmueble
+                </span>
+                <span className="text-sm font-bold uppercase">
+                  {publicacion.inmueble.tipoInmueble}
+                </span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-muted/10 border border-border/30">
-                <span className="text-sm text-muted-foreground">Área del Terreno</span>
-                <span className="font-bold text-sm">{publicacion.inmueble.areaTerreno} m²</span>
+              <div className="flex items-center justify-between rounded-xl border border-border/30 bg-muted/10 p-3">
+                <span className="text-sm text-muted-foreground">
+                  Área del Terreno
+                </span>
+                <span className="text-sm font-bold">
+                  {publicacion.inmueble.areaTerreno} m²
+                </span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-muted/10 border border-border/30">
+              <div className="flex items-center justify-between rounded-xl border border-border/30 bg-muted/10 p-3">
                 <span className="text-sm text-muted-foreground">Publicado</span>
-                <span className="font-bold text-sm">{new Date(publicacion.fechaPublicacion).toLocaleDateString()}</span>
+                <span className="text-sm font-bold">
+                  {new Date(publicacion.fechaPublicacion).toLocaleDateString()}
+                </span>
               </div>
             </div>
           </section>
@@ -234,33 +294,43 @@ export function PublicacionDetailsScreen() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold">Ubicación de la propiedad</h3>
-              <div className="text-xs font-medium bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-wider">
+              <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium tracking-wider text-primary uppercase">
                 Sector: {publicacion.inmueble.ubicacion.zonaBarrios}
               </div>
             </div>
 
-            <div className="w-full h-[400px] rounded-[32px] overflow-hidden border-4 border-muted shadow-2xl z-0 group">
-              <MapContainer 
-                center={[Number(publicacion.inmueble.ubicacion.latitud), Number(publicacion.inmueble.ubicacion.longitud)]} 
-                zoom={15} 
-                scrollWheelZoom={false} 
-                className="h-full w-full grayscale-[0.2] contrast-[1.1] transition-all group-hover:grayscale-0"
+            <div className="group z-0 h-[400px] w-full overflow-hidden rounded-[32px] border-4 border-muted shadow-2xl">
+              <MapContainer
+                center={[
+                  Number(publicacion.inmueble.ubicacion.latitud),
+                  Number(publicacion.inmueble.ubicacion.longitud),
+                ]}
+                zoom={15}
+                scrollWheelZoom={false}
+                className="h-full w-full contrast-[1.1] grayscale-[0.2] transition-all group-hover:grayscale-0"
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <Marker position={[Number(publicacion.inmueble.ubicacion.latitud), Number(publicacion.inmueble.ubicacion.longitud)]} />
+                <Marker
+                  position={[
+                    Number(publicacion.inmueble.ubicacion.latitud),
+                    Number(publicacion.inmueble.ubicacion.longitud),
+                  ]}
+                />
               </MapContainer>
             </div>
 
-            <div className="bg-muted/30 p-4 rounded-2xl border border-border/50 flex gap-4 items-start">
-              <div className="p-2 bg-background rounded-lg shadow-sm">
+            <div className="flex items-start gap-4 rounded-2xl border border-border/50 bg-muted/30 p-4">
+              <div className="rounded-lg bg-background p-2 shadow-sm">
                 <Building03Icon className="h-5 w-5 text-primary" />
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-bold">Dirección de referencia</p>
-                <p className="text-sm text-muted-foreground">{publicacion.inmueble.ubicacion.direccionExacta}</p>
+                <p className="text-sm text-muted-foreground">
+                  {publicacion.inmueble.ubicacion.direccionExacta}
+                </p>
               </div>
             </div>
           </section>
@@ -268,10 +338,12 @@ export function PublicacionDetailsScreen() {
 
         {/* Floating Side Card */}
         <div className="lg:relative">
-          <Card className="sticky top-24 overflow-hidden border-2 border-primary/10 shadow-xl bg-background">
-            <div className="p-6 space-y-6">
+          <Card className="sticky top-24 overflow-hidden border-2 border-primary/10 bg-background shadow-xl">
+            <div className="space-y-6 p-6">
               <div className="space-y-1">
-                <span className="text-sm text-muted-foreground font-medium">Precio de {publicacion.tipoTransaccion.toLowerCase()}</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Precio de {publicacion.tipoTransaccion.toLowerCase()}
+                </span>
                 <div className="text-3xl font-black text-primary">
                   {publicacion.moneda} {publicacion.precio.toLocaleString()}
                 </div>
@@ -280,34 +352,57 @@ export function PublicacionDetailsScreen() {
               <div className="flex flex-col gap-3">
                 <Button
                   size="lg"
-                  className="w-full text-base font-bold gap-3 h-14 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                  className="h-14 w-full gap-3 text-base font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
                   onClick={handleContactOwner}
                   disabled={isCreatingChat}
                 >
                   <Message01Icon className="h-6 w-6" />
                   {isCreatingChat ? "Iniciando..." : "Contactar Propietario"}
                 </Button>
-                <Button variant="outline" size="lg" className="w-full h-12 gap-3 border-2 font-semibold">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 w-full gap-3 border-2 font-semibold"
+                >
                   <SentIcon className="h-5 w-5" />
                   Hacer una oferta
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="h-12 w-full gap-3 border-2 font-semibold"
+                  onClick={() =>
+                    navigate({
+                      to: "/publicacion-tour-3d/$id",
+                      params: { id },
+                    })
+                  }
+                >
+                  <Building03Icon className="h-5 w-5" />
+                  Ver recorrido 3D
                 </Button>
               </div>
 
               <Separator className="bg-border/50" />
 
-              <div className="flex items-center gap-4 group cursor-pointer">
-                <div className="h-12 w-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-bold">
+              <div className="group flex cursor-pointer items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary/20 bg-primary/10 font-bold text-primary">
                   JS
                 </div>
                 <div className="flex-1">
-                  <div className="font-bold group-hover:text-primary transition-colors">Agente Inmobiliario</div>
-                  <div className="text-xs text-muted-foreground">Activo hace 5 min</div>
+                  <div className="font-bold transition-colors group-hover:text-primary">
+                    Agente Inmobiliario
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Activo hace 5 min
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-muted/30 p-4 text-center">
-              <p className="text-[10px] text-muted-foreground leading-tight px-4 font-medium uppercase tracking-widest">
+              <p className="px-4 text-[10px] leading-tight font-medium tracking-widest text-muted-foreground uppercase">
                 Seguridad garantizada por SpaceShift AR
               </p>
             </div>
