@@ -27,6 +27,7 @@ import { Route as AuthFavoritosRouteImport } from './routes/_auth/favoritos'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
+import { Route as PublicPublicacionTour3dIdRouteImport } from './routes/_public/publicacion-tour-3d.$id'
 import { Route as AuthDashboardInmueblesRouteImport } from './routes/_auth/dashboard/inmuebles'
 import { Route as AuthDashboardContratosRouteImport } from './routes/_auth/dashboard/contratos'
 import { Route as AuthDashboardClientesRouteImport } from './routes/_auth/dashboard/clientes'
@@ -119,6 +120,12 @@ const PublicPublicacionIdRoute = PublicPublicacionIdRouteImport.update({
   path: '/publicacion/$id',
   getParentRoute: () => PublicRoute,
 } as any)
+const PublicPublicacionTour3dIdRoute =
+  PublicPublicacionTour3dIdRouteImport.update({
+    id: '/publicacion-tour-3d/$id',
+    path: '/publicacion-tour-3d/$id',
+    getParentRoute: () => PublicRoute,
+  } as any)
 const AuthDashboardInmueblesRoute = AuthDashboardInmueblesRouteImport.update({
   id: '/inmuebles',
   path: '/inmuebles',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/clientes': typeof AuthDashboardClientesRoute
   '/dashboard/contratos': typeof AuthDashboardContratosRoute
   '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
+  '/publicacion-tour-3d/$id': typeof PublicPublicacionTour3dIdRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
 }
@@ -173,6 +181,7 @@ export interface FileRoutesByTo {
   '/dashboard/clientes': typeof AuthDashboardClientesRoute
   '/dashboard/contratos': typeof AuthDashboardContratosRoute
   '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
+  '/publicacion-tour-3d/$id': typeof PublicPublicacionTour3dIdRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
   '/dashboard': typeof AuthDashboardIndexRoute
 }
@@ -197,6 +206,7 @@ export interface FileRoutesById {
   '/_auth/dashboard/clientes': typeof AuthDashboardClientesRoute
   '/_auth/dashboard/contratos': typeof AuthDashboardContratosRoute
   '/_auth/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
+  '/_public/publicacion-tour-3d/$id': typeof PublicPublicacionTour3dIdRoute
   '/_public/publicacion/$id': typeof PublicPublicacionIdRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
 }
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/dashboard/clientes'
     | '/dashboard/contratos'
     | '/dashboard/inmuebles'
+    | '/publicacion-tour-3d/$id'
     | '/publicacion/$id'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/dashboard/clientes'
     | '/dashboard/contratos'
     | '/dashboard/inmuebles'
+    | '/publicacion-tour-3d/$id'
     | '/publicacion/$id'
     | '/dashboard'
   id:
@@ -263,6 +275,7 @@ export interface FileRouteTypes {
     | '/_auth/dashboard/clientes'
     | '/_auth/dashboard/contratos'
     | '/_auth/dashboard/inmuebles'
+    | '/_public/publicacion-tour-3d/$id'
     | '/_public/publicacion/$id'
     | '/_auth/dashboard/'
   fileRoutesById: FileRoutesById
@@ -401,6 +414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicPublicacionIdRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_public/publicacion-tour-3d/$id': {
+      id: '/_public/publicacion-tour-3d/$id'
+      path: '/publicacion-tour-3d/$id'
+      fullPath: '/publicacion-tour-3d/$id'
+      preLoaderRoute: typeof PublicPublicacionTour3dIdRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/_auth/dashboard/inmuebles': {
       id: '/_auth/dashboard/inmuebles'
       path: '/inmuebles'
@@ -472,6 +492,7 @@ interface PublicRouteChildren {
   PublicRecuperarPasswordRoute: typeof PublicRecuperarPasswordRoute
   PublicVerificarCodigoRoute: typeof PublicVerificarCodigoRoute
   PublicIndexRoute: typeof PublicIndexRoute
+  PublicPublicacionTour3dIdRoute: typeof PublicPublicacionTour3dIdRoute
   PublicPublicacionIdRoute: typeof PublicPublicacionIdRoute
 }
 
@@ -482,6 +503,7 @@ const PublicRouteChildren: PublicRouteChildren = {
   PublicRecuperarPasswordRoute: PublicRecuperarPasswordRoute,
   PublicVerificarCodigoRoute: PublicVerificarCodigoRoute,
   PublicIndexRoute: PublicIndexRoute,
+  PublicPublicacionTour3dIdRoute: PublicPublicacionTour3dIdRoute,
   PublicPublicacionIdRoute: PublicPublicacionIdRoute,
 }
 
