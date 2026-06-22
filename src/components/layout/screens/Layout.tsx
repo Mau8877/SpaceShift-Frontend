@@ -1,7 +1,6 @@
 import * as React from "react"
 import { Outlet } from "@tanstack/react-router"
-import { AppSidebar, Header } from "../components"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { Header } from "../components"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { useAppSelector, useAppDispatch } from "@/app/store"
 import { ChatFloatingButton, ChatFloatingWindow } from "../../chat"
@@ -102,32 +101,28 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <SidebarProvider defaultOpen={isAuthenticated}>
-        <div className="flex h-screen w-full overflow-hidden bg-background">
-          {isAuthenticated && <AppSidebar />}
-
-          <SidebarInset className="flex min-w-0 flex-1 flex-col overflow-hidden">
-            <Header />
-            <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
-              {children || <Outlet />}
-            </main>
-          </SidebarInset>
-
-          {/* Chat Flotante */}
-          {isAuthenticated && (
-            <>
-              <ChatFloatingWindow
-                isOpen={isChatOpen}
-                onClose={() => dispatch(setChatOpen(false))}
-              />
-              <ChatFloatingButton
-                isOpen={isChatOpen}
-                onClick={() => dispatch(setChatOpen(!isChatOpen))}
-              />
-            </>
-          )}
+      <div className="flex h-screen w-full overflow-hidden bg-background">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
+            {children || <Outlet />}
+          </main>
         </div>
-      </SidebarProvider>
+
+        {/* Chat Flotante */}
+        {isAuthenticated && (
+          <>
+            <ChatFloatingWindow
+              isOpen={isChatOpen}
+              onClose={() => dispatch(setChatOpen(false))}
+            />
+            <ChatFloatingButton
+              isOpen={isChatOpen}
+              onClick={() => dispatch(setChatOpen(!isChatOpen))}
+            />
+          </>
+        )}
+      </div>
     </TooltipProvider>
   )
 }

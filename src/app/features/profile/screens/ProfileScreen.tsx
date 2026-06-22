@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react"
-import { Outlet } from "@tanstack/react-router"
 import { PencilEdit01Icon, UserCircleIcon } from "hugeicons-react"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -322,15 +321,6 @@ export function ProfileScreen() {
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-
-          <Card className="border border-dashed border-slate-200 p-6">
-            <p className="mb-4 text-sm font-medium text-slate-700">
-              Secciones adicionales del perfil
-            </p>
-            <div className="min-h-24 rounded-lg bg-slate-50 p-3">
-              <Outlet />
             </div>
           </Card>
         </TabsContent>
