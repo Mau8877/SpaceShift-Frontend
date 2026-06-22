@@ -11,6 +11,7 @@ import type { AuthState } from "@/app/store"
 import { Toaster } from "@/components/ui/sonner"
 import { store } from "@/app/store/redux"
 import { useFirebaseMessaging } from "@/hooks/useFirebaseMessaging"
+import { VideoUploadDock } from "@/app/features/publicaciones/components/VideoUploadDock"
 
 interface MyRouterContext {
   auth: AuthState
@@ -39,6 +40,7 @@ function RootComponent() {
       <RootDocument lang="es">
         <FirebaseInit />
         <Outlet />
+        <VideoUploadDock />
         <Toaster richColors position="bottom-right" />
       </RootDocument>
     </Provider>

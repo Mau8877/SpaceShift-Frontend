@@ -4,6 +4,7 @@ import { api } from "./api/api"
 import authReducer from "./authSlice"
 import chatUiReducer from "./chatUiSlice"
 import notificacionesReducer from "./notificacionesSlice"
+import videoUploadReducer from "./videoUploadSlice"
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     auth: authReducer,
     chatUi: chatUiReducer,
     notificaciones: notificacionesReducer,
+    videoUpload: videoUploadReducer,
 
     // API global (Sistema Nervioso)
     [api.reducerPath]: api.reducer,
