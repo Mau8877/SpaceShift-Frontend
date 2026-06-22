@@ -15,7 +15,6 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import {
   Tooltip,
   TooltipContent,
@@ -87,16 +86,6 @@ export function Header() {
       <header className="sticky top-0 z-20 flex h-16 w-full shrink-0 items-center justify-between bg-primary px-2 text-white sm:px-4">
         {/* --- PARTE IZQUIERDA: Logo --- */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          {/* El trigger del Sidebar solo se muestra si el usuario está autenticado */}
-          {isMounted && isAuthenticated && (
-            <>
-              <SidebarTrigger className="h-9 w-9 text-white hover:bg-white/20 hover:text-white" />
-              <Separator
-                orientation="vertical"
-                className="mx-1 h-4 bg-white/20 sm:mx-2"
-              />
-            </>
-          )}
           <Link
             to="/"
             className="truncate text-sm font-bold tracking-tighter sm:text-lg"
@@ -146,6 +135,13 @@ export function Header() {
           {/* Créditos (Solo si está autenticado) */}
           {isMounted && isAuthenticated && (
             <HeaderCreditsBadge />
+          )}
+
+          {isMounted && isAuthenticated && (
+            <Separator
+              orientation="vertical"
+              className="mx-1 h-4 bg-white/20 sm:mx-0"
+            />
           )}
 
           {/* --- SECCIÓN DE USUARIO: Login vs Avatar --- */}
