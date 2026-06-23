@@ -1,3 +1,4 @@
+export * from "./CrearOfertaScreen"
 export * from "./MisFavoritosScreen"
 export * from "./PublicacionDetailsScreen"
 export * from "./PublicacionScreen"

@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export function PasoDetalles({ form }: { form: any }) {
   return (
@@ -98,7 +99,7 @@ export function PasoDetalles({ form }: { form: any }) {
         <div>
           <h3 className="text-sm font-semibold text-slate-900">Dispositivos del inmueble</h3>
           <p className="text-xs text-slate-500">
-            Registra el catalogo de objetos o dispositivos que podran incluirse despues en un contrato.
+            Registra el catálogo de dispositivos que podrán incluirse en un contrato. Define el precio por día y las condiciones de uso.
           </p>
         </div>
 
@@ -132,6 +133,9 @@ export function PasoDetalles({ form }: { form: any }) {
                           horarioInicio: "00:00",
                           horarioFin: "23:59",
                           descripcion: "",
+                          precioPorDia: 0,
+                          maxHorasSeguidas: 0,
+                          horarioLimiteUso: "",
                         },
                       ])
                     }
@@ -158,34 +162,14 @@ export function PasoDetalles({ form }: { form: any }) {
                             />
                           </div>
                           <div className="space-y-1">
-                            <Label>Configuracion de tiempo</Label>
-                            <Select
-                              value={device.configuracionTiempo || "LIBRE"}
-                              onValueChange={(value) => updateDevice(index, "configuracionTiempo", value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="LIBRE">Libre</SelectItem>
-                                <SelectItem value="HORARIO">Por horario</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Horario inicio</Label>
+                            <Label>Precio por día (Bs.)</Label>
                             <Input
-                              type="time"
-                              value={device.horarioInicio || ""}
-                              onChange={(e) => updateDevice(index, "horarioInicio", e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Horario fin</Label>
-                            <Input
-                              type="time"
-                              value={device.horarioFin || ""}
-                              onChange={(e) => updateDevice(index, "horarioFin", e.target.value)}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={device.precioPorDia ?? 0}
+                              placeholder="Ej: 15"
+                              onChange={(e) => updateDevice(index, "precioPorDia", Number(e.target.value))}
                             />
                           </div>
                           <div className="space-y-1 md:col-span-2">
@@ -198,6 +182,98 @@ export function PasoDetalles({ form }: { form: any }) {
                             />
                           </div>
                         </div>
+
+                        {/* Condiciones de uso del dispositivo */}
+                        <div className="mt-4 border-t border-slate-100 pt-3 space-y-4">
+                          <p className="text-xs font-bold text-slate-700">Restricciones y Condiciones de Uso</p>
+                          
+                          <div className="space-y-3">
+                            {/* Checkbox 1: Limitar horas continuas */}
+                            <div className="flex items-start gap-2.5">
+                              <Checkbox 
+                                id={`max-hours-toggle-${device.id || index}`}
+                                checked={device.maxHorasSeguidas != null && device.maxHorasSeguidas > 0}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    updateDevice(index, "maxHorasSeguidas", 2) // default 2 hours
+                                  } else {
+                                    updateDevice(index, "maxHorasSeguidas", 0)
+                                  }
+                                }}
+                              />
+                              <div className="grid gap-1.5 leading-none">
+                                <Label 
+                                  htmlFor={`max-hours-toggle-${device.id || index}`}
+                                  className="text-xs font-medium text-slate-700 cursor-pointer"
+                                >
+                                  Limitar horas continuas de uso consecutivo
+                                </Label>
+                                <p className="text-[10px] text-slate-400">
+                                  Restringe la cantidad máxima de horas que el dispositivo se puede mantener encendido de forma continua.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Input para horas continuas */}
+                            {device.maxHorasSeguidas != null && device.maxHorasSeguidas > 0 && (
+                              <div className="pl-6 max-w-[200px] space-y-1">
+                                <Label className="text-[10px] font-semibold text-slate-500">Máximo horas continuas</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="24"
+                                  value={device.maxHorasSeguidas || ""}
+                                  placeholder="Ej: 2"
+                                  onChange={(e) => {
+                                    const val = e.target.value === "" ? 0 : Number(e.target.value)
+                                    updateDevice(index, "maxHorasSeguidas", val)
+                                  }}
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                            )}
+
+                            {/* Checkbox 2: Limitar hora máxima (Horario límite) */}
+                            <div className="flex items-start gap-2.5">
+                              <Checkbox 
+                                id={`time-limit-toggle-${device.id || index}`}
+                                checked={device.horarioLimiteUso != null && device.horarioLimiteUso !== ""}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    updateDevice(index, "horarioLimiteUso", "22:00") // default 22:00
+                                  } else {
+                                    updateDevice(index, "horarioLimiteUso", "")
+                                  }
+                                }}
+                              />
+                              <div className="grid gap-1.5 leading-none">
+                                <Label 
+                                  htmlFor={`time-limit-toggle-${device.id || index}`}
+                                  className="text-xs font-medium text-slate-700 cursor-pointer"
+                                >
+                                  Establecer un horario límite nocturno
+                                </Label>
+                                <p className="text-[10px] text-slate-400">
+                                  Define una hora a partir de la cual el dispositivo dejará de estar disponible para su uso.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Input para horario limite */}
+                            {device.horarioLimiteUso != null && device.horarioLimiteUso !== "" && (
+                              <div className="pl-6 max-w-[200px] space-y-1">
+                                <Label className="text-[10px] font-semibold text-slate-500">Hora límite (No permitir después de)</Label>
+                                <Input
+                                  type="time"
+                                  value={device.horarioLimiteUso || ""}
+                                  onChange={(e) => updateDevice(index, "horarioLimiteUso", e.target.value)}
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
                         <div className="mt-3 flex justify-end">
                           <Button
                             type="button"

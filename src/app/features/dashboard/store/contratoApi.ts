@@ -125,11 +125,12 @@ export const contratoApi = api.injectEndpoints({
     }),
     generarSesionPagoStripe: builder.mutation<
       { stripeCheckoutUrl: string },
-      string
+      { pagoId: string; originUrl?: string }
     >({
-      query: (pagoId) => ({
+      query: ({ pagoId, originUrl }) => ({
         url: `/pagos/${pagoId}/stripe-checkout`,
         method: "POST",
+        params: originUrl ? { originUrl } : undefined,
       }),
     }),
   }),

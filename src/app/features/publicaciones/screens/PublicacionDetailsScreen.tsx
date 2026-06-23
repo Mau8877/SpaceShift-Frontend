@@ -14,9 +14,11 @@ import {
   Bathtub01Icon,
   BedIcon,
   Building03Icon,
+  CpuIcon,
   FavouriteIcon,
   GarageIcon,
   Message01Icon,
+  AlertCircleIcon,
   SentIcon,
   Share01Icon,
   Square01Icon,
@@ -290,6 +292,80 @@ export function PublicacionDetailsScreen() {
             </div>
           </section>
 
+          {/* Dispositivos Disponibles */}
+          {publicacion.inmueble.dispositivos && publicacion.inmueble.dispositivos.length > 0 && (
+            <section className="space-y-4">
+              <h3 className="text-xl font-bold">Dispositivos disponibles</h3>
+              <p className="text-sm text-muted-foreground">
+                El propietario ofrece los siguientes dispositivos inteligentes que puedes incluir en tu contrato.
+              </p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {publicacion.inmueble.dispositivos.map((device: any, idx: number) => (
+                  <div
+                    key={device.id || idx}
+                    className="flex flex-col gap-2 rounded-2xl border border-border/50 bg-muted/20 p-4 backdrop-blur-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CpuIcon className="h-5 w-5 text-primary" />
+                      <span className="text-sm font-bold">{device.nombre}</span>
+                    </div>
+                    {device.descripcion && (
+                      <p className="text-xs text-muted-foreground">{device.descripcion}</p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {device.precioPorDia != null && device.precioPorDia > 0 && (
+                        <Badge variant="outline" className="text-xs font-semibold">
+                          {publicacion.moneda} {device.precioPorDia}/día
+                        </Badge>
+                      )}
+                      {device.maxHorasSeguidas != null && device.maxHorasSeguidas > 0 && (
+                        <Badge variant="outline" className="text-xs border-amber-200 bg-amber-50 text-amber-700">
+                          Máx. {device.maxHorasSeguidas}h seguidas
+                        </Badge>
+                      )}
+                      {device.horarioLimiteUso && (
+                        <Badge variant="outline" className="text-xs border-rose-200 bg-rose-50 text-rose-700">
+                          Hasta las {device.horarioLimiteUso}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Condiciones y Restricciones */}
+          {(publicacion.inmueble.condiciones || publicacion.inmueble.multasSanciones) && (
+            <section className="space-y-4">
+              <h3 className="text-xl font-bold">Condiciones y restricciones</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {publicacion.inmueble.condiciones && (
+                  <div className="flex flex-col gap-2 rounded-2xl border border-border/50 bg-muted/20 p-4">
+                    <div className="flex items-center gap-2">
+                      <AlertCircleIcon className="h-5 w-5 text-amber-500" />
+                      <span className="text-sm font-bold">Condiciones de uso</span>
+                    </div>
+                    <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
+                      {publicacion.inmueble.condiciones}
+                    </p>
+                  </div>
+                )}
+                {publicacion.inmueble.multasSanciones && (
+                  <div className="flex flex-col gap-2 rounded-2xl border border-rose-200/50 bg-rose-50/30 p-4">
+                    <div className="flex items-center gap-2">
+                      <AlertCircleIcon className="h-5 w-5 text-rose-500" />
+                      <span className="text-sm font-bold text-rose-700">Multas y sanciones</span>
+                    </div>
+                    <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
+                      {publicacion.inmueble.multasSanciones}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
           {/* Ubicación Map Section */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
@@ -363,6 +439,18 @@ export function PublicacionDetailsScreen() {
                   variant="outline"
                   size="lg"
                   className="h-12 w-full gap-3 border-2 font-semibold"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      toast.error("Autenticación requerida", {
+                        description: "Inicia sesión para hacer una oferta.",
+                      })
+                      return
+                    }
+                    navigate({
+                      to: "/crear-oferta/$id",
+                      params: { id },
+                    })
+                  }}
                 >
                   <SentIcon className="h-5 w-5" />
                   Hacer una oferta

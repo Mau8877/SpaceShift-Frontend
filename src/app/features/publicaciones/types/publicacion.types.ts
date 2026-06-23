@@ -2,6 +2,18 @@ import type { CrearPublicacionWizardFormStyle } from "../schemas/publicacionSche
 
 export type CrearPublicacionForm = CrearPublicacionWizardFormStyle;
 
+export interface DispositivoInmueble {
+  id: string;
+  nombre: string;
+  configuracionTiempo: string;
+  horarioInicio?: string;
+  horarioFin?: string;
+  descripcion: string;
+  precioPorDia?: number;
+  maxHorasSeguidas?: number;
+  horarioLimiteUso?: string; // e.g. "22:00" — no se puede usar después de esta hora
+}
+
 export interface InmuebleRequestDTO {
   tipoInmueble: string;
   areaTerreno: number;
@@ -17,14 +29,7 @@ export interface InmuebleRequestDTO {
     latitud: string;
     longitud: string;
   };
-  dispositivos?: Array<{
-    id: string;
-    nombre: string;
-    configuracionTiempo: string;
-    horarioInicio?: string;
-    horarioFin?: string;
-    descripcion: string;
-  }>;
+  dispositivos?: DispositivoInmueble[];
   condiciones?: string;
   multasSanciones?: string;
 }
@@ -47,14 +52,7 @@ export interface InmuebleResponseDTO {
     latitud: string;
     longitud: string;
   };
-  dispositivos?: Array<{
-    id: string;
-    nombre: string;
-    configuracionTiempo: string;
-    horarioInicio?: string;
-    horarioFin?: string;
-    descripcion: string;
-  }>;
+  dispositivos?: DispositivoInmueble[];
   condiciones?: string;
   multasSanciones?: string;
 }

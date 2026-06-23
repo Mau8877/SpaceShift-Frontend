@@ -70,7 +70,7 @@ export const authSlice = createSlice({
           Cookies.set("token", token, {
             expires: 1,
             secure: false,
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/",
           })
         }

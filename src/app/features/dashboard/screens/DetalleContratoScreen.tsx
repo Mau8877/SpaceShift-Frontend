@@ -52,10 +52,26 @@ export function DetalleContratoScreen() {
   const navigate = useNavigate()
   const { user } = useAppSelector((state) => state.auth)
 
+  React.useEffect(() => {
+    console.log("[DEBUG - DetalleContratoScreen] Inicialización y parámetros de URL:", {
+      href: window.location.href,
+      origin: window.location.origin,
+      search: window.location.search,
+      id,
+      userIsAuthenticated: !!user,
+    })
+  }, [id, user])
+
   const { data: contrato, isLoading: isLoadingContract } = useGetContratoPorIdQuery(
     id || "",
     { skip: !id }
   )
+
+  React.useEffect(() => {
+    if (contrato) {
+      console.log("[DEBUG - DetalleContratoScreen] Contrato cargado:", contrato)
+    }
+  }, [contrato])
 
   const { data: pagos = [], isLoading: isLoadingPagos } = useGetPagosDeContratoQuery(
     id || "",
@@ -121,7 +137,13 @@ export function DetalleContratoScreen() {
 
   const handleStripePayment = async (pagoId: string) => {
     try {
-      const res = await generarStripe(pagoId).unwrap()
+      const originUrl = window.location.origin
+      console.log("[DEBUG - DetalleContratoScreen] Solicitando pago de Stripe:", {
+        pagoId,
+        originUrl,
+      })
+      const res = await generarStripe({ pagoId, originUrl }).unwrap()
+      console.log("[DEBUG - DetalleContratoScreen] Respuesta de Stripe recibida:", res)
       if (res.stripeCheckoutUrl) {
         toast.info("Redirigiendo a Stripe...", {
           description: "Por favor completa tu pago de forma segura.",
@@ -129,6 +151,7 @@ export function DetalleContratoScreen() {
         window.location.href = res.stripeCheckoutUrl
       }
     } catch (error: any) {
+      console.error("[DEBUG - DetalleContratoScreen] Error en handleStripePayment:", error)
       toast.error("Error al iniciar pago", {
         description: error?.data?.message || "No se pudo generar la sesión de Stripe.",
       })
@@ -414,19 +437,82 @@ export function DetalleContratoScreen() {
               </div>
             )}
 
-            {/* Botón de Firma para Cliente o Propietario */}
-            {contrato.estadoContrato === "PENDIENTE_FIRMA" && (isClient || isOwner) && (
-              <div className="pt-2">
-                <Button 
-                  onClick={handleSign} 
-                  disabled={isFirmando}
-                  className="w-full sm:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md h-11"
-                >
-                  <SignatureIcon className="h-5 w-5" />
-                  {isFirmando ? "Firmando contrato..." : "Firmar Contrato Digitalmente"}
-                </Button>
+            {/* Estado de Firmas Tracker (Para VENTA) */}
+            {contrato.estadoContrato === "PENDIENTE_FIRMA" && contrato.tipoContrato === "VENTA" && (
+              <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 mt-4 space-y-2">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Estado de Firmas del Contrato de Venta:
+                </h5>
+                <div className="flex flex-col gap-1.5 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-600">Comprador (Cliente):</span>
+                    {contrato.especificaciones?.firmaCliente ? (
+                      <span className="text-emerald-600 font-bold flex items-center gap-1">✓ Firmado</span>
+                    ) : (
+                      <span className="text-amber-600 font-bold flex items-center gap-1">⏳ Pendiente</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-600">Vendedor (Propietario):</span>
+                    {contrato.especificaciones?.firmaPropietario ? (
+                      <span className="text-emerald-600 font-bold flex items-center gap-1">✓ Firmado</span>
+                    ) : (
+                      <span className="text-amber-600 font-bold flex items-center gap-1">⏳ Pendiente</span>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
+
+            {/* Botón de Firma para Cliente o Propietario */}
+            {contrato.estadoContrato === "PENDIENTE_FIRMA" && (() => {
+              const clientSigned = !!contrato.especificaciones?.firmaCliente
+              const ownerSigned = !!contrato.especificaciones?.firmaPropietario
+              
+              const isVenta = contrato.tipoContrato === "VENTA"
+              const userCanSign = isVenta 
+                ? (isClient && !clientSigned) || (isOwner && !ownerSigned)
+                : (isClient && !clientSigned)
+
+              if (!userCanSign) {
+                if (isVenta && clientSigned && !ownerSigned && isClient) {
+                  return <p className="text-xs font-medium text-slate-500 mt-4 italic">Esperando que el propietario firme el contrato.</p>
+                }
+                if (isVenta && ownerSigned && !clientSigned && isOwner) {
+                  return <p className="text-xs font-medium text-slate-500 mt-4 italic">Esperando que el comprador (cliente) firme el contrato.</p>
+                }
+                if (!isVenta && isOwner) {
+                  return <p className="text-xs font-medium text-slate-500 mt-4 italic">Esperando que el cliente firme el contrato.</p>
+                }
+                return null
+              }
+
+              return (
+                <div className="pt-2 space-y-3">
+                  {!pagos.some((p: any) => p.estadoPago === "COMPLETADO") && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 text-xs text-amber-800 font-medium">
+                      ⚠️ Debe realizar el pago inicial (usando Stripe o registrando su transferencia) antes de poder firmar digitalmente el contrato.
+                    </div>
+                  )}
+                  <Button 
+                    onClick={() => {
+                      if (!pagos.some((p: any) => p.estadoPago === "COMPLETADO")) {
+                        toast.error("Pago requerido", {
+                          description: "Debes completar el pago inicial de la cuota programada antes de firmar.",
+                        })
+                        return
+                      }
+                      handleSign()
+                    }} 
+                    disabled={isFirmando}
+                    className="w-full sm:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md h-11"
+                  >
+                    <SignatureIcon className="h-5 w-5" />
+                    {isFirmando ? "Firmando contrato..." : "Firmar Contrato Digitalmente"}
+                  </Button>
+                </div>
+              )
+            })()}
           </div>
         </div>
 

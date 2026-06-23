@@ -81,7 +81,23 @@ export function LoginModal({
         dispatch(setCredentials({ token: response.token }))
 
         router.invalidate()
-        router.navigate({ to: "/dashboard" })
+        
+        const searchParams = new URLSearchParams(window.location.search)
+        const redirectUrl = searchParams.get("redirect")
+        if (redirectUrl) {
+          try {
+            const urlObj = new URL(redirectUrl, window.location.origin)
+            if (urlObj.origin === window.location.origin) {
+              router.navigate({ to: urlObj.pathname + urlObj.search })
+            } else {
+              router.navigate({ to: "/dashboard" })
+            }
+          } catch (e) {
+            router.navigate({ to: "/dashboard" })
+          }
+        } else {
+          router.navigate({ to: "/dashboard" })
+        }
 
         toast.success("Inicio de sesión exitoso", {
           description: "Bienvenido nuevamente.",
