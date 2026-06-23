@@ -656,6 +656,12 @@ export function SpaceSplatViewer({
               0,
               targetForward[2],
             ])
+            // Vector derecho plano (flatForward × up) para el strafe lateral.
+            const flatRight = normalizeVec3([
+              Math.cos(target.yaw),
+              0,
+              Math.sin(target.yaw),
+            ])
             const worldUp: Vec3 = [0, 1, 0]
             let movement: Vec3 = [0, 0, 0]
 
@@ -666,9 +672,16 @@ export function SpaceSplatViewer({
               movement = subtractVec3(movement, flatForward)
             }
             if (pressed.has("a")) {
-              target.yaw += resolvedControls.keyboardTurnSpeed * deltaTime
+              movement = subtractVec3(movement, flatRight)
             }
             if (pressed.has("d")) {
+              movement = addVec3(movement, flatRight)
+            }
+            // Giro opcional con flechas izquierda/derecha.
+            if (pressed.has("arrowleft")) {
+              target.yaw += resolvedControls.keyboardTurnSpeed * deltaTime
+            }
+            if (pressed.has("arrowright")) {
               target.yaw -= resolvedControls.keyboardTurnSpeed * deltaTime
             }
             if (pressed.has("e") || pressed.has(" ")) {
@@ -883,7 +896,7 @@ export function SpaceSplatViewer({
             <div className="pointer-events-none absolute bottom-4 left-4 max-w-[90%] rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-xs text-white/90 backdrop-blur-md">
               {isMobile
                 ? "Un dedo mira · Pellizca para acercar"
-                : "Click para activar · W/S avanzar/retroceder · A/D girar · Arrastra para mirar · Shift rapido"}
+                : "Click para activar · Mouse para mirar · W/A/S/D moverse · Q/E subir/bajar · Shift correr"}
             </div>
           )}
 

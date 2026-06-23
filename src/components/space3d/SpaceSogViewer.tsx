@@ -157,6 +157,7 @@ export function SpaceSogViewer({
   const [error, setError] = useState<string | null>(null)
   const [isFocused, setIsFocused] = useState(false)
   const [showHelpOverlay, setShowHelpOverlay] = useState(true)
+  const [progress, setProgress] = useState(0)
 
   const cameraKey = useMemo(() => JSON.stringify(camera ?? {}), [camera])
 
@@ -343,7 +344,7 @@ export function SpaceSogViewer({
       pointerStateRef.current.lastX = event.clientX
       pointerStateRef.current.lastY = event.clientY
 
-      const safeDeltaX = clamp(deltaX, -MAX_MOUSE_DELTA, MAX_MOUSE_DELTA)
+      const safeDeltaX = clamp(deltaX, -MAX_MOUSE_DELTA_X, MAX_MOUSE_DELTA_X)
       const safeDeltaY = clamp(deltaY, -MAX_MOUSE_DELTA_Y, MAX_MOUSE_DELTA_Y)
 
       target.yaw += safeDeltaX * DEFAULT_CONTROLS.mouseSensitivityX
@@ -648,25 +649,63 @@ export function SpaceSogViewer({
     document.addEventListener("keyup", handleKeyUp, true)
     window.addEventListener("blur", handleWindowBlur)
 
-    resetHelpTimer()
+    let activeXHR: XMLHttpRequest | null = null
 
-    app.assets.loadFromUrl(modelUrl, "gsplat", (loadError, asset) => {
-      if (disposed) return
-      if (loadError || !asset) {
-        console.error("Error cargando .sog:", loadError)
-        setError("No se pudo cargar el modelo 3D (.sog).")
-        return
+    const fetchModel = () => {
+      const xhr = new XMLHttpRequest()
+      activeXHR = xhr
+      xhr.open("GET", modelUrl, true)
+      xhr.responseType = "blob"
+
+      xhr.onprogress = (event) => {
+        if (disposed) return
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100)
+          setProgress(percent)
+        }
       }
 
-      const entity = new pc.Entity("sog-model")
-      entity.addComponent("gsplat", { asset })
-      entity.setLocalEulerAngles(0, 0, 180)
-      app?.root.addChild(entity)
-      setIsReady(true)
-    })
+      xhr.onload = () => {
+        if (disposed) return
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const blobUrl = URL.createObjectURL(xhr.response)
+
+          app!.assets.loadFromUrl(blobUrl, "gsplat", (loadError, asset) => {
+            URL.revokeObjectURL(blobUrl)
+
+            if (disposed) return
+            if (loadError || !asset) {
+              console.error("Error cargando .sog:", loadError)
+              setError("No se pudo cargar el modelo 3D (.sog).")
+              return
+            }
+
+            const entity = new pc.Entity("sog-model")
+            entity.addComponent("gsplat", { asset })
+            entity.setLocalEulerAngles(0, 0, 180)
+            app?.root.addChild(entity)
+            setIsReady(true)
+          })
+        } else {
+          setError("No se pudo descargar el modelo 3D (.sog).")
+        }
+      }
+
+      xhr.onerror = () => {
+        if (disposed) return
+        setError("Error de red al descargar el modelo 3D.")
+      }
+
+      xhr.send()
+    }
+
+    fetchModel()
 
     return () => {
       disposed = true
+      if (activeXHR) {
+        activeXHR.abort()
+      }
 
       if (hideHelpTimeoutRef.current) {
         window.clearTimeout(hideHelpTimeoutRef.current)
@@ -739,13 +778,15 @@ export function SpaceSogViewer({
 
       {!isReady && !error && (
         <div className="absolute inset-x-0 bottom-0 bg-black/70 px-4 py-3 text-sm text-white">
-          Cargando recorrido 3D...
+          {progress > 0 && progress < 100
+            ? `Cargando recorrido 3D... ${progress}%`
+            : "Cargando recorrido 3D..."}
         </div>
       )}
 
       {showHelpOverlay && !error && (
         <div className="pointer-events-none absolute bottom-4 left-4 max-w-[90%] rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-xs text-white/90 backdrop-blur-md">
-          Click para activar · Arrastra suave para mirar · W/S avanzar · A/D girar
+          Click para activar · Mouse para mirar · W/S avanzar · A/D girar · Q/E subir/bajar · Shift correr
         </div>
       )}
 

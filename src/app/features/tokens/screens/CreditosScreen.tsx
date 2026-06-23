@@ -83,7 +83,7 @@ export function CreditosScreen() {
             <Coins01Icon className="size-8 text-primary" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl text-slate-900">
-            Adquiere Créditos de SpaceShift
+            Adquiere Tokens de SpaceShift
           </h1>
           <p className="mt-2 text-slate-500 text-xs md:text-sm max-w-lg mx-auto leading-relaxed">
             Potencia tus publicaciones de inmuebles con modelado 3D interactivo y procesamiento prioritario de IA. 

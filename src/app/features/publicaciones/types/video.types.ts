@@ -4,6 +4,11 @@ export type EstadoProcesamiento =
   | "COMPLETADO"
   | "FALLIDO"
 
+// Formato de salida del modelo 3D.
+// SPLAT: mejor calidad, archivo más pesado y más caro.
+// SOG: más ligero, algo menos de calidad y más barato.
+export type Formato3D = "SPLAT" | "SOG"
+
 // Respuesta de GET /api/videos/upload-url
 export interface UploadUrlResponse {
   uploadUrl: string
@@ -17,6 +22,7 @@ export interface CotizacionResponse {
   costoCreditos: number
   saldoActual: number
   saldoSuficiente: boolean
+  formato?: Formato3D
 }
 
 // Metadata leída del archivo de video en el navegador
@@ -33,6 +39,7 @@ export interface VideoUploadRequest {
   nombreArchivo: string
   tamanoBytes: number
   duracionSegundos: number
+  formato: Formato3D
 }
 
 // Espeja el VideoResponseDTO del backend (modules/publicacion/dto/VideoResponseDTO)

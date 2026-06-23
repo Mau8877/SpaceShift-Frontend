@@ -1,7 +1,13 @@
 import { useRef, useState } from "react"
 import { Link } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Album02Icon, Coins01Icon, Video01Icon } from "hugeicons-react"
+import {
+  Album02Icon,
+  Coins01Icon,
+  Upload01Icon,
+  Video01Icon,
+  Wallet02Icon,
+} from "hugeicons-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,8 +19,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useAppDispatch } from "@/app/store/hooks"
+import { useGetMiSaldoQuery } from "@/app/features/tokens/store/tokenApi"
 
 import {
   iniciarSubidaVideo,
@@ -23,6 +37,7 @@ import {
 } from "../store"
 import type {
   EstadoProcesamiento,
+  Formato3D,
   VideoFileMeta,
   VideoPublicacionDTO,
 } from "../types"
@@ -47,11 +62,23 @@ function getVideoMeta(file: File): Promise<VideoFileMeta> {
   })
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  const kb = bytes / 1024
+  if (kb < 1024) return `${kb.toFixed(0)} KB`
+  return `${(kb / 1024).toFixed(1)} MB`
+}
+
 const ESTADO_BADGE: Record<EstadoProcesamiento, string> = {
   PENDIENTE: "bg-slate-400 hover:bg-slate-400",
   PROCESANDO: "bg-amber-500 hover:bg-amber-500",
   COMPLETADO: "bg-green-500 hover:bg-green-500",
   FALLIDO: "bg-red-500 hover:bg-red-500",
+}
+
+const FORMATO_INFO: Record<Formato3D, string> = {
+  SPLAT: "Máxima calidad · archivo más pesado · más caro",
+  SOG: "Más ligero · algo menos de calidad · más barato",
 }
 
 export function SubirVideoDialog({
@@ -65,6 +92,9 @@ export function SubirVideoDialog({
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [meta, setMeta] = useState<VideoFileMeta | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [formato, setFormato] = useState<Formato3D>("SPLAT")
+  const [isDragging, setIsDragging] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
@@ -73,8 +103,10 @@ export function SubirVideoDialog({
     { skip: !open }
   )
 
+  const { data: saldo } = useGetMiSaldoQuery(undefined, { skip: !open })
+
   const { data: cotizacion, isFetching: cotizando } = useCotizarVideoQuery(
-    meta?.duracionSegundos ?? 0,
+    { duracionSegundos: meta?.duracionSegundos ?? 0, formato },
     { skip: !meta }
   )
 
@@ -82,6 +114,12 @@ export function SubirVideoDialog({
     setFile(null)
     setMeta(null)
     setErrorMsg(null)
+    setFormato("SPLAT")
+    setIsDragging(false)
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return null
+    })
     if (inputRef.current) inputRef.current.value = ""
   }
 
@@ -90,29 +128,53 @@ export function SubirVideoDialog({
     if (!next) reset()
   }
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]
-    if (!f) return
+  const processFile = async (f: File) => {
+    if (!f.type.startsWith("video/")) {
+      setErrorMsg("El archivo debe ser un video.")
+      return
+    }
     setErrorMsg(null)
     setFile(f)
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(f)
+    })
     try {
       setMeta(await getVideoMeta(f))
     } catch {
       setErrorMsg("No se pudo leer la duración del video. Prueba con otro archivo.")
       setFile(null)
       setMeta(null)
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return null
+      })
     }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    if (f) void processFile(f)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const f = e.dataTransfer.files?.[0]
+    if (f) void processFile(f)
   }
 
   const handleProcesar = () => {
     if (!file || !meta || !cotizacion?.saldoSuficiente) return
     // Disparamos el flujo en segundo plano (sobrevive al cierre del modal).
-    dispatch(iniciarSubidaVideo({ idPublicacion, file, meta }))
+    dispatch(iniciarSubidaVideo({ idPublicacion, file, meta, formato }))
     toast.success("Subida iniciada", {
       description: "Verás el progreso abajo a la derecha. Puedes cerrar esta ventana.",
     })
     handleOpenChange(false)
   }
+
+  const saldoMostrado = cotizacion?.saldoActual ?? saldo?.saldoCreditos
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -121,11 +183,10 @@ export function SubirVideoDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Video01Icon className="h-5 w-5 text-primary" />
-            Recorrido 3D
+            Generar modelo 3D
           </DialogTitle>
           <DialogDescription>
-            Sube un video del inmueble para generar un modelo 3D navegable. El
-            costo se cobra en créditos según la duración del video.
+            Sube un video del inmueble para generar un recorrido 3D navegable.
           </DialogDescription>
         </DialogHeader>
 
@@ -163,62 +224,124 @@ export function SubirVideoDialog({
           </div>
         )}
 
-        {/* Selección de archivo + cotización */}
         <div className="space-y-4">
-          <input
-            ref={inputRef}
-            type="file"
-            accept="video/*"
-            onChange={handleFile}
-            className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90"
-          />
+          {/* Zona de subida (drag & drop / click) */}
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold">Video del inmueble</p>
+            <label
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDragging(true)
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={`flex cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed p-4 transition-colors ${
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50 hover:bg-muted/40"
+              }`}
+            >
+              <input
+                ref={inputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleInputChange}
+                className="hidden"
+              />
 
-          {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
-
-          {meta && (
-            <div className="space-y-3 rounded-lg border bg-muted/30 p-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Archivo</span>
-                <span className="max-w-[60%] truncate font-medium">
-                  {meta.nombre}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Duración</span>
-                <span className="font-medium">{meta.duracionSegundos}s</span>
-              </div>
-
-              {cotizando && (
-                <p className="text-muted-foreground">Calculando costo...</p>
+              {previewUrl ? (
+                <video
+                  src={previewUrl}
+                  muted
+                  playsInline
+                  className="h-16 w-24 shrink-0 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg bg-muted">
+                  <Upload01Icon className="h-6 w-6 text-muted-foreground" />
+                </div>
               )}
 
-              {cotizacion && (
-                <>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-muted-foreground">
-                      <Coins01Icon className="h-4 w-4" /> Costo
-                    </span>
-                    <span className="font-bold">
-                      {cotizacion.costoCreditos} créditos
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tu saldo</span>
-                    <span className="font-medium">
-                      {cotizacion.saldoActual} créditos
-                    </span>
-                  </div>
-                  {!cotizacion.saldoSuficiente && (
-                    <div className="rounded-md bg-red-50 p-2 text-xs text-red-600">
-                      Saldo insuficiente.{" "}
-                      <Link to="/creditos" className="font-semibold underline">
-                        Comprar créditos
-                      </Link>
-                    </div>
-                  )}
-                </>
-              )}
+              <div className="min-w-0 flex-1">
+                {meta ? (
+                  <>
+                    <p className="truncate text-sm font-medium">{meta.nombre}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {meta.duracionSegundos}s · {formatBytes(meta.tamanoBytes)}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium">
+                      Arrastra y suelta el video
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      o haz clic para seleccionarlo
+                    </p>
+                  </>
+                )}
+              </div>
+            </label>
+            {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
+          </div>
+
+          {/* Formato de salida */}
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold">Formato de salida</p>
+            <Select
+              value={formato}
+              onValueChange={(v) => setFormato(v as Formato3D)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SPLAT">Splat (alta calidad)</SelectItem>
+                <SelectItem value="SOG">Sog (ligero)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {FORMATO_INFO[formato]}
+            </p>
+          </div>
+
+          {/* Costo de procesamiento */}
+          <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2.5 text-sm">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Coins01Icon className="h-4 w-4" /> Costo de procesamiento
+            </span>
+            <span className="font-bold">
+              {!meta
+                ? "—"
+                : cotizando || !cotizacion
+                  ? "Calculando..."
+                  : `${cotizacion.costoCreditos} tokens`}
+            </span>
+          </div>
+
+          {/* Saldo + Top Up */}
+          <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2.5 text-sm">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Wallet02Icon className="h-4 w-4" /> Tu saldo
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">
+                {saldoMostrado != null ? `${saldoMostrado} tokens` : "—"}
+              </span>
+              <Link to="/creditos">
+                <Button size="sm" variant="outline">
+                  Recargar
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {meta && cotizacion && !cotizacion.saldoSuficiente && (
+            <div className="rounded-md bg-red-50 p-2 text-xs text-red-600">
+              Saldo insuficiente para este formato.{" "}
+              <Link to="/creditos" className="font-semibold underline">
+                Recargar tokens
+              </Link>
             </div>
           )}
 
@@ -229,9 +352,9 @@ export function SubirVideoDialog({
             }
             onClick={handleProcesar}
           >
-            {cotizacion
-              ? `Procesar (${cotizacion.costoCreditos} créditos)`
-              : "Procesar"}
+            {cotizacion && meta
+              ? `Procesar video (${cotizacion.costoCreditos} tokens)`
+              : "Procesar video"}
           </Button>
         </div>
       </DialogContent>
