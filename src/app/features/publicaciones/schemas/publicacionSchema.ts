@@ -10,6 +10,9 @@ export const crearPublicacionWizardSchema = z.object({
   banos: z.number().min(0, "Mínimo 0"),
   garajes: z.number().min(0, "Mínimo 0"),
   antiguedadAnios: z.number().min(0, "La antigüedad no puede ser negativa"),
+  dispositivos: z.array(z.any()).optional(),
+  condiciones: z.string().optional(),
+  multasSanciones: z.string().optional(),
 
   // PASO 2: Ubicación
   ciudad: z.string().min(1, "La ciudad es requerida"),

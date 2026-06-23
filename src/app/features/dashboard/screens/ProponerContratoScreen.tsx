@@ -1,5 +1,7 @@
 import * as React from "react"
 import { useNavigate, Link } from "@tanstack/react-router"
+import { useAppSelector } from "@/app/store"
+import { useGetPublicacionesQuery } from "../../home/store/homeApi"
 import { useGetMisPublicacionesQuery } from "../../publicaciones/store/publicacionApi"
 import { useGetUsuariosQuery } from "../../admin/gestionar_usuarios/store/gestionarUsuariosApi"
 import { useCrearContratoMutation } from "../store/contratoApi"
@@ -16,10 +18,14 @@ import type { ContractType } from "../types/mis-contratos.types"
 
 export function ProponerContratoScreen() {
   const navigate = useNavigate()
+  const currentUser = useAppSelector((state) => state.auth.user)
+  const isAdmin = currentUser?.rol === "ROLE_ADMIN"
 
   // Queries
   const { data: misPublicaciones = [], isLoading: isLoadingPubs } =
     useGetMisPublicacionesQuery()
+  const { data: publicaciones = [], isLoading: isLoadingAllPubs } =
+    useGetPublicacionesQuery(undefined, { skip: !isAdmin })
   const { data: usuariosData, isLoading: isLoadingUsers } = useGetUsuariosQuery({
     size: 100,
   })
@@ -34,6 +40,9 @@ export function ProponerContratoScreen() {
   const [fechaFin, setFechaFin] = React.useState("")
   const [monto, setMonto] = React.useState<number>(0)
   const [moneda, setMoneda] = React.useState("Bs.")
+  const [reglasContrato, setReglasContrato] = React.useState("")
+  const [sancionesContrato, setSancionesContrato] = React.useState("")
+  const [dispositivosContrato, setDispositivosContrato] = React.useState<any[]>([])
 
   // Especificaciones dinámicas
   const [specKey, setSpecKey] = React.useState("")
@@ -46,8 +55,23 @@ export function ProponerContratoScreen() {
 
   // Filtros de inmuebles
   const availableProperties = React.useMemo(() => {
-    return misPublicaciones.filter((p: any) => p.inmueble?.estadoOperativo !== "ELIMINADO")
-  }, [misPublicaciones])
+    const source = isAdmin ? publicaciones : misPublicaciones
+
+    return source.filter((p: any) =>
+      p.estadoPublicacion !== "ELIMINADO" &&
+      p.inmueble?.estadoOperativo !== "ELIMINADO"
+    )
+  }, [isAdmin, misPublicaciones, publicaciones])
+
+  const selectedProperty = React.useMemo(() => {
+    if (!publicacionId) return null
+
+    return availableProperties.find(
+      (p: any) =>
+        p.id?.toString().toLowerCase() === publicacionId.toLowerCase() ||
+        p.inmueble?.id?.toString().toLowerCase() === publicacionId.toLowerCase()
+    )
+  }, [availableProperties, publicacionId])
 
   // Lista de clientes
   const clientsList = React.useMemo(() => {
@@ -74,8 +98,43 @@ export function ProponerContratoScreen() {
     })
   }
 
+  const handleToggleContractDevice = (device: any) => {
+    setDispositivosContrato((prev) => {
+      const exists = prev.some((item) => item.id === device.id)
+
+      if (exists) {
+        return prev.filter((item) => item.id !== device.id)
+      }
+
+      return [
+        ...prev,
+        {
+          id: device.id,
+          nombre: device.nombre,
+          configuracionTiempo: device.configuracionTiempo,
+          horarioInicio: device.horarioInicio,
+          horarioFin: device.horarioFin,
+          descripcion: device.descripcion,
+          precioContrato: 0,
+          cantidad: 1,
+          fechaInicioUso: fechaInicio,
+          fechaFinUso: fechaFin,
+          horaInicioUso: device.horarioInicio || "",
+          horaFinUso: device.horarioFin || "",
+        },
+      ]
+    })
+  }
+
+  const handleUpdateContractDevice = (id: string, key: string, value: any) => {
+    setDispositivosContrato((prev) =>
+      prev.map((device) => (device.id === id ? { ...device, [key]: value } : device))
+    )
+  }
+
   const handlePropertyChange = (selectedPubId: string) => {
     setPublicacionId(selectedPubId)
+    setDispositivosContrato([])
     if (!selectedPubId) {
       setInmuebleId("")
       return
@@ -128,6 +187,23 @@ export function ProponerContratoScreen() {
       return
     }
 
+    const invalidDeviceDates = dispositivosContrato.some((device) => {
+      const startsBeforeContract = fechaInicio && device.fechaInicioUso && device.fechaInicioUso < fechaInicio
+      const startsAfterContract = fechaFin && device.fechaInicioUso && device.fechaInicioUso > fechaFin
+      const endsAfterContract = fechaFin && device.fechaFinUso && device.fechaFinUso > fechaFin
+      const endsBeforeContract = fechaInicio && device.fechaFinUso && device.fechaFinUso < fechaInicio
+      const endsBeforeDeviceStart = device.fechaInicioUso && device.fechaFinUso && device.fechaFinUso < device.fechaInicioUso
+
+      return startsBeforeContract || startsAfterContract || endsAfterContract || endsBeforeContract || endsBeforeDeviceStart
+    })
+
+    if (invalidDeviceDates) {
+      toast.error("Fechas de dispositivo inválidas", {
+        description: "Las fechas de uso deben estar dentro de la vigencia del contrato.",
+      })
+      return
+    }
+
     try {
       // Usar exactamente los nombres de atributos esperados por ContratoRequestDTO en el backend
       const payload = {
@@ -139,7 +215,12 @@ export function ProponerContratoScreen() {
         fechaFin: (tipoContrato === "VENTA" || !fechaFin) ? undefined : fechaFin,
         montoAcordado: monto,
         moneda,
-        especificaciones: specs,
+        especificaciones: {
+          ...specs,
+          reglasContrato,
+          sancionesContrato,
+          dispositivosContrato,
+        },
       }
 
       await crearContrato(payload).unwrap()
@@ -188,7 +269,7 @@ export function ProponerContratoScreen() {
             {/* Seleccionar Inmueble */}
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Inmueble</label>
-              {isLoadingPubs ? (
+              {isLoadingPubs || (isAdmin && isLoadingAllPubs) ? (
                 <div className="h-11 animate-pulse bg-slate-100 rounded-xl" />
               ) : (
                 <select
@@ -201,15 +282,119 @@ export function ProponerContratoScreen() {
                     const optionVal = p.id || p.inmueble?.id
                     const tipoLabel = (p.tipoTransaccion || "").toLowerCase()
                     const tipoInmuebleLabel = (p.inmueble?.tipoInmueble || "").toLowerCase()
+                    const ownerLabel = isAdmin && p.correoUsuario ? ` - ${p.correoUsuario}` : ""
                     return (
                       <option key={optionVal} value={optionVal}>
-                        {p.titulo} ({tipoInmuebleLabel} - {tipoLabel})
+                        {p.titulo} ({tipoInmuebleLabel} - {tipoLabel}{ownerLabel})
                       </option>
                     )
                   })}
                 </select>
               )}
             </div>
+
+            {selectedProperty?.inmueble && (
+              <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Dispositivos disponibles del inmueble
+                </h4>
+                {selectedProperty.inmueble.dispositivos?.length > 0 && (
+                  <div className="mt-3 space-y-3">
+                    <div className="grid grid-cols-1 gap-3">
+                      {selectedProperty.inmueble.dispositivos.map((device: any) => (
+                        <div key={device.id || device.nombre} className="rounded-xl border border-slate-100 bg-white p-3 text-sm">
+                          <label className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              checked={dispositivosContrato.some((item) => item.id === device.id)}
+                              onChange={() => handleToggleContractDevice(device)}
+                              className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span className="flex-1">
+                              <span className="block font-bold text-slate-900">{device.nombre}</span>
+                              <span className="block text-xs text-slate-500">{device.descripcion}</span>
+                              <span className="mt-1 block text-xs font-semibold text-indigo-600">
+                                Precio a definir en este contrato
+                              </span>
+                            </span>
+                          </label>
+
+                          {dispositivosContrato.some((item) => item.id === device.id) && (
+                            <div className="mt-3 grid grid-cols-1 gap-3 border-t border-slate-100 pt-3 md:grid-cols-3">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio pactado</label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={dispositivosContrato.find((item) => item.id === device.id)?.precioContrato || 0}
+                                  onChange={(e) => handleUpdateContractDevice(device.id, "precioContrato", Number(e.target.value))}
+                                  className="h-9 w-full rounded-lg border border-slate-200 px-3 text-xs focus:border-indigo-500 focus:outline-none"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cantidad</label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={dispositivosContrato.find((item) => item.id === device.id)?.cantidad || 1}
+                                  onChange={(e) => handleUpdateContractDevice(device.id, "cantidad", Number(e.target.value))}
+                                  className="h-9 w-full rounded-lg border border-slate-200 px-3 text-xs focus:border-indigo-500 focus:outline-none"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Inicio uso</label>
+                                <input
+                                  type="date"
+                                  min={fechaInicio || undefined}
+                                  max={fechaFin || undefined}
+                                  value={dispositivosContrato.find((item) => item.id === device.id)?.fechaInicioUso || ""}
+                                  onChange={(e) => handleUpdateContractDevice(device.id, "fechaInicioUso", e.target.value)}
+                                  className="h-9 w-full rounded-lg border border-slate-200 px-3 text-xs focus:border-indigo-500 focus:outline-none"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fin uso</label>
+                                <input
+                                  type="date"
+                                  min={fechaInicio || undefined}
+                                  max={fechaFin || undefined}
+                                  value={dispositivosContrato.find((item) => item.id === device.id)?.fechaFinUso || ""}
+                                  onChange={(e) => handleUpdateContractDevice(device.id, "fechaFinUso", e.target.value)}
+                                  className="h-9 w-full rounded-lg border border-slate-200 px-3 text-xs focus:border-indigo-500 focus:outline-none"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Hora inicio</label>
+                                <input
+                                  type="time"
+                                  value={dispositivosContrato.find((item) => item.id === device.id)?.horaInicioUso || ""}
+                                  onChange={(e) => handleUpdateContractDevice(device.id, "horaInicioUso", e.target.value)}
+                                  className="h-9 w-full rounded-lg border border-slate-200 px-3 text-xs focus:border-indigo-500 focus:outline-none"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Hora fin</label>
+                                <input
+                                  type="time"
+                                  value={dispositivosContrato.find((item) => item.id === device.id)?.horaFinUso || ""}
+                                  onChange={(e) => handleUpdateContractDevice(device.id, "horaFinUso", e.target.value)}
+                                  className="h-9 w-full rounded-lg border border-slate-200 px-3 text-xs focus:border-indigo-500 focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {!selectedProperty.inmueble.dispositivos?.length && (
+                  <p className="mt-2 rounded-xl border border-dashed border-slate-200 bg-white p-3 text-sm text-slate-500">
+                    Este inmueble no tiene dispositivos registrados.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Seleccionar Cliente */}
             <div className="space-y-2">
@@ -303,6 +488,34 @@ export function ProponerContratoScreen() {
                 </div>
               </>
             )}
+          </div>
+
+          <Separator className="my-6 bg-slate-100" />
+
+          <div className="space-y-4">
+            <h4 className="text-sm font-bold text-slate-900 font-heading">Reglas y Sanciones del Contrato</h4>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Reglas / Condiciones</label>
+                <textarea
+                  rows={5}
+                  value={reglasContrato}
+                  onChange={(e) => setReglasContrato(e.target.value)}
+                  placeholder="Ej: 1. Prohibido fumar dentro del inmueble.&#10;2. Horas de silencio de 22:00 a 08:00."
+                  className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Sanciones</label>
+                <textarea
+                  rows={5}
+                  value={sancionesContrato}
+                  onChange={(e) => setSancionesContrato(e.target.value)}
+                  placeholder="Ej: 1. Fumar: multa de 150 USD.&#10;2. Ruido en horas de silencio: corte de altavoz inteligente."
+                  className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+            </div>
           </div>
 
           <Separator className="my-6 bg-slate-100" />

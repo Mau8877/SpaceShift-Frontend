@@ -65,11 +65,12 @@ export const contratoApi = api.injectEndpoints({
     }),
     firmarContrato: builder.mutation<
       ContratoResponseDTO,
-      { id: string }
+      { id: string; dispositivosAlquilados?: any[]; montoAcordado?: number }
     >({
-      query: ({ id }) => ({
+      query: ({ id, dispositivosAlquilados, montoAcordado }) => ({
         url: `/contratos/${id}/firmar`,
         method: "POST",
+        body: dispositivosAlquilados || montoAcordado ? { dispositivosAlquilados, montoAcordado } : undefined,
       }),
       invalidatesTags: (_result, _error, { id }) => [
         { type: "Contratos", id },

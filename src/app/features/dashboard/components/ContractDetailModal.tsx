@@ -153,6 +153,22 @@ export function ContractDetailModal({
 
   if (!contractId || !contrato) return null
 
+  const reglasContrato = contrato.especificaciones?.reglasContrato
+  const sancionesContrato = contrato.especificaciones?.sancionesContrato
+  const dispositivosDelContrato =
+    contrato.especificaciones?.dispositivosContrato ||
+    contrato.especificaciones?.dispositivos_alquilados ||
+    []
+  const customSpecs = Object.entries(contrato.especificaciones || {}).filter(
+    ([key]) =>
+      key !== "dispositivos_alquilados" &&
+      key !== "precio_dispositivos_total" &&
+      key !== "dispositivosContrato" &&
+      key !== "reglasContrato" &&
+      key !== "sancionesContrato" &&
+      key !== "contenidoContratoHash"
+  )
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-2xl">
@@ -214,28 +230,74 @@ export function ContractDetailModal({
               <p className="text-slate-800">{contrato.renovacionAutomatica ? "Sí, activa" : "No"}</p>
             </div>
 
-            {/* Botón de Firma para Cliente o Propietario */}
-            {contrato.estadoContrato === "PENDIENTE_FIRMA" && (isClient || isOwner) && (
-              <div className="pt-2">
-                <Button 
-                  onClick={handleSign} 
-                  disabled={isFirmando}
-                  className="w-full sm:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
-                >
-                  <SignatureIcon className="h-5 w-5" />
-                  {isFirmando ? "Firmando contrato..." : "Firmar Contrato Digitalmente"}
-                </Button>
-              </div>
-            )}
           </div>
         </div>
 
+        {(reglasContrato || sancionesContrato || dispositivosDelContrato.length > 0) && (
+          <div className="mt-6 rounded-2xl bg-slate-50 p-4 border border-slate-100">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+              Reglas, sanciones y dispositivos del contrato
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              {reglasContrato && (
+                <div className="rounded-xl border border-slate-100 bg-white p-3">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Condiciones / Reglas</p>
+                  <p className="text-slate-700 whitespace-pre-line">{reglasContrato}</p>
+                </div>
+              )}
+              {sancionesContrato && (
+                <div className="rounded-xl border border-slate-100 bg-white p-3">
+                  <p className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-2">Multas y Sanciones</p>
+                  <p className="text-slate-700 whitespace-pre-line">{sancionesContrato}</p>
+                </div>
+              )}
+            </div>
+
+            {dispositivosDelContrato.length > 0 && (
+              <div className="mt-3 rounded-xl border border-indigo-100 bg-white p-3">
+                <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">
+                  Dispositivos incluidos
+                </p>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {dispositivosDelContrato.map((device: any) => (
+                    <div key={device.id || device.nombre} className="rounded-lg bg-indigo-50/50 px-3 py-2 text-xs text-slate-700">
+                      <p className="font-bold text-slate-900">{device.nombre}</p>
+                      <p>{contrato.moneda} {Number(device.precioContrato || 0).toLocaleString("es-BO")}</p>
+                      {device.cantidad ? <p>Cantidad: {device.cantidad}</p> : null}
+                      {(device.fechaInicioUso || device.fechaFinUso) ? (
+                        <p>Uso: {device.fechaInicioUso || "Sin inicio"} - {device.fechaFinUso || "Sin fin"}</p>
+                      ) : null}
+                      {(device.horaInicioUso || device.horaFinUso) ? (
+                        <p>Horario: {device.horaInicioUso || "--:--"} - {device.horaFinUso || "--:--"}</p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Botón de Firma para Cliente o Propietario */}
+        {contrato.estadoContrato === "PENDIENTE_FIRMA" && (isClient || isOwner) && (
+          <div className="mt-5">
+            <Button 
+              onClick={handleSign} 
+              disabled={isFirmando}
+              className="w-full sm:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+            >
+              <SignatureIcon className="h-5 w-5" />
+              {isFirmando ? "Firmando contrato..." : "Firmar Contrato Digitalmente"}
+            </Button>
+          </div>
+        )}
+
         {/* Cláusulas / Especificaciones JSONB */}
-        {contrato.especificaciones && Object.keys(contrato.especificaciones).length > 0 && (
+        {customSpecs.length > 0 && (
           <div className="mt-6 rounded-2xl bg-slate-50 p-4 border border-slate-100">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Cláusulas y Especificaciones Personalizadas</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              {Object.entries(contrato.especificaciones).map(([key, val]) => (
+              {customSpecs.map(([key, val]) => (
                 <div key={key} className="flex justify-between items-center p-2 rounded-xl bg-white border border-slate-100">
                   <span className="font-medium text-slate-600 capitalize">{key.replace(/([A-Z])/g, " $1")}</span>
                   <span className="font-bold text-slate-800">{String(val)}</span>

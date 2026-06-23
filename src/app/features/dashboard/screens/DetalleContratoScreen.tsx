@@ -72,6 +72,32 @@ export function DetalleContratoScreen() {
 
   const fileInputRefs = React.useRef<Record<string, HTMLInputElement | null>>({})
 
+  // Selección de dispositivos
+  const customSpecs = React.useMemo(() => {
+    if (!contrato?.especificaciones) return {}
+    const filtered: Record<string, any> = {}
+    for (const [k, v] of Object.entries(contrato.especificaciones)) {
+      if (
+        k !== "dispositivos_alquilados" &&
+        k !== "precio_dispositivos_total" &&
+        k !== "dispositivosContrato" &&
+        k !== "reglasContrato" &&
+        k !== "sancionesContrato" &&
+        k !== "contenidoContratoHash"
+      ) {
+        filtered[k] = v
+      }
+    }
+    return filtered
+  }, [contrato])
+
+  const reglasContrato = contrato?.especificaciones?.reglasContrato
+  const sancionesContrato = contrato?.especificaciones?.sancionesContrato
+  const dispositivosDelContrato =
+    contrato?.especificaciones?.dispositivosContrato ||
+    contrato?.especificaciones?.dispositivos_alquilados ||
+    []
+
   // Roles
   const isOwner = contrato && (user?.id === contrato.idPropietario || user?.id === contrato.propietarioId)
   const isClient = contrato && (user?.id === contrato.idCliente || user?.id === contrato.clienteId)
@@ -359,6 +385,32 @@ export function DetalleContratoScreen() {
                 <p className="text-xs text-indigo-950 font-mono mt-1 break-all select-all">
                   Hash: {contrato.transactionHash}
                 </p>
+                {contrato.especificaciones?.contenidoContratoHash && (
+                  <p className="text-xs text-indigo-950 font-mono mt-1 break-all select-all">
+                    Contenido firmado: {contrato.especificaciones.contenidoContratoHash}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Condiciones y Multas del Contrato (Para firmar) */}
+            {contrato.estadoContrato === "PENDIENTE_FIRMA" && (reglasContrato || sancionesContrato) && (
+              <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5 mt-4 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Reglas y Sanciones del Contrato
+                </h4>
+                {reglasContrato && (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Condiciones / Reglas</p>
+                    <p className="text-slate-700 text-xs mt-1 whitespace-pre-line">{reglasContrato}</p>
+                  </div>
+                )}
+                {sancionesContrato && (
+                  <div className="pt-2 border-t border-slate-200/50">
+                    <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Multas y Sanciones por Incumplimiento</p>
+                    <p className="text-slate-700 text-xs mt-1 whitespace-pre-line">{sancionesContrato}</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -378,14 +430,69 @@ export function DetalleContratoScreen() {
           </div>
         </div>
 
+        {/* Dispositivos Incluidos en el Contrato */}
+        {dispositivosDelContrato.length > 0 && (
+          <div className="mt-8 rounded-2xl bg-slate-50 p-5 border border-slate-100 space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Dispositivos Incluidos en el Contrato
+            </h4>
+            <div className="space-y-2">
+              {(dispositivosDelContrato as any[]).map((dev: any, idx: number) => (
+                <div key={idx} className="flex justify-between items-center p-3 rounded-xl bg-white border border-slate-100 shadow-sm text-sm">
+                  <div>
+                    <p className="font-semibold text-slate-800">{dev.nombre}</p>
+                    <div className="mt-1 space-y-0.5 text-xs text-slate-500">
+                      {dev.cantidad ? <p>Cantidad: {dev.cantidad}</p> : null}
+                      {(dev.fechaInicioUso || dev.fechaFinUso) ? (
+                        <p>Uso: {dev.fechaInicioUso || "Sin inicio"} - {dev.fechaFinUso || "Sin fin"}</p>
+                      ) : dev.diasUso ? (
+                        <p>Tiempo de uso: {dev.diasUso} dias</p>
+                      ) : null}
+                      {(dev.horaInicioUso || dev.horaFinUso) ? (
+                        <p>Horario: {dev.horaInicioUso || "--:--"} - {dev.horaFinUso || "--:--"}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                  <span className="font-bold text-indigo-600">
+                    {contrato.moneda} {Number(dev.precioContrato || 0).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Condiciones y Multas del Contrato */}
+        {contrato.estadoContrato === "VIGENTE" && (reglasContrato || sancionesContrato) && (
+          <div className="mt-8 rounded-2xl bg-slate-50 p-5 border border-slate-100 space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Reglas y Sanciones Registradas
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              {reglasContrato && (
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Condiciones / Reglas</p>
+                  <p className="text-slate-700 whitespace-pre-line leading-relaxed">{reglasContrato}</p>
+                </div>
+              )}
+              {sancionesContrato && (
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                  <p className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-2">Multas y Sanciones</p>
+                  <p className="text-slate-700 whitespace-pre-line leading-relaxed">{sancionesContrato}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Cláusulas / Especificaciones JSONB */}
-        {contrato.especificaciones && Object.keys(contrato.especificaciones).length > 0 && (
+        {contrato.especificaciones && Object.keys(customSpecs).length > 0 && (
           <div className="mt-8 rounded-2xl bg-slate-50 p-5 border border-slate-100">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">
               Cláusulas y Especificaciones Personalizadas
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              {Object.entries(contrato.especificaciones).map(([key, val]) => (
+              {Object.entries(customSpecs).map(([key, val]) => (
                 <div key={key} className="flex justify-between items-center p-3 rounded-xl bg-white border border-slate-100 shadow-xs">
                   <span className="font-semibold text-slate-600 capitalize">{key.replace(/([A-Z])/g, " $1")}</span>
                   <span className="font-bold text-slate-800">{String(val)}</span>

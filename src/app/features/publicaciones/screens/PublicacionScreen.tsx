@@ -75,6 +75,9 @@ export function PublicacionScreen() {
       tipoTransaccion: "",
       moneda: "USD",
       imagenesUrls: [],
+      dispositivos: [],
+      condiciones: "",
+      multasSanciones: "",
     } as any,
     onSubmit: async ({ value }) => {
       try {
@@ -122,6 +125,9 @@ export function PublicacionScreen() {
                 banos: value.banos,
                 garajes: value.garajes,
                 antiguedadAnios: value.antiguedadAnios,
+                dispositivos: value.dispositivos,
+                condiciones: value.condiciones,
+                multasSanciones: value.multasSanciones,
                 ubicacion: {
                   ciudad: value.ciudad,
                   zonaBarrios: value.zonaBarrios,
@@ -144,6 +150,9 @@ export function PublicacionScreen() {
             banos: value.banos,
             garajes: value.garajes,
             antiguedadAnios: value.antiguedadAnios,
+            dispositivos: value.dispositivos,
+            condiciones: value.condiciones,
+            multasSanciones: value.multasSanciones,
             ubicacion: {
               ciudad: value.ciudad,
               zonaBarrios: value.zonaBarrios,
@@ -187,6 +196,9 @@ export function PublicacionScreen() {
       form.setFieldValue("banos", publicationToEdit.inmueble.banos)
       form.setFieldValue("garajes", publicationToEdit.inmueble.garajes)
       form.setFieldValue("antiguedadAnios", publicationToEdit.inmueble.antiguedadAnios)
+      form.setFieldValue("dispositivos", publicationToEdit.inmueble.dispositivos || [])
+      form.setFieldValue("condiciones", publicationToEdit.inmueble.condiciones || "")
+      form.setFieldValue("multasSanciones", publicationToEdit.inmueble.multasSanciones || "")
       form.setFieldValue("ciudad", publicationToEdit.inmueble.ubicacion.ciudad)
       form.setFieldValue("zonaBarrios", publicationToEdit.inmueble.ubicacion.zonaBarrios)
       form.setFieldValue("direccionExacta", publicationToEdit.inmueble.ubicacion.direccionExacta)

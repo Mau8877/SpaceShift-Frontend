@@ -1,4 +1,6 @@
 import * as React from "react"
+import { useAppSelector } from "@/app/store"
+import { useGetPublicacionesQuery } from "../../home/store/homeApi"
 import { useGetMisPublicacionesQuery } from "../../publicaciones/store/publicacionApi"
 import { useGetUsuariosQuery } from "../../admin/gestionar_usuarios/store/gestionarUsuariosApi"
 import { useCrearContratoMutation } from "../store/contratoApi"
@@ -26,9 +28,14 @@ export function CreateContractModal({
   onClose,
   onSuccess,
 }: CreateContractModalProps) {
+  const currentUser = useAppSelector((state) => state.auth.user)
+  const isAdmin = currentUser?.rol === "ROLE_ADMIN"
+
   // Queries
   const { data: misPublicaciones = [], isLoading: isLoadingPubs } =
     useGetMisPublicacionesQuery()
+  const { data: publicaciones = [], isLoading: isLoadingAllPubs } =
+    useGetPublicacionesQuery(undefined, { skip: !isAdmin })
   const { data: usuariosData, isLoading: isLoadingUsers } = useGetUsuariosQuery({
     size: 100,
   })
@@ -88,8 +95,21 @@ export function CreateContractModal({
 
   // Filter available properties that are not already occupied if needed (optional)
   const availableProperties = React.useMemo(() => {
-    return misPublicaciones.filter((p: any) => p.inmueble?.estadoOperativo !== "ELIMINADO")
-  }, [misPublicaciones])
+    const source = isAdmin ? publicaciones : misPublicaciones
+
+    return source.filter((p: any) =>
+      p.estadoPublicacion !== "ELIMINADO" &&
+      p.inmueble?.estadoOperativo !== "ELIMINADO"
+    )
+  }, [isAdmin, misPublicaciones, publicaciones])
+
+  const selectedProperty = React.useMemo(() => {
+    if (!publicacionId) return null
+
+    return availableProperties.find(
+      (p: any) => p.id?.toString().toLowerCase() === publicacionId.toLowerCase()
+    )
+  }, [availableProperties, publicacionId])
 
   // Filter users to show only potential clients (excluding admins/owners if we want, or showing all)
   const clientsList = React.useMemo(() => {
@@ -182,7 +202,7 @@ export function CreateContractModal({
             {/* Seleccionar Inmueble */}
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Inmueble</label>
-              {isLoadingPubs ? (
+              {isLoadingPubs || (isAdmin && isLoadingAllPubs) ? (
                 <div className="h-10 animate-pulse bg-slate-100 rounded-xl" />
               ) : (
                 <select
@@ -191,11 +211,15 @@ export function CreateContractModal({
                   className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                   <option value="">-- Selecciona propiedad --</option>
-                  {availableProperties.map((p: any) => (
-                    <option key={p.id} value={p.id}>
-                      {p.titulo} ({p.inmueble.tipoInmueble.toLowerCase()} - {p.tipoTransaccion.toLowerCase()})
-                    </option>
-                  ))}
+                  {availableProperties.map((p: any) => {
+                    const ownerLabel = isAdmin && p.correoUsuario ? ` - ${p.correoUsuario}` : ""
+
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.titulo} ({p.inmueble.tipoInmueble.toLowerCase()} - {p.tipoTransaccion.toLowerCase()}{ownerLabel})
+                      </option>
+                    )
+                  })}
                 </select>
               )}
             </div>
@@ -220,6 +244,32 @@ export function CreateContractModal({
                 </select>
               )}
             </div>
+
+            {selectedProperty?.inmueble && (
+              <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Reglas heredadas del inmueble
+                </h4>
+                <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 text-sm">
+                  <div className="rounded-xl border border-slate-100 bg-white p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Condiciones / reglas
+                    </p>
+                    <p className="mt-1 whitespace-pre-line text-slate-700">
+                      {selectedProperty.inmueble.condiciones || "No se registraron condiciones para este inmueble."}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 bg-white p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-rose-500">
+                      Multas y sanciones
+                    </p>
+                    <p className="mt-1 whitespace-pre-line text-slate-700">
+                      {selectedProperty.inmueble.multasSanciones || "No se registraron sanciones para este inmueble."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Tipo de Contrato */}
             <div className="space-y-2">

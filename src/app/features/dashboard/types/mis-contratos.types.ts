@@ -46,6 +46,9 @@ export interface ContratoResponseDTO {
   moneda: string
   renovacionAutomatica: boolean
   especificaciones: Record<string, any>
+  dispositivosInmueble?: any[]
+  condicionesInmueble?: string
+  multasSancionesInmueble?: string
   createdAt: string
   updatedAt: string
   transactionHash?: string

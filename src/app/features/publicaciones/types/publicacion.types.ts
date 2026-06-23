@@ -2,7 +2,6 @@ import type { CrearPublicacionWizardFormStyle } from "../schemas/publicacionSche
 
 export type CrearPublicacionForm = CrearPublicacionWizardFormStyle;
 
-// El DTO exacto que el backend espera para crear un Inmueble
 export interface InmuebleRequestDTO {
   tipoInmueble: string;
   areaTerreno: number;
@@ -18,12 +17,46 @@ export interface InmuebleRequestDTO {
     latitud: string;
     longitud: string;
   };
+  dispositivos?: Array<{
+    id: string;
+    nombre: string;
+    configuracionTiempo: string;
+    horarioInicio?: string;
+    horarioFin?: string;
+    descripcion: string;
+  }>;
+  condiciones?: string;
+  multasSanciones?: string;
 }
 
 // Lo que responde el Back al crear un Inmueble
 export interface InmuebleResponseDTO {
   id: string; // UUID
-  // ... (pueden venir mas cosas)
+  tipoInmueble: string;
+  areaTerreno: number;
+  areaConstruida: number;
+  habitaciones: number;
+  banos: number;
+  garajes: number;
+  antiguedadAnios: number;
+  ubicacion: {
+    id: string;
+    ciudad: string;
+    zonaBarrios: string;
+    direccionExacta: string;
+    latitud: string;
+    longitud: string;
+  };
+  dispositivos?: Array<{
+    id: string;
+    nombre: string;
+    configuracionTiempo: string;
+    horarioInicio?: string;
+    horarioFin?: string;
+    descripcion: string;
+  }>;
+  condiciones?: string;
+  multasSanciones?: string;
 }
 
 // El DTO exacto que el backend espera para publicar
