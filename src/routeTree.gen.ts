@@ -27,8 +27,8 @@ import { Route as AuthFavoritosRouteImport } from './routes/_auth/favoritos'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
-import { Route as AuthDashboardProponerContratoRouteImport } from './routes/_auth/dashboard/proponer-contrato'
 import { Route as PublicPublicacionTour3dIdRouteImport } from './routes/_public/publicacion-tour-3d.$id'
+import { Route as AuthDashboardProponerContratoRouteImport } from './routes/_auth/dashboard/proponer-contrato'
 import { Route as AuthDashboardInmueblesRouteImport } from './routes/_auth/dashboard/inmuebles'
 import { Route as AuthDashboardContratosRouteImport } from './routes/_auth/dashboard/contratos'
 import { Route as AuthDashboardClientesRouteImport } from './routes/_auth/dashboard/clientes'
@@ -123,17 +123,17 @@ const PublicPublicacionIdRoute = PublicPublicacionIdRouteImport.update({
   path: '/publicacion/$id',
   getParentRoute: () => PublicRoute,
 } as any)
-const AuthDashboardProponerContratoRoute =
-  AuthDashboardProponerContratoRouteImport.update({
-    id: '/proponer-contrato',
-    path: '/proponer-contrato',
-    getParentRoute: () => AuthDashboardRoute,
-  } as any)
 const PublicPublicacionTour3dIdRoute =
   PublicPublicacionTour3dIdRouteImport.update({
     id: '/publicacion-tour-3d/$id',
     path: '/publicacion-tour-3d/$id',
     getParentRoute: () => PublicRoute,
+  } as any)
+const AuthDashboardProponerContratoRoute =
+  AuthDashboardProponerContratoRouteImport.update({
+    id: '/proponer-contrato',
+    path: '/proponer-contrato',
+    getParentRoute: () => AuthDashboardRoute,
   } as any)
 const AuthDashboardInmueblesRoute = AuthDashboardInmueblesRouteImport.update({
   id: '/inmuebles',
@@ -451,19 +451,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicPublicacionIdRouteImport
       parentRoute: typeof PublicRoute
     }
-    '/_auth/dashboard/proponer-contrato': {
-      id: '/_auth/dashboard/proponer-contrato'
-      path: '/proponer-contrato'
-      fullPath: '/dashboard/proponer-contrato'
-      preLoaderRoute: typeof AuthDashboardProponerContratoRouteImport
-      parentRoute: typeof AuthDashboardRoute
-    }
     '/_public/publicacion-tour-3d/$id': {
       id: '/_public/publicacion-tour-3d/$id'
       path: '/publicacion-tour-3d/$id'
       fullPath: '/publicacion-tour-3d/$id'
       preLoaderRoute: typeof PublicPublicacionTour3dIdRouteImport
       parentRoute: typeof PublicRoute
+    }
+    '/_auth/dashboard/proponer-contrato': {
+      id: '/_auth/dashboard/proponer-contrato'
+      path: '/proponer-contrato'
+      fullPath: '/dashboard/proponer-contrato'
+      preLoaderRoute: typeof AuthDashboardProponerContratoRouteImport
+      parentRoute: typeof AuthDashboardRoute
     }
     '/_auth/dashboard/inmuebles': {
       id: '/_auth/dashboard/inmuebles'
