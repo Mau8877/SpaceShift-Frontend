@@ -1,5 +1,6 @@
 import React from "react"
 import {
+  ClientOnly,
   HeadContent,
   Scripts,
   createRootRouteWithContext,
@@ -12,6 +13,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { store } from "@/app/store/redux"
 import { useFirebaseMessaging } from "@/hooks/useFirebaseMessaging"
 import { VideoUploadDock } from "@/app/features/publicaciones/components/VideoUploadDock"
+import { AsistenteFlotante } from "@/app/features/asistente-soporte"
 
 interface MyRouterContext {
   auth: AuthState
@@ -41,6 +43,9 @@ function RootComponent() {
         <FirebaseInit />
         <Outlet />
         <VideoUploadDock />
+        <ClientOnly>
+          <AsistenteFlotante />
+        </ClientOnly>
         <Toaster richColors position="bottom-right" />
       </RootDocument>
     </Provider>
