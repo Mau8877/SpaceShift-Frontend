@@ -1,4 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react"
+import { useLocation } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { CustomerSupportIcon, Cancel01Icon } from "@hugeicons/core-free-icons"
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks"
@@ -32,6 +33,7 @@ function sanitizeText(text: string): string {
 
 export function AsistenteFlotante() {
   const dispatch = useAppDispatch()
+  const { pathname } = useLocation()
   const { isOpen, isThinking, aiResponseText, lipSyncData, selectedAvatar } =
     useAppSelector((s) => s.asistente)
 
@@ -62,7 +64,7 @@ export function AsistenteFlotante() {
       dispatch(setThinking(true))
 
       try {
-        const responseText = await ask(question)
+        const responseText = await ask(question, pathname)
         dispatch(setResponse(responseText))
         dispatch(setThinking(false))
 
@@ -84,7 +86,7 @@ export function AsistenteFlotante() {
         dispatch(setSpeaking(false))
       }
     },
-    [cleanupAudio, dispatch],
+    [cleanupAudio, dispatch, pathname],
   )
 
   const handleClose = useCallback(() => {

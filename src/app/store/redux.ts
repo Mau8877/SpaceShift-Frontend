@@ -4,11 +4,8 @@ import { api } from "./api/api"
 import authReducer from "./authSlice"
 import chatUiReducer from "./chatUiSlice"
 import notificacionesReducer from "./notificacionesSlice"
-<<<<<<< Updated upstream
 import videoUploadReducer from "./videoUploadSlice"
-=======
 import asistenteReducer from "@/app/features/asistente-soporte/store/asistenteSlice"
->>>>>>> Stashed changes
 
 export const store = configureStore({
   reducer: {
@@ -16,11 +13,8 @@ export const store = configureStore({
     auth: authReducer,
     chatUi: chatUiReducer,
     notificaciones: notificacionesReducer,
-<<<<<<< Updated upstream
     videoUpload: videoUploadReducer,
-=======
     asistente: asistenteReducer,
->>>>>>> Stashed changes
 
     // API global (Sistema Nervioso)
     [api.reducerPath]: api.reducer,
