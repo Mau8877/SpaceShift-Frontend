@@ -670,22 +670,31 @@ export function SpaceSogViewer({
         if (xhr.status >= 200 && xhr.status < 300) {
           const blobUrl = URL.createObjectURL(xhr.response)
 
-          app!.assets.loadFromUrl(blobUrl, "gsplat", (loadError, asset) => {
-            URL.revokeObjectURL(blobUrl)
+          const asset = new pc.Asset("sog-model", "gsplat", {
+            url: blobUrl,
+            filename: "model.sog",
+          })
 
+          asset.ready((loadedAsset) => {
+            URL.revokeObjectURL(blobUrl)
             if (disposed) return
-            if (loadError || !asset) {
-              console.error("Error cargando .sog:", loadError)
-              setError("No se pudo cargar el modelo 3D (.sog).")
-              return
-            }
 
             const entity = new pc.Entity("sog-model")
-            entity.addComponent("gsplat", { asset })
+            entity.addComponent("gsplat", { asset: loadedAsset })
             entity.setLocalEulerAngles(0, 0, 180)
             app?.root.addChild(entity)
             setIsReady(true)
           })
+
+          asset.on("error", (err) => {
+            URL.revokeObjectURL(blobUrl)
+            if (disposed) return
+            console.error("Error cargando .sog:", err)
+            setError("No se pudo cargar el modelo 3D (.sog).")
+          })
+
+          app!.assets.add(asset)
+          app!.assets.load(asset)
         } else {
           setError("No se pudo descargar el modelo 3D (.sog).")
         }
