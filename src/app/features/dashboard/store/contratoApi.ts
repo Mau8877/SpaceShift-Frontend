@@ -4,9 +4,20 @@ import type {
   ContratoRequestDTO,
   PagoContratoDTO,
 } from "../types/mis-contratos.types"
+import type { DashboardClient } from "../types"
 
 export const contratoApi = api.injectEndpoints({
   endpoints: (builder) => ({
+    getClientesComoPropietario: builder.query<DashboardClient[], void>({
+      query: () => "/contratos/clientes",
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Clientes" as const, id })),
+              { type: "Clientes", id: "LIST" },
+            ]
+          : [{ type: "Clientes", id: "LIST" }],
+    }),
     getContratosComoPropietario: builder.query<ContratoResponseDTO[], void>({
       query: () => "/contratos/propietario",
       providesTags: (result) =>
@@ -133,11 +144,20 @@ export const contratoApi = api.injectEndpoints({
         params: originUrl ? { originUrl } : undefined,
       }),
     }),
+    descargarReciboPago: builder.mutation<Blob, string>({
+      query: (pagoId) => ({
+        url: `/pagos/${pagoId}/recibo`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+        cache: "no-cache",
+      }),
+    }),
   }),
   overrideExisting: true,
 })
 
 export const {
+  useGetClientesComoPropietarioQuery,
   useGetContratosComoPropietarioQuery,
   useGetContratosComoClienteQuery,
   useGetContratoPorIdQuery,
@@ -148,6 +168,7 @@ export const {
   useAprobarPagoManualMutation,
   useRegistrarPagoEfectivoMutation,
   useGenerarSesionPagoStripeMutation,
+  useDescargarReciboPagoMutation,
   useEliminarContratoMutation,
   useCancelarContratoMutation,
 } = contratoApi
