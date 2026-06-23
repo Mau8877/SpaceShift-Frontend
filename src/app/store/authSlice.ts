@@ -11,7 +11,11 @@ import type { AuthState, JWTPayload, UserAuth } from "./types"
  */
 const getInitialToken = (): string | null => {
   if (typeof window !== "undefined") {
-    return Cookies.get("token") || null
+    const token = Cookies.get("token") || localStorage.getItem("token") || null
+    if (token && !localStorage.getItem("token")) {
+      localStorage.setItem("token", token)
+    }
+    return token
   }
   return null
 }
@@ -73,6 +77,7 @@ export const authSlice = createSlice({
             sameSite: "lax",
             path: "/",
           })
+          localStorage.setItem("token", token)
         }
       } catch (error) {
         console.error("Error al setear credenciales:", error)
@@ -90,6 +95,7 @@ export const authSlice = createSlice({
           sameSite: "strict",
           path: "/",
         })
+        localStorage.removeItem("token")
       }
     },
   },

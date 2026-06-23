@@ -2,6 +2,7 @@ import * as React from "react"
 import { useNavigate, useParams, Link } from "@tanstack/react-router"
 import { useAppSelector, useAppDispatch } from "@/app/store"
 import { useGetPublicacionByIdQuery } from "../store/publicacionApi"
+import { useChatSocket } from "@/hooks/useChatSocket"
 import {
   useCrearContratoMutation,
   useGetPagosDeContratoQuery,
@@ -9,6 +10,7 @@ import {
   useSubirComprobantePagoMutation,
   useFirmarContratoMutation,
   useGetContratoPorIdQuery,
+  useDescargarReciboPagoMutation,
 } from "../../dashboard/store/contratoApi"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -27,6 +29,7 @@ import {
   SignatureIcon,
   CreditCardIcon,
   Upload01Icon,
+  Download01Icon,
 } from "hugeicons-react"
 
 interface SelectedDevice {
@@ -82,6 +85,37 @@ export function CrearOfertaScreen() {
   const [subirComprobante, { isLoading: isSubiendo }] = useSubirComprobantePagoMutation()
   const [generarStripe, { isLoading: isGenerandoStripe }] = useGenerarSesionPagoStripeMutation()
   const [firmar, { isLoading: isFirmando }] = useFirmarContratoMutation()
+  const [descargarRecibo, { isLoading: isDescargandoRecibo }] = useDescargarReciboPagoMutation()
+
+  const handleDescargarRecibo = async (pagoId: string) => {
+    try {
+      const blob = await descargarRecibo(pagoId).unwrap()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `Recibo_Pago_${pagoId}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      toast.success("Recibo descargado correctamente")
+    } catch (err: any) {
+      toast.error("Error al descargar recibo", {
+        description: err?.data?.message || "No se pudo obtener el PDF.",
+      })
+    }
+  }
+
+  useChatSocket({
+    onMessageReceived: (message) => {
+      console.log("[DEBUG - CrearOfertaScreen] Mensaje recibido por WebSocket:", message)
+      if (message.type === "PAYMENT_APPROVED" && message.contratoId === contratoCreado?.id) {
+        toast.success("¡Pago confirmado en tiempo real!")
+        refetchPagos()
+      }
+    },
+    enabled: !!contratoCreado?.id,
+  })
 
   // Form state
   const [fechaInicio, setFechaInicio] = React.useState("")
@@ -256,8 +290,8 @@ export function CrearOfertaScreen() {
       const res = await generarStripe({ pagoId, originUrl }).unwrap()
       console.log("[DEBUG - CrearOfertaScreen] Respuesta de Stripe recibida:", res)
       if (res.stripeCheckoutUrl) {
-        toast.info("Redirigiendo a Stripe...")
-        window.location.href = res.stripeCheckoutUrl
+        toast.info("Abriendo pasarela de pago Stripe en una nueva pestaña...")
+        window.open(res.stripeCheckoutUrl, "_blank")
       }
     } catch (err: any) {
       console.error("[DEBUG - CrearOfertaScreen] Error en handleStripePayment:", err)
@@ -402,6 +436,21 @@ export function CrearOfertaScreen() {
                         {pago.estadoPago.replace("_", " ")}
                       </Badge>
                     </div>
+
+                    {isCompletado && (
+                      <div className="flex gap-2 pt-2 border-t border-border/30">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 gap-1.5 h-10 font-semibold border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                          onClick={() => handleDescargarRecibo(pago.id)}
+                          disabled={isDescargandoRecibo}
+                        >
+                          <Download01Icon className="h-4 w-4" />
+                          Descargar Recibo
+                        </Button>
+                      </div>
+                    )}
 
                     {isPendiente && (
                       <div className="flex gap-2 pt-2 border-t border-border/30">

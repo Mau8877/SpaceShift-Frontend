@@ -1,5 +1,6 @@
 import * as React from "react"
 import { useAppSelector } from "@/app/store"
+import { useChatSocket } from "@/hooks/useChatSocket"
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import {
   useAprobarPagoManualMutation,
   useRegistrarPagoEfectivoMutation,
   useGenerarSesionPagoStripeMutation,
+  useDescargarReciboPagoMutation,
 } from "../store/contratoApi"
 import { toast } from "sonner"
 import { 
@@ -35,7 +37,8 @@ import {
   CheckmarkCircle02Icon, 
   Cash01Icon,
   AttachmentIcon,
-  FileAttachmentIcon
+  FileAttachmentIcon,
+  Download01Icon
 } from "hugeicons-react"
 
 interface ContractDetailModalProps {
@@ -56,7 +59,7 @@ export function ContractDetailModal({
     { skip: !contractId }
   )
 
-  const { data: pagos = [], isLoading: isLoadingPagos } = useGetPagosDeContratoQuery(
+  const { data: pagos = [], isLoading: isLoadingPagos, refetch: refetchPagos } = useGetPagosDeContratoQuery(
     contractId || "",
     { skip: !contractId }
   )
@@ -66,6 +69,37 @@ export function ContractDetailModal({
   const [aprobarPago, { isLoading: isAprobando }] = useAprobarPagoManualMutation()
   const [registrarEfectivo, { isLoading: isRegistrandoEfectivo }] = useRegistrarPagoEfectivoMutation()
   const [generarStripe, { isLoading: isGenerandoStripe }] = useGenerarSesionPagoStripeMutation()
+  const [descargarRecibo, { isLoading: isDescargandoRecibo }] = useDescargarReciboPagoMutation()
+
+  const handleDescargarRecibo = async (pagoId: string) => {
+    try {
+      const blob = await descargarRecibo(pagoId).unwrap()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `Recibo_Pago_${pagoId}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      toast.success("Recibo descargado correctamente")
+    } catch (error: any) {
+      toast.error("Error al descargar recibo", {
+        description: error?.data?.message || "No se pudo obtener el PDF.",
+      })
+    }
+  }
+
+  useChatSocket({
+    onMessageReceived: (message) => {
+      console.log("[DEBUG - ContractDetailModal] Mensaje WebSocket recibido:", message)
+      if (message.type === "PAYMENT_APPROVED" && message.contratoId === contractId) {
+        toast.success("¡Pago confirmado en tiempo real por WebSockets!")
+        refetchPagos()
+      }
+    },
+    enabled: !!contractId,
+  })
 
   const fileInputRefs = React.useRef<Record<string, HTMLInputElement | null>>({})
 
@@ -97,10 +131,10 @@ export function ContractDetailModal({
       const res = await generarStripe({ pagoId, originUrl }).unwrap()
       console.log("[DEBUG - ContractDetailModal] Respuesta de Stripe recibida:", res)
       if (res.stripeCheckoutUrl) {
-        toast.info("Redirigiendo a Stripe...", {
+        toast.info("Abriendo pasarela de pago Stripe en una nueva pestaña...", {
           description: "Por favor completa tu pago de forma segura.",
         })
-        window.location.href = res.stripeCheckoutUrl
+        window.open(res.stripeCheckoutUrl, "_blank")
       }
     } catch (error: any) {
       console.error("[DEBUG - ContractDetailModal] Error en handleStripePayment:", error)
@@ -504,10 +538,22 @@ export function ContractDetailModal({
                           )}
 
                           {isCompletado && (
-                            <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                              <CheckmarkCircle02Icon className="h-4 w-4 text-emerald-500" />
-                              {pago.metodoPago?.toLowerCase()} ({pago.fechaPago ? new Date(pago.fechaPago).toLocaleDateString() : ""})
-                            </span>
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                                <CheckmarkCircle02Icon className="h-4 w-4 text-emerald-500" />
+                                {pago.metodoPago?.toLowerCase()} ({pago.fechaPago ? new Date(pago.fechaPago).toLocaleDateString() : ""})
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 font-semibold"
+                                onClick={() => handleDescargarRecibo(pago.id)}
+                                disabled={isDescargandoRecibo}
+                              >
+                                <Download01Icon className="h-3 w-3" />
+                                Recibo
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </TableCell>

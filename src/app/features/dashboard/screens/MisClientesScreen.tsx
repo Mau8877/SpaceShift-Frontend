@@ -2,8 +2,8 @@ import type { ColumnDef, Row } from "@tanstack/react-table"
 import { useMemo } from "react"
 
 import { DataTable } from "@/components/DataTable"
-
-import { misClientesMock } from "../mocks"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useGetClientesComoPropietarioQuery } from "../store/contratoApi"
 import type { ClientStatus, ClientType, DashboardClient } from "../types"
 
 const clientTypeLabels: Record<ClientType, string> = {
@@ -137,18 +137,20 @@ const ClienteMobileCard = ({ client }: { client: DashboardClient }) => {
 }
 
 export const MisClientesScreen = () => {
+  const { data: clientes = [], isLoading } = useGetClientesComoPropietarioQuery()
+
   const summary = useMemo(() => {
     return {
-      total: misClientesMock.length,
-      activos: misClientesMock.filter((client) => client.estado === "ACTIVO")
+      total: clientes.length,
+      activos: clientes.filter((client) => client.estado === "ACTIVO")
         .length,
-      historicos: misClientesMock.filter(
+      historicos: clientes.filter(
         (client) => client.estado === "HISTORICO"
       ).length,
-      porVencer: misClientesMock.filter((client) => client.contratoPorVencer)
+      porVencer: clientes.filter((client) => client.contratoPorVencer)
         .length,
     }
-  }, [])
+  }, [clientes])
 
   const columns = useMemo<Array<ColumnDef<DashboardClient>>>(
     () => [
@@ -239,6 +241,52 @@ export const MisClientesScreen = () => {
     []
   )
 
+  if (isLoading) {
+    return (
+      <section className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-950">
+            Clientes vinculados
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Consulta clientes relacionados con tus inmuebles, contratos y
+            reservas.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <article
+              key={i}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3"
+            >
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-4 w-32" />
+            </article>
+          ))}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4">
+            <Skeleton className="h-10 w-72" />
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="space-y-6">
       <div>
@@ -294,7 +342,7 @@ export const MisClientesScreen = () => {
 
       <DataTable
         columns={columns}
-        data={misClientesMock}
+        data={clientes}
         search={{
           enabled: true,
           placeholder: "Buscar cliente, correo, teléfono o inmueble...",
