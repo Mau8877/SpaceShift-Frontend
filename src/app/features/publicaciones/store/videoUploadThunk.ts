@@ -6,7 +6,7 @@ import {
   uploadFailed,
 } from "@/app/store/videoUploadSlice"
 import { videoApi } from "./videoApi"
-import type { VideoFileMeta } from "../types"
+import type { Formato3D, VideoFileMeta } from "../types"
 
 const POLL_INTERVAL_MS = 8000
 
@@ -48,9 +48,14 @@ function extractError(err: unknown): string {
  * El modal puede cerrarse; el progreso se ve en el VideoUploadDock.
  */
 export const iniciarSubidaVideo =
-  (params: { idPublicacion: string; file: File; meta: VideoFileMeta }) =>
+  (params: {
+    idPublicacion: string
+    file: File
+    meta: VideoFileMeta
+    formato: Formato3D
+  }) =>
   async (dispatch: AppDispatch) => {
-    const { idPublicacion, file, meta } = params
+    const { idPublicacion, file, meta, formato } = params
     const localId =
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
@@ -83,6 +88,7 @@ export const iniciarSubidaVideo =
             nombreArchivo: meta.nombre,
             tamanoBytes: meta.tamanoBytes,
             duracionSegundos: meta.duracionSegundos,
+            formato,
           },
         })
       )

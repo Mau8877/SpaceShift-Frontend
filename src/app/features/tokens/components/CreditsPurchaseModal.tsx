@@ -86,7 +86,7 @@ export function CreditsPurchaseModal({ isOpen, onClose, onOpenLogin }: CreditsPu
             <Coins01Icon className="size-7 animate-pulse text-amber-300" />
           </div>
           <DialogTitle className="text-2xl font-bold tracking-tight md:text-3xl">
-            Adquiere Créditos de SpaceShift
+            Adquiere Tokens de SpaceShift
           </DialogTitle>
           <DialogDescription className="text-slate-400">
             Potencia tus publicaciones con modelado y procesamiento de IA en 3D.

@@ -2,7 +2,9 @@ import * as React from "react"
 import {
   Building03Icon,
   Delete02Icon,
+  Video01Icon,
 } from "hugeicons-react"
+import { SubirVideoDialog } from "../../publicaciones/components/SubirVideoDialog"
 import {
   PropertyCardRoot,
   PropertyCardBadge,
@@ -105,14 +107,28 @@ export function DashboardPropertyCard({ property }: { property: any }) {
       />
 
       <PropertyCardFooter>
-        <div className="grid w-full grid-cols-2 gap-3">
-          <Link to="/publicacion/$id" params={{ id: property.id }} className="w-full">
-            <PropertyCardButton>Ver Detalle</PropertyCardButton>
-          </Link>
-          
-          <PropertyCardButton onClick={handleEdit}>
-            Editar
-          </PropertyCardButton>
+        <div className="flex w-full flex-col gap-3">
+          <div className="grid w-full grid-cols-2 gap-3">
+            <Link to="/publicacion/$id" params={{ id: property.id }} className="w-full">
+              <PropertyCardButton>Ver Detalle</PropertyCardButton>
+            </Link>
+
+            <PropertyCardButton onClick={handleEdit}>
+              Editar
+            </PropertyCardButton>
+          </div>
+
+          <SubirVideoDialog
+            idPublicacion={property.id}
+            trigger={
+              <PropertyCardButton>
+                <span className="flex items-center gap-2">
+                  <Video01Icon size={16} />
+                  Recorrido 3D
+                </span>
+              </PropertyCardButton>
+            }
+          />
         </div>
       </PropertyCardFooter>
     </PropertyCardRoot>
