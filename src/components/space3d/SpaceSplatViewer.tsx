@@ -15,6 +15,22 @@ type SpaceSplatViewerProps = {
   }
   className?: string
   showControls?: boolean
+  /**
+   * Encuadra la cámara automáticamente a partir del bounding box del modelo.
+   * Por defecto true: cada modelo arranca en un punto sensato sin depender de
+   * una posición fija hardcodeada.
+   */
+  autoFit?: boolean
+  /**
+   * Corrige la orientación de los .splat estilo INRIA/antimatter15, que vienen
+   * con Y hacia abajo. Aplica una rotación de 180° en Z (igual que el visor SOG).
+   */
+  upAxisFix?: boolean
+  /**
+   * Margen (fracción del tamaño del modelo) que se deja entre la cámara y las
+   * paredes del bounding box. Evita que la cámara se pegue a los bordes.
+   */
+  boundsPadding?: number
   controlOptions?: {
     damping?: number
     movementDamping?: number
@@ -31,6 +47,14 @@ type CameraState = {
   yaw: number
   pitch: number
 }
+
+type Bounds = {
+  min: Vec3
+  max: Vec3
+}
+
+/** Splat cargado por gsplat (evita depender de que el tipo Splat esté exportado). */
+type LoadedSplat = Awaited<ReturnType<typeof SPLAT.Loader.LoadAsync>>
 
 type TouchState = {
   active: boolean
@@ -133,12 +157,73 @@ function almostEqualVec3(a: Vec3, b: Vec3, epsilon = 0.0001) {
   )
 }
 
+function clampVec3ToBounds(p: Vec3, bounds: Bounds): Vec3 {
+  return [
+    clamp(p[0], bounds.min[0], bounds.max[0]),
+    clamp(p[1], bounds.min[1], bounds.max[1]),
+    clamp(p[2], bounds.min[2], bounds.max[2]),
+  ]
+}
+
+/**
+ * AABB del modelo en espacio mundo. `splat.bounds` está en espacio local y NO
+ * refleja la rotación del objeto, así que rotamos las 8 esquinas con el
+ * quaternion del splat y tomamos el min/max resultante.
+ */
+function computeWorldBounds(splat: LoadedSplat): Bounds {
+  const local = splat.bounds
+  const xs = [local.min.x, local.max.x]
+  const ys = [local.min.y, local.max.y]
+  const zs = [local.min.z, local.max.z]
+
+  const min: Vec3 = [Infinity, Infinity, Infinity]
+  const max: Vec3 = [-Infinity, -Infinity, -Infinity]
+
+  for (const x of xs) {
+    for (const y of ys) {
+      for (const z of zs) {
+        const r = splat.rotation.apply(new SPLAT.Vector3(x, y, z))
+        const corner: Vec3 = [r.x, r.y, r.z]
+        for (let i = 0; i < 3; i++) {
+          if (corner[i] < min[i]) min[i] = corner[i]
+          if (corner[i] > max[i]) max[i] = corner[i]
+        }
+      }
+    }
+  }
+
+  return { min, max }
+}
+
+/** Encoge el AABB por una fracción de su tamaño para dejar margen con las paredes. */
+function padBounds(bounds: Bounds, padding: number): Bounds {
+  const pad = clamp(padding, 0, 0.49)
+  const sizeX = bounds.max[0] - bounds.min[0]
+  const sizeY = bounds.max[1] - bounds.min[1]
+  const sizeZ = bounds.max[2] - bounds.min[2]
+  return {
+    min: [
+      bounds.min[0] + sizeX * pad,
+      bounds.min[1] + sizeY * pad,
+      bounds.min[2] + sizeZ * pad,
+    ],
+    max: [
+      bounds.max[0] - sizeX * pad,
+      bounds.max[1] - sizeY * pad,
+      bounds.max[2] - sizeZ * pad,
+    ],
+  }
+}
+
 export function SpaceSplatViewer({
   modelUrl,
   previewUrl,
   camera,
   className = "",
   showControls = true,
+  autoFit = true,
+  upAxisFix = false,
+  boundsPadding = 0.05,
   controlOptions,
 }: SpaceSplatViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -171,6 +256,8 @@ export function SpaceSplatViewer({
   })
   const lastFrameTimeRef = useRef<number | null>(null)
   const hideHelpTimeoutRef = useRef<number | null>(null)
+  // AABB (con margen) dentro del cual se confina la cámara para no atravesar paredes.
+  const boundsRef = useRef<Bounds | null>(null)
 
   const [progress, setProgress] = useState(0)
   const [isReady, setIsReady] = useState(false)
@@ -307,6 +394,7 @@ export function SpaceSplatViewer({
     setShowHelpOverlay(true)
     setIsFocused(false)
     isKeyboardActiveRef.current = false
+    boundsRef.current = null
 
     const container = containerRef.current
     const canvasHost = canvasHostRef.current
@@ -619,16 +707,57 @@ export function SpaceSplatViewer({
 
     async function loadModel() {
       try {
-        await SPLAT.Loader.LoadAsync(modelUrl, scene, (value: number) => {
-          if (disposed) return
+        const splat = await SPLAT.Loader.LoadAsync(
+          modelUrl,
+          scene,
+          (value: number) => {
+            if (disposed) return
 
-          if (typeof value === "number") {
-            const normalized = Math.min(Math.max(value, 0), 1)
-            setProgress(Math.round(normalized * 100))
+            if (typeof value === "number") {
+              const normalized = Math.min(Math.max(value, 0), 1)
+              setProgress(Math.round(normalized * 100))
+            }
           }
-        })
+        )
 
         if (disposed) return
+
+        // Orientación: gsplat ya renderiza estos .splat derechos de forma nativa.
+        // Rotar el modelo aquí (vía transform dinámico) lo invertía y provocaba un
+        // giro de 180° al mover la cámara, por eso upAxisFix está apagado por
+        // defecto. Se deja como opción por si algún modelo puntual lo necesita.
+        if (upAxisFix) {
+          splat.rotation = SPLAT.Quaternion.FromAxisAngle(
+            new SPLAT.Vector3(0, 0, 1),
+            Math.PI
+          )
+        }
+
+        // Confina la cámara dentro del volumen del modelo (con su margen).
+        const worldBounds = computeWorldBounds(splat)
+        boundsRef.current = padBounds(worldBounds, boundsPadding)
+
+        // Punto de inicio igual que en SuperSplat para los modelos sin cámara en
+        // el JSON: posición en el origen (0,0,0) mirando -Z.
+        if (autoFit && initialStateRef.current) {
+          const framed: CameraState = { position: [0, 0, 0], yaw: 0, pitch: 0 }
+          initialStateRef.current = {
+            position: [...framed.position] as Vec3,
+            yaw: framed.yaw,
+            pitch: framed.pitch,
+          }
+          currentStateRef.current = {
+            position: [...framed.position] as Vec3,
+            yaw: framed.yaw,
+            pitch: framed.pitch,
+          }
+          targetStateRef.current = {
+            position: [...framed.position] as Vec3,
+            yaw: framed.yaw,
+            pitch: framed.pitch,
+          }
+          updateCameraFromState(currentStateRef.current)
+        }
 
         setIsReady(true)
 
@@ -699,6 +828,14 @@ export function SpaceSplatViewer({
               )
             }
 
+            // Mantiene el destino dentro del volumen del modelo (no atraviesa paredes).
+            if (boundsRef.current) {
+              target.position = clampVec3ToBounds(
+                target.position,
+                boundsRef.current
+              )
+            }
+
             current.yaw = lerp(current.yaw, target.yaw, resolvedControls.damping)
             current.pitch = lerp(
               current.pitch,
@@ -710,6 +847,13 @@ export function SpaceSplatViewer({
               target.position,
               resolvedControls.movementDamping
             )
+
+            if (boundsRef.current) {
+              current.position = clampVec3ToBounds(
+                current.position,
+                boundsRef.current
+              )
+            }
 
             updateCameraFromState(current)
 
@@ -785,7 +929,7 @@ export function SpaceSplatViewer({
       canvas.remove()
       canvasHost.innerHTML = ""
     }
-  }, [modelUrl, cameraKey, resolvedControls])
+  }, [modelUrl, cameraKey, resolvedControls, autoFit, upAxisFix, boundsPadding])
 
   return (
     <div

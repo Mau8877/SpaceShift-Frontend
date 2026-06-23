@@ -1,11 +1,13 @@
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { motion } from "framer-motion"
 import { ArrowLeft01Icon, Building03Icon } from "hugeicons-react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 
 import { SpaceSplatViewer } from "@/components/space3d/SpaceSplatViewer"
 import { SpaceSogViewer } from "@/components/space3d/SpaceSogViewer"
@@ -17,15 +19,23 @@ const CAMERA = {
   lookAt: [0, 0, 0] as [number, number, number],
 }
 
-/** Elige el video a mostrar: el primer COMPLETADO con modelo; si no, el más reciente. */
-function pickVideo(videos: VideoPublicacionDTO[]): VideoPublicacionDTO | null {
+/** Un video es visualizable si está COMPLETADO y tiene un modelo (splat o sog). */
+function tieneModelo(v: VideoPublicacionDTO): boolean {
+  return v.estadoProcesamiento === "COMPLETADO" && Boolean(v.urlSplat || v.urlSog)
+}
+
+/** Elige el video a mostrar cuando no hay ninguno renderizable: el más reciente. */
+function pickFallbackVideo(videos: VideoPublicacionDTO[]): VideoPublicacionDTO | null {
   if (!videos.length) return null
   const completados = videos.filter((v) => v.estadoProcesamiento === "COMPLETADO")
-  return (
-    completados.find((v) => v.urlSplat || v.urlSog) ??
-    completados[0] ??
-    videos[0]
-  )
+  return completados[0] ?? videos[0]
+}
+
+/** Etiqueta legible para un ambiente a partir del nombre de archivo. */
+function ambienteLabel(video: VideoPublicacionDTO, index: number): string {
+  const base = video.nombreArchivo?.replace(/\.[^.]+$/, "").trim()
+  if (!base) return `Ambiente ${index + 1}`
+  return base.replace(/[-_]+/g, " ")
 }
 
 export function PublicacionTour3DScreen() {
@@ -39,7 +49,25 @@ export function PublicacionTour3DScreen() {
     refetch,
   } = useGetVideosByPublicacionQuery(id)
 
-  const video = videos ? pickVideo(videos) : null
+  // Ambientes que se pueden recorrer (COMPLETADOS con modelo).
+  const ambientes = useMemo(
+    () => (videos ?? []).filter(tieneModelo),
+    [videos]
+  )
+
+  const [selectedIndex, setSelectedIndex] = useState(0)
+
+  // Reinicia la selección si cambia la publicación o la lista de ambientes.
+  useEffect(() => {
+    setSelectedIndex(0)
+  }, [id, ambientes.length])
+
+  const safeIndex = Math.min(selectedIndex, Math.max(ambientes.length - 1, 0))
+  const ambienteActual = ambientes[safeIndex] ?? null
+
+  // Cuando no hay ningún ambiente renderizable, mostramos el estado del video más reciente.
+  const videoFallback = ambienteActual ? null : pickFallbackVideo(videos ?? [])
+  const video = ambienteActual ?? videoFallback
 
   return (
     <motion.div
@@ -75,13 +103,15 @@ export function PublicacionTour3DScreen() {
 
       <div className="space-y-3">
         <h1 className="text-3xl font-black tracking-tight md:text-4xl">
-          Recorrido 3D del ambiente
+          {ambientes.length > 1 ? "Recorrido 3D de la propiedad" : "Recorrido 3D del ambiente"}
         </h1>
 
         <div className="flex items-center gap-2 text-muted-foreground">
           <Building03Icon className="h-5 w-5 text-primary" />
           <span className="font-medium">
-            Modelo generado a partir del video de la publicación
+            {ambientes.length > 1
+              ? `${ambientes.length} ambientes generados a partir de los videos de la publicación`
+              : "Modelo generado a partir del video de la publicación"}
           </span>
         </div>
       </div>
@@ -90,6 +120,26 @@ export function PublicacionTour3DScreen() {
 
       <Card className="overflow-hidden rounded-[32px] border-2 border-primary/10 bg-background shadow-2xl">
         <div className="space-y-4 p-4 md:p-6">
+          {ambientes.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {ambientes.map((ambiente, index) => (
+                <Button
+                  key={ambiente.id}
+                  type="button"
+                  variant={index === safeIndex ? "default" : "outline"}
+                  size="sm"
+                  className={cn(
+                    "rounded-full capitalize",
+                    index === safeIndex && "shadow-md"
+                  )}
+                  onClick={() => setSelectedIndex(index)}
+                >
+                  {ambienteLabel(ambiente, index)}
+                </Button>
+              ))}
+            </div>
+          )}
+
           {isLoading && (
             <div className="flex h-[650px] items-center justify-center rounded-[24px] bg-muted/40 text-muted-foreground">
               Cargando recorridos 3D...
@@ -127,6 +177,7 @@ export function PublicacionTour3DScreen() {
             video.estadoProcesamiento === "COMPLETADO" &&
             (video.urlSplat ? (
               <SpaceSplatViewer
+                key={video.id}
                 modelUrl={video.urlSplat}
                 previewUrl={video.urlPreviewWebp ?? undefined}
                 camera={CAMERA}
@@ -134,6 +185,7 @@ export function PublicacionTour3DScreen() {
               />
             ) : video.urlSog ? (
               <SpaceSogViewer
+                key={video.id}
                 modelUrl={video.urlSog}
                 previewUrl={video.urlPreviewWebp ?? undefined}
                 camera={CAMERA}

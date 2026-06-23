@@ -11,12 +11,21 @@ type SpaceSogViewerProps = {
     lookAt?: Vec3
   }
   className?: string
+  /** Encuadra la cámara automáticamente desde el bounding box del modelo. */
+  autoFit?: boolean
+  /** Margen (fracción del tamaño) entre la cámara y las paredes del cubo. */
+  boundsPadding?: number
 }
 
 type CameraState = {
   position: Vec3
   yaw: number
   pitch: number
+}
+
+type Bounds = {
+  min: Vec3
+  max: Vec3
 }
 
 type TouchState = {
@@ -118,11 +127,51 @@ function almostEqualVec3(a: Vec3, b: Vec3, epsilon = 0.0001) {
   )
 }
 
+function clampVec3ToBounds(p: Vec3, bounds: Bounds): Vec3 {
+  return [
+    clamp(p[0], bounds.min[0], bounds.max[0]),
+    clamp(p[1], bounds.min[1], bounds.max[1]),
+    clamp(p[2], bounds.min[2], bounds.max[2]),
+  ]
+}
+
+/** Encoge el AABB por una fracción de su tamaño para dejar margen con las paredes. */
+function padBounds(bounds: Bounds, padding: number): Bounds {
+  const pad = clamp(padding, 0, 0.49)
+  const sizeX = bounds.max[0] - bounds.min[0]
+  const sizeY = bounds.max[1] - bounds.min[1]
+  const sizeZ = bounds.max[2] - bounds.min[2]
+  return {
+    min: [
+      bounds.min[0] + sizeX * pad,
+      bounds.min[1] + sizeY * pad,
+      bounds.min[2] + sizeZ * pad,
+    ],
+    max: [
+      bounds.max[0] - sizeX * pad,
+      bounds.max[1] - sizeY * pad,
+      bounds.max[2] - sizeZ * pad,
+    ],
+  }
+}
+
+/** AABB mundial del gsplat a partir del bounding box de PlayCanvas (ya transformado). */
+function boundsFromPcAabb(aabb: pc.BoundingBox): Bounds {
+  const c = aabb.center
+  const h = aabb.halfExtents
+  return {
+    min: [c.x - h.x, c.y - h.y, c.z - h.z],
+    max: [c.x + h.x, c.y + h.y, c.z + h.z],
+  }
+}
+
 export function SpaceSogViewer({
   modelUrl,
   previewUrl,
   camera,
   className = "",
+  autoFit = true,
+  boundsPadding = 0.05,
 }: SpaceSogViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const canvasHostRef = useRef<HTMLDivElement | null>(null)
@@ -150,6 +199,8 @@ export function SpaceSogViewer({
   const appRef = useRef<pc.Application | null>(null)
   const frameTimeRef = useRef<number | null>(null)
   const isKeyboardActiveRef = useRef(false)
+  // AABB (con margen) dentro del cual se confina la cámara para no atravesar paredes.
+  const boundsRef = useRef<Bounds | null>(null)
   const viewerFocusRef = useRef(false)
   const hideHelpTimeoutRef = useRef<number | null>(null)
 
@@ -235,6 +286,7 @@ export function SpaceSogViewer({
     keyStateRef.current.clear()
     isKeyboardActiveRef.current = false
     viewerFocusRef.current = false
+    boundsRef.current = null
 
     canvasHost.innerHTML = ""
 
@@ -566,6 +618,12 @@ export function SpaceSogViewer({
         0,
         -Math.cos(target.yaw),
       ])
+      // Vector derecho plano para el strafe lateral (X = izquierda/derecha).
+      const flatRight = normalizeVec3([
+        Math.cos(target.yaw),
+        0,
+        Math.sin(target.yaw),
+      ])
       const worldUp: Vec3 = [0, 1, 0]
       let movement: Vec3 = [0, 0, 0]
 
@@ -576,9 +634,16 @@ export function SpaceSogViewer({
         movement = subtractVec3(movement, flatForward)
       }
       if (pressed.has("a")) {
-        target.yaw += DEFAULT_CONTROLS.keyboardTurnSpeed * dt
+        movement = subtractVec3(movement, flatRight)
       }
       if (pressed.has("d")) {
+        movement = addVec3(movement, flatRight)
+      }
+      // Giro opcional con flechas izquierda/derecha.
+      if (pressed.has("arrowleft")) {
+        target.yaw += DEFAULT_CONTROLS.keyboardTurnSpeed * dt
+      }
+      if (pressed.has("arrowright")) {
         target.yaw -= DEFAULT_CONTROLS.keyboardTurnSpeed * dt
       }
       if (pressed.has("e") || pressed.has(" ")) {
@@ -602,6 +667,11 @@ export function SpaceSogViewer({
         target.position = addVec3(target.position, translation)
       }
 
+      // Mantiene el destino dentro del volumen del modelo (no atraviesa paredes).
+      if (boundsRef.current) {
+        target.position = clampVec3ToBounds(target.position, boundsRef.current)
+      }
+
       current.yaw = lerp(
         current.yaw,
         target.yaw,
@@ -617,6 +687,10 @@ export function SpaceSogViewer({
         target.position,
         DEFAULT_CONTROLS.movementDamping
       )
+
+      if (boundsRef.current) {
+        current.position = clampVec3ToBounds(current.position, boundsRef.current)
+      }
 
       updateCameraEntity(current)
 
@@ -683,6 +757,57 @@ export function SpaceSogViewer({
             entity.addComponent("gsplat", { asset: loadedAsset })
             entity.setLocalEulerAngles(0, 0, 180)
             app?.root.addChild(entity)
+
+            // Encuadre inicial + confinamiento desde el bounding box del modelo.
+            try {
+              const localAabb = entity.gsplat?.customAabb
+              if (localAabb) {
+                const worldAabb = new pc.BoundingBox()
+                worldAabb.setFromTransformedAabb(
+                  localAabb,
+                  entity.getWorldTransform()
+                )
+                const worldBounds = boundsFromPcAabb(worldAabb)
+                boundsRef.current = padBounds(worldBounds, boundsPadding)
+
+                if (
+                  autoFit &&
+                  initialStateRef.current &&
+                  currentStateRef.current &&
+                  targetStateRef.current
+                ) {
+                  // Inicio igual que SuperSplat: cámara en el origen mirando -Z.
+                  // La orientación "z=180" la da setLocalEulerAngles(0,0,180) de la entidad.
+                  const framed: CameraState = {
+                    position: [0, 0, 0],
+                    yaw: 0,
+                    pitch: 0,
+                  }
+                  initialStateRef.current = {
+                    position: [...framed.position] as Vec3,
+                    yaw: framed.yaw,
+                    pitch: framed.pitch,
+                  }
+                  currentStateRef.current = {
+                    position: [...framed.position] as Vec3,
+                    yaw: framed.yaw,
+                    pitch: framed.pitch,
+                  }
+                  targetStateRef.current = {
+                    position: [...framed.position] as Vec3,
+                    yaw: framed.yaw,
+                    pitch: framed.pitch,
+                  }
+                  updateCameraEntity(currentStateRef.current)
+                }
+              }
+            } catch (boundsError) {
+              console.warn(
+                "No se pudo calcular el bounding box del modelo .sog:",
+                boundsError
+              )
+            }
+
             setIsReady(true)
           })
 
@@ -750,7 +875,7 @@ export function SpaceSogViewer({
       canvas.remove()
       canvasHost.innerHTML = ""
     }
-  }, [modelUrl, cameraKey, camera])
+  }, [modelUrl, cameraKey, camera, autoFit, boundsPadding])
 
   return (
     <div
@@ -795,7 +920,7 @@ export function SpaceSogViewer({
 
       {showHelpOverlay && !error && (
         <div className="pointer-events-none absolute bottom-4 left-4 max-w-[90%] rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-xs text-white/90 backdrop-blur-md">
-          Click para activar · Mouse para mirar · W/S avanzar · A/D girar · Q/E subir/bajar · Shift correr
+          Click para activar · Mouse para mirar · W/A/S/D moverse · Q/E subir/bajar · Shift correr
         </div>
       )}
 
