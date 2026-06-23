@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
-import { Logout01Icon, UserIcon } from "hugeicons-react"
+import {
+  AnalyticsUpIcon,
+  Coins01Icon,
+  DashboardSquare02Icon,
+  FavouriteIcon,
+  Home01Icon,
+  Logout01Icon,
+  SquareArrowUpRightIcon,
+  UserGroup03Icon,
+  UserIcon,
+} from "hugeicons-react"
 import { useGetMiPerfilQuery } from "@/app/features/profile/store"
 import { api } from "@/app/store/api/api"
 import {
@@ -48,9 +58,11 @@ export function UserDropdown() {
     return <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
   }
 
+  const isAdmin = user.rol === "ROLE_ADMIN"
   const nombreInic = user.nombre[0] || "U"
   const apellidoInic = user.apellido ? user.apellido[0] : ""
   const fotoUrl = perfil?.fotoUrl?.trim() || null
+  const navigateTo = (to: string) => navigate({ to })
 
   return (
     <DropdownMenu>
@@ -83,12 +95,76 @@ export function UserDropdown() {
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer"
-            onClick={() => navigate({ to: "/profile" })}
+            onClick={() => navigateTo("/")}
+          >
+            <Home01Icon className="mr-2 h-4 w-4" />
+            <span>Home</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => navigateTo("/dashboard")}
+          >
+            <DashboardSquare02Icon className="mr-2 h-4 w-4" />
+            <span>Dashboard</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => navigateTo("/favoritos")}
+          >
+            <FavouriteIcon className="mr-2 h-4 w-4" />
+            <span>Mis Favoritos</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => navigateTo("/publicar")}
+          >
+            <SquareArrowUpRightIcon className="mr-2 h-4 w-4" />
+            <span>Publicar inmueble</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => navigateTo("/creditos")}
+          >
+            <Coins01Icon className="mr-2 h-4 w-4" />
+            <span>Créditos</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => navigateTo("/profile")}
           >
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Perfil</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+
+        {isAdmin ? (
+          <>
+            <DropdownMenuSeparator />
+
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => navigateTo("/gestionar-usuarios")}
+              >
+                <UserGroup03Icon className="mr-2 h-4 w-4" />
+                <span>Gestionar Usuarios</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => navigateTo("/reportes")}
+              >
+                <AnalyticsUpIcon className="mr-2 h-4 w-4" />
+                <span>Reportes del Sistema</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        ) : null}
 
         <DropdownMenuSeparator />
 

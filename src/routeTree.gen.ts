@@ -28,6 +28,7 @@ import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as PublicPublicacionIdRouteImport } from './routes/_public/publicacion.$id'
 import { Route as AuthDashboardProponerContratoRouteImport } from './routes/_auth/dashboard/proponer-contrato'
+import { Route as PublicPublicacionTour3dIdRouteImport } from './routes/_public/publicacion-tour-3d.$id'
 import { Route as AuthDashboardInmueblesRouteImport } from './routes/_auth/dashboard/inmuebles'
 import { Route as AuthDashboardContratosRouteImport } from './routes/_auth/dashboard/contratos'
 import { Route as AuthDashboardClientesRouteImport } from './routes/_auth/dashboard/clientes'
@@ -128,6 +129,12 @@ const AuthDashboardProponerContratoRoute =
     path: '/proponer-contrato',
     getParentRoute: () => AuthDashboardRoute,
   } as any)
+const PublicPublicacionTour3dIdRoute =
+  PublicPublicacionTour3dIdRouteImport.update({
+    id: '/publicacion-tour-3d/$id',
+    path: '/publicacion-tour-3d/$id',
+    getParentRoute: () => PublicRoute,
+  } as any)
 const AuthDashboardInmueblesRoute = AuthDashboardInmueblesRouteImport.update({
   id: '/inmuebles',
   path: '/inmuebles',
@@ -175,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/contratos': typeof AuthDashboardContratosRouteWithChildren
   '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/dashboard/proponer-contrato': typeof AuthDashboardProponerContratoRoute
+  '/publicacion-tour-3d/$id': typeof PublicPublicacionTour3dIdRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
   '/dashboard/contratos/$id': typeof AuthDashboardContratosIdRoute
@@ -197,6 +205,7 @@ export interface FileRoutesByTo {
   '/dashboard/clientes': typeof AuthDashboardClientesRoute
   '/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/dashboard/proponer-contrato': typeof AuthDashboardProponerContratoRoute
+  '/publicacion-tour-3d/$id': typeof PublicPublicacionTour3dIdRoute
   '/publicacion/$id': typeof PublicPublicacionIdRoute
   '/dashboard': typeof AuthDashboardIndexRoute
   '/dashboard/contratos/$id': typeof AuthDashboardContratosIdRoute
@@ -224,6 +233,7 @@ export interface FileRoutesById {
   '/_auth/dashboard/contratos': typeof AuthDashboardContratosRouteWithChildren
   '/_auth/dashboard/inmuebles': typeof AuthDashboardInmueblesRoute
   '/_auth/dashboard/proponer-contrato': typeof AuthDashboardProponerContratoRoute
+  '/_public/publicacion-tour-3d/$id': typeof PublicPublicacionTour3dIdRoute
   '/_public/publicacion/$id': typeof PublicPublicacionIdRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
   '/_auth/dashboard/contratos/$id': typeof AuthDashboardContratosIdRoute
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/dashboard/contratos'
     | '/dashboard/inmuebles'
     | '/dashboard/proponer-contrato'
+    | '/publicacion-tour-3d/$id'
     | '/publicacion/$id'
     | '/dashboard/'
     | '/dashboard/contratos/$id'
@@ -272,6 +283,7 @@ export interface FileRouteTypes {
     | '/dashboard/clientes'
     | '/dashboard/inmuebles'
     | '/dashboard/proponer-contrato'
+    | '/publicacion-tour-3d/$id'
     | '/publicacion/$id'
     | '/dashboard'
     | '/dashboard/contratos/$id'
@@ -298,6 +310,7 @@ export interface FileRouteTypes {
     | '/_auth/dashboard/contratos'
     | '/_auth/dashboard/inmuebles'
     | '/_auth/dashboard/proponer-contrato'
+    | '/_public/publicacion-tour-3d/$id'
     | '/_public/publicacion/$id'
     | '/_auth/dashboard/'
     | '/_auth/dashboard/contratos/$id'
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardProponerContratoRouteImport
       parentRoute: typeof AuthDashboardRoute
     }
+    '/_public/publicacion-tour-3d/$id': {
+      id: '/_public/publicacion-tour-3d/$id'
+      path: '/publicacion-tour-3d/$id'
+      fullPath: '/publicacion-tour-3d/$id'
+      preLoaderRoute: typeof PublicPublicacionTour3dIdRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/_auth/dashboard/inmuebles': {
       id: '/_auth/dashboard/inmuebles'
       path: '/inmuebles'
@@ -548,6 +568,7 @@ interface PublicRouteChildren {
   PublicRecuperarPasswordRoute: typeof PublicRecuperarPasswordRoute
   PublicVerificarCodigoRoute: typeof PublicVerificarCodigoRoute
   PublicIndexRoute: typeof PublicIndexRoute
+  PublicPublicacionTour3dIdRoute: typeof PublicPublicacionTour3dIdRoute
   PublicPublicacionIdRoute: typeof PublicPublicacionIdRoute
 }
 
@@ -558,6 +579,7 @@ const PublicRouteChildren: PublicRouteChildren = {
   PublicRecuperarPasswordRoute: PublicRecuperarPasswordRoute,
   PublicVerificarCodigoRoute: PublicVerificarCodigoRoute,
   PublicIndexRoute: PublicIndexRoute,
+  PublicPublicacionTour3dIdRoute: PublicPublicacionTour3dIdRoute,
   PublicPublicacionIdRoute: PublicPublicacionIdRoute,
 }
 

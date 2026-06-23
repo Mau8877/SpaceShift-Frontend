@@ -23,6 +23,7 @@ export const api = createApi({
     "Favoritos",
     "Contratos",
     "Pagos",
+    "Videos",
   ],
 
   endpoints: () => ({}),

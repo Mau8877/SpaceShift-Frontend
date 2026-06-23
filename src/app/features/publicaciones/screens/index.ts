@@ -1,3 +1,4 @@
-export * from "./PublicacionScreen"
-export * from "./PublicacionDetailsScreen"
 export * from "./MisFavoritosScreen"
+export * from "./PublicacionDetailsScreen"
+export * from "./PublicacionScreen"
+export * from "./PublicacionTour3DScreen"
