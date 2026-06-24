@@ -15,10 +15,21 @@ export interface TuyaDeviceScanResult {
 }
 
 export interface SmartPlugAssignment {
-  applianceId: string
-  applianceName: string
+  dispositivoId: string
+  dispositivoNombre: string
   propertyName: string
   assignedAt: string
+}
+
+export interface InmuebleDispositivo {
+  id: string
+  nombre: string
+}
+
+export interface InmuebleOption {
+  id: string
+  nombre: string
+  dispositivos: InmuebleDispositivo[]
 }
 
 export interface SmartPlug {
@@ -46,6 +57,9 @@ export interface InstallationTicket {
   id: string
   propertyId: string
   propertyName: string
+  dispositivoId: string
+  dispositivoNombre: string
+  publicacionId: string | null
   status: InstallationTicketStatus
   requestedAt: string
   scheduledAt?: string | null
@@ -54,4 +68,22 @@ export interface InstallationTicket {
 export interface UpdateTicketStatusRequest {
   status: InstallationTicketStatus
   scheduledAt?: string
+}
+
+export type TipoIncumplimiento =
+  | "HORARIO_LIMITE_EXCEDIDO"
+  | "HORAS_CONTINUAS_EXCEDIDAS"
+  | "DESCONEXION_SOSPECHOSA"
+
+export interface PlugPowerReading {
+  recordedAt: string
+  curPower: number | null
+  online: boolean
+}
+
+export interface DeviceViolation {
+  id: string
+  tipo: TipoIncumplimiento
+  detectedAt: string
+  detalle: string | null
 }

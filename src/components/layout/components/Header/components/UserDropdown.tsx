@@ -7,6 +7,7 @@ import {
   FavouriteIcon,
   Home01Icon,
   Logout01Icon,
+  Plug01Icon,
   SquareArrowUpRightIcon,
   UserGroup03Icon,
   UserIcon,
@@ -161,6 +162,14 @@ export function UserDropdown() {
               >
                 <AnalyticsUpIcon className="mr-2 h-4 w-4" />
                 <span>Reportes del Sistema</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => navigateTo("/gestionar-iot")}
+              >
+                <Plug01Icon className="mr-2 h-4 w-4" />
+                <span>Panel IoT</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </>

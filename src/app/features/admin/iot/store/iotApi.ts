@@ -1,12 +1,23 @@
 import { api } from "@/app/store/api/api"
 import type {
+  DeviceViolation,
+  InmuebleOption,
   InstallationTicket,
+  PlugPowerReading,
   PlugTestResult,
   SmartPlug,
   SmartPlugCreateRequest,
   TuyaDeviceScanResult,
   UpdateTicketStatusRequest,
 } from "../types"
+
+// Forma cruda que devuelve GET /api/inmuebles (InmuebleDTO de SpaceShift-Backend)
+interface InmuebleRawResponse {
+  id: string
+  tipoInmueble: string
+  ubicacion?: { zonaBarrios?: string | null } | null
+  dispositivos?: Array<Record<string, unknown>> | null
+}
 
 const SMART_PLUGS_LIST_TAG_ID = "LIST"
 const INSTALLATION_TICKETS_PENDING_TAG_ID = "PENDING"
@@ -52,17 +63,33 @@ export const iotApi = api.injectEndpoints({
     }),
     assignPlug: builder.mutation<
       SmartPlug,
-      { plugId: string; applianceId: string }
+      { plugId: string; inmuebleId: string; dispositivoId: string }
     >({
-      query: ({ plugId, applianceId }) => ({
+      query: ({ plugId, inmuebleId, dispositivoId }) => ({
         url: `/iot/plugs/${plugId}/assign`,
         method: "POST",
-        body: { applianceId },
+        body: { inmuebleId, dispositivoId },
       }),
       invalidatesTags: (_result, _error, { plugId }) => [
         { type: "SMART_PLUGS", id: SMART_PLUGS_LIST_TAG_ID },
         { type: "SMART_PLUGS", id: plugId },
       ],
+    }),
+    getInmueblesConDispositivos: builder.query<InmuebleOption[], void>({
+      query: () => "/inmuebles",
+      transformResponse: (response: InmuebleRawResponse[]) =>
+        response
+          .filter((inmueble) => (inmueble.dispositivos?.length ?? 0) > 0)
+          .map((inmueble) => ({
+            id: inmueble.id,
+            nombre: inmueble.ubicacion?.zonaBarrios
+              ? `${inmueble.tipoInmueble} · ${inmueble.ubicacion.zonaBarrios}`
+              : inmueble.tipoInmueble,
+            dispositivos: (inmueble.dispositivos ?? []).map((d) => ({
+              id: String(d.id),
+              nombre: String(d.nombre ?? "Dispositivo sin nombre"),
+            })),
+          })),
     }),
     unassignPlug: builder.mutation<SmartPlug, string>({
       query: (plugId) => ({
@@ -93,6 +120,24 @@ export const iotApi = api.injectEndpoints({
         { type: "INSTALLATION_TICKETS", id: INSTALLATION_TICKETS_PENDING_TAG_ID },
       ],
     }),
+    syncInstallationTickets: builder.mutation<void, string>({
+      query: (inmuebleId) => ({
+        url: `/iot/tickets/sync-inmueble/${inmuebleId}`,
+        method: "POST",
+      }),
+      invalidatesTags: [
+        { type: "INSTALLATION_TICKETS", id: INSTALLATION_TICKETS_PENDING_TAG_ID },
+      ],
+    }),
+    getPlugPowerReadings: builder.query<
+      PlugPowerReading[],
+      { plugId: string; hours?: number }
+    >({
+      query: ({ plugId, hours = 24 }) => `/iot/plugs/${plugId}/power-readings?hours=${hours}`,
+    }),
+    getPlugViolations: builder.query<DeviceViolation[], string>({
+      query: (plugId) => `/iot/plugs/${plugId}/violations`,
+    }),
   }),
   overrideExisting: false,
 })
@@ -104,7 +149,11 @@ export const {
   useTestPlugMutation,
   useSendPlugCommandMutation,
   useAssignPlugMutation,
+  useGetInmueblesConDispositivosQuery,
   useUnassignPlugMutation,
   useGetPendingTicketsQuery,
   useUpdateTicketStatusMutation,
+  useSyncInstallationTicketsMutation,
+  useGetPlugPowerReadingsQuery,
+  useGetPlugViolationsQuery,
 } = iotApi

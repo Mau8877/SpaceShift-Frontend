@@ -16,9 +16,10 @@ import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 
 import { useAppSelector } from "@/app/store"
-import { 
-  useCrearInmuebleMutation, 
-  useCrearPublicacionMutation, 
+import { useSyncInstallationTicketsMutation } from "@/app/features/admin/iot/store"
+import {
+  useCrearInmuebleMutation,
+  useCrearPublicacionMutation,
   useSubirImagenesMutation,
   useGetPublicacionByIdQuery,
   useActualizarPublicacionMutation
@@ -50,6 +51,7 @@ export function PublicacionScreen() {
   const [crearPublicacion, { isLoading: isCreatingPublicacion }] = useCrearPublicacionMutation()
   const [actualizarPublicacion, { isLoading: isUpdating }] = useActualizarPublicacionMutation()
   const [subirImagenes, { isLoading: isUploading }] = useSubirImagenesMutation()
+  const [syncInstallationTickets] = useSyncInstallationTicketsMutation()
 
   // Usuario extraido de Redux Auth
   const user = useAppSelector((state) => state.auth.user)
@@ -138,7 +140,11 @@ export function PublicacionScreen() {
               }
             }
           }).unwrap()
-          
+
+          await syncInstallationTickets(publicationToEdit.inmueble.id).unwrap().catch(() => {
+            // La publicación ya se guardó bien; si esto falla no vale la pena revertir nada.
+          })
+
           toast.success("¡Actualizado!", { description: "Propiedad actualizada correctamente" })
         } else {
           // 2. CREAR EL INMUEBLE
@@ -174,6 +180,10 @@ export function PublicacionScreen() {
             estadoPublicacion: "ACTIVO",
             imagenesUrls: finalUrls,
           }).unwrap()
+
+          await syncInstallationTickets(inmuebleRes.id).unwrap().catch(() => {
+            // La publicación ya se guardó bien; si esto falla no vale la pena revertir nada.
+          })
 
           toast.success("¡Éxito!", { description: "Propiedad publicada correctamente" })
         }

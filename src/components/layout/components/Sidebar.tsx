@@ -19,6 +19,7 @@ import {
   Cancel01Icon,
   DashboardSquare02Icon,
   Home01Icon,
+  Plug01Icon,
   UserGroup03Icon,
   FavouriteIcon,
 } from "hugeicons-react"
@@ -50,6 +51,11 @@ export function AppSidebar() {
             title: "Reportes del Sistema",
             icon: AnalyticsUpIcon,
             to: "/reportes",
+          },
+          {
+            title: "Panel IoT",
+            icon: Plug01Icon,
+            to: "/gestionar-iot",
           },
         ]
       : []),

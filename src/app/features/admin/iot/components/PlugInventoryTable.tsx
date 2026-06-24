@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
-import { FlashIcon, MoreVerticalIcon, Wrench01Icon } from "hugeicons-react"
+import { ChartLineData01Icon, FlashIcon, Link01Icon, MoreVerticalIcon, Wrench01Icon } from "hugeicons-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 import { useGetPlugsQuery, useTestPlugMutation, useUnassignPlugMutation } from "../store"
 import type { PlugStatus, SmartPlug } from "../types"
+import { AssignPlugDialog } from "./AssignPlugDialog"
+import { PlugConsumptionDialog } from "./PlugConsumptionDialog"
 import { PlugScanDialog } from "./PlugScanDialog"
 
 const STATUS_BADGE: Record<PlugStatus, { label: string; className: string }> = {
@@ -37,6 +39,8 @@ export const PlugInventoryTable = () => {
   const [unassignPlug] = useUnassignPlugMutation()
   const [testPlug] = useTestPlugMutation()
   const [scanDialogOpen, setScanDialogOpen] = useState(false)
+  const [assignPlugId, setAssignPlugId] = useState<string | null>(null)
+  const [consumptionPlug, setConsumptionPlug] = useState<SmartPlug | null>(null)
 
   const handleUnassign = async (plug: SmartPlug) => {
     try {
@@ -116,7 +120,7 @@ export const PlugInventoryTable = () => {
                     </TableCell>
                     <TableCell>
                       {plug.currentAssignment
-                        ? `${plug.currentAssignment.applianceName} · ${plug.currentAssignment.propertyName}`
+                        ? `${plug.currentAssignment.dispositivoNombre} · ${plug.currentAssignment.propertyName}`
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right">
@@ -127,6 +131,12 @@ export const PlugInventoryTable = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          {plug.status === "AVAILABLE" ? (
+                            <DropdownMenuItem onClick={() => setAssignPlugId(plug.id)}>
+                              <Link01Icon size={16} />
+                              Asignar
+                            </DropdownMenuItem>
+                          ) : null}
                           {plug.status === "ASSIGNED" ? (
                             <DropdownMenuItem onClick={() => handleUnassign(plug)}>
                               Desasignar
@@ -136,6 +146,10 @@ export const PlugInventoryTable = () => {
                           <DropdownMenuItem onClick={() => handleTest(plug)}>
                             <Wrench01Icon size={16} />
                             Test de conexión
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setConsumptionPlug(plug)}>
+                            <ChartLineData01Icon size={16} />
+                            Ver consumo
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -149,6 +163,14 @@ export const PlugInventoryTable = () => {
       </CardContent>
 
       <PlugScanDialog open={scanDialogOpen} onOpenChange={setScanDialogOpen} />
+      <AssignPlugDialog
+        plugId={assignPlugId}
+        onOpenChange={(open) => setAssignPlugId(open ? assignPlugId : null)}
+      />
+      <PlugConsumptionDialog
+        plug={consumptionPlug}
+        onOpenChange={(open) => !open && setConsumptionPlug(null)}
+      />
     </Card>
   )
 }
