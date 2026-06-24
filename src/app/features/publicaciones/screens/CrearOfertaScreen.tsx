@@ -43,6 +43,7 @@ interface SelectedDevice {
   horarioInicio?: string
   horarioFin?: string
   selected: boolean
+  sancionIncumplimiento?: string
 }
 
 export function CrearOfertaScreen() {
@@ -138,6 +139,7 @@ export function CrearOfertaScreen() {
           horarioInicio: d.horarioInicio || "",
           horarioFin: d.horarioFin || "",
           selected: false,
+          sancionIncumplimiento: d.sancionIncumplimiento || "",
         }))
       )
     }
@@ -228,6 +230,7 @@ export function CrearOfertaScreen() {
       horarioFin: d.horarioFin,
       fechaInicioUso: fechaInicio,
       fechaFinUso: fechaFin,
+      sancionIncumplimiento: d.sancionIncumplimiento,
     }))
 
     const payload = {
@@ -699,6 +702,12 @@ export function CrearOfertaScreen() {
                                 </Badge>
                               )}
                             </div>
+                            {device.sancionIncumplimiento && (
+                              <div className="flex items-center gap-1 text-[11px] font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded px-1.5 py-0.5 mt-1.5 max-w-max">
+                                <AlertCircleIcon className="h-3 w-3 text-rose-500" />
+                                <span>Sanción: {device.sancionIncumplimiento}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="text-right">

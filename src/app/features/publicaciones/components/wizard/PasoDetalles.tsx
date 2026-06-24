@@ -136,6 +136,7 @@ export function PasoDetalles({ form }: { form: any }) {
                           precioPorDia: 0,
                           maxHorasSeguidas: 0,
                           horarioLimiteUso: "",
+                          sancionIncumplimiento: "",
                         },
                       ])
                     }
@@ -272,6 +273,16 @@ export function PasoDetalles({ form }: { form: any }) {
                               </div>
                             )}
                           </div>
+
+                          <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
+                            <Label className="text-xs font-semibold text-slate-700">Sanción o Multa por Incumplimiento del Dispositivo</Label>
+                            <Input
+                              value={device.sancionIncumplimiento || ""}
+                              placeholder="Ej: Multa de $10 USD o corte automático del servicio"
+                              onChange={(e) => updateDevice(index, "sancionIncumplimiento", e.target.value)}
+                              className="text-xs"
+                            />
+                          </div>
                         </div>
 
                         <div className="mt-3 flex justify-end">
@@ -295,52 +306,6 @@ export function PasoDetalles({ form }: { form: any }) {
         />
       </div>
 
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 mt-4">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900">Reglas del inmueble y Sanciones</h3>
-          <p className="text-xs text-slate-500">
-            Define las normas que deberán cumplir los inquilinos y las consecuencias (multas o sanciones) en caso de infringirlas. Esto quedará registrado en el contrato final.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <form.Field
-            name="condiciones"
-            children={(field: any) => (
-              <div className="space-y-2 bg-white p-3 rounded-lg border border-slate-200">
-                <Label htmlFor={field.name} className="text-xs font-semibold text-slate-700">Reglas y Condiciones del Inmueble</Label>
-                <Textarea
-                  id={field.name}
-                  placeholder="Ej: No se permiten mascotas. Cuidar las plantas del jardín. No hacer ruido después de las 22:00."
-                  rows={4}
-                  value={field.state.value || ""}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  className="text-xs"
-                />
-              </div>
-            )}
-          />
-
-          <form.Field
-            name="multasSanciones"
-            children={(field: any) => (
-              <div className="space-y-2 bg-white p-3 rounded-lg border border-slate-200">
-                <Label htmlFor={field.name} className="text-xs font-semibold text-slate-700">Multas y Sanciones por Incumplimiento</Label>
-                <Textarea
-                  id={field.name}
-                  placeholder="Ej: Multa de $50 USD por infringir la regla de ruido. Cobro por daños a los electrodomésticos."
-                  rows={4}
-                  value={field.state.value || ""}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  className="text-xs"
-                />
-              </div>
-            )}
-          />
-        </div>
-      </div>
     </div>
   )
 }

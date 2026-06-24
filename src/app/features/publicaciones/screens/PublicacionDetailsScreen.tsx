@@ -316,6 +316,15 @@ export function PublicacionDetailsScreen() {
                         </Badge>
                       )}
                     </div>
+                    {device.sancionIncumplimiento && (
+                      <div className="mt-1 flex items-start gap-1.5 rounded-lg bg-rose-50/50 p-2 text-xs border border-rose-100/50 dark:bg-rose-950/20 dark:border-rose-900/30">
+                        <AlertCircleIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-600 dark:text-rose-400" />
+                        <div className="text-rose-700 dark:text-rose-300">
+                          <span className="font-semibold">Sanción: </span>
+                          {device.sancionIncumplimiento}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -311,6 +311,11 @@ export function ContractDetailModal({
                       {(device.horaInicioUso || device.horaFinUso) ? (
                         <p>Horario: {device.horaInicioUso || "--:--"} - {device.horaFinUso || "--:--"}</p>
                       ) : null}
+                      {device.sancionIncumplimiento ? (
+                        <p className="mt-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                          Sanción: {device.sancionIncumplimiento}
+                        </p>
+                      ) : null}
                     </div>
                   ))}
                 </div>

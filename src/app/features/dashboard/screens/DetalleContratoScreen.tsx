@@ -537,6 +537,11 @@ export function DetalleContratoScreen() {
                       {(dev.horaInicioUso || dev.horaFinUso) ? (
                         <p>Horario: {dev.horaInicioUso || "--:--"} - {dev.horaFinUso || "--:--"}</p>
                       ) : null}
+                      {dev.sancionIncumplimiento ? (
+                        <p className="mt-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                          Sanción: {dev.sancionIncumplimiento}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                   <span className="font-bold text-indigo-600">
