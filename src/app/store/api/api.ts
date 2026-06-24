@@ -25,6 +25,8 @@ export const api = createApi({
     "Pagos",
     "Videos",
     "Clientes",
+    "SMART_PLUGS",
+    "INSTALLATION_TICKETS",
   ],
 
   endpoints: () => ({}),

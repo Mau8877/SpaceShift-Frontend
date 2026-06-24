@@ -1,3 +1,4 @@
+import { lazy, Suspense, useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "@/app/store"
 import { useCreateChatMutation } from "@/app/store/api/chatApi"
 import { openChatWithConversation } from "@/app/store/chatUiSlice"
@@ -23,33 +24,19 @@ import {
   Share01Icon,
   Square01Icon,
 } from "hugeicons-react"
-import L from "leaflet"
-import "leaflet/dist/leaflet.css"
-import { MapContainer, Marker, TileLayer } from "react-leaflet"
 import { toast } from "sonner"
 import { useGetPublicacionByIdQuery } from "../store/publicacionApi"
 
-// Fix para iconos de Leaflet en Vite
-import iconRetina from "leaflet/dist/images/marker-icon-2x.png"
-import icon from "leaflet/dist/images/marker-icon.png"
-import iconShadow from "leaflet/dist/images/marker-shadow.png"
-
-let DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconRetinaUrl: iconRetina,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-})
-L.Marker.prototype.options.icon = DefaultIcon
+// Carga solo en cliente: leaflet asume `window` apenas se importa y rompe el render SSR
+const PropertyLocationMap = lazy(() => import("../components/PropertyLocationMap"))
 
 export function PublicacionDetailsScreen() {
   const { id } = useParams({ from: "/_public/publicacion/$id" })
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   const { data: publicacion, isLoading, error } = useGetPublicacionByIdQuery(id)
   const [createChat, { isLoading: isCreatingChat }] = useCreateChatMutation()
@@ -376,26 +363,17 @@ export function PublicacionDetailsScreen() {
             </div>
 
             <div className="group z-0 h-[400px] w-full overflow-hidden rounded-[32px] border-4 border-muted shadow-2xl">
-              <MapContainer
-                center={[
-                  Number(publicacion.inmueble.ubicacion.latitud),
-                  Number(publicacion.inmueble.ubicacion.longitud),
-                ]}
-                zoom={15}
-                scrollWheelZoom={false}
-                className="h-full w-full contrast-[1.1] grayscale-[0.2] transition-all group-hover:grayscale-0"
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker
-                  position={[
-                    Number(publicacion.inmueble.ubicacion.latitud),
-                    Number(publicacion.inmueble.ubicacion.longitud),
-                  ]}
-                />
-              </MapContainer>
+              {mounted ? (
+                <Suspense fallback={<Skeleton className="h-full w-full" />}>
+                  <PropertyLocationMap
+                    latitud={Number(publicacion.inmueble.ubicacion.latitud)}
+                    longitud={Number(publicacion.inmueble.ubicacion.longitud)}
+                    className="h-full w-full contrast-[1.1] grayscale-[0.2] transition-all group-hover:grayscale-0"
+                  />
+                </Suspense>
+              ) : (
+                <Skeleton className="h-full w-full" />
+              )}
             </div>
 
             <div className="flex items-start gap-4 rounded-2xl border border-border/50 bg-muted/30 p-4">

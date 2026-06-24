@@ -1,61 +1,15 @@
-import { useEffect } from "react"
+import { lazy, Suspense, useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet"
-import "leaflet/dist/leaflet.css"
-import L from "leaflet"
+import { Skeleton } from "@/components/ui/skeleton"
 
-// Corrección Fix para iconos rotos de Leaflet en Vite/React
-import icon from "leaflet/dist/images/marker-icon.png"
-import iconShadow from "leaflet/dist/images/marker-shadow.png"
-import iconRetina from "leaflet/dist/images/marker-icon-2x.png"
-
-let DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconRetinaUrl: iconRetina,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-})
-L.Marker.prototype.options.icon = DefaultIcon
-
-// Coordenadas por defecto (Santa Cruz de la Sierra, Bolivia)
-const DEFAULT_CENTER: [number, number] = [-17.7833, -63.1821]
-
-// Subcomponente que intercepta los clics en el mapa
-function LocationMarker({ form }: { form: any }) {
-  return (
-    <form.Subscribe
-      selector={(state: any) => [state.values.latitud, state.values.longitud]}
-      children={([latitud, longitud]: [string, string]) => {
-        const position = latitud && longitud ? [Number(latitud), Number(longitud)] : null
-
-        return (
-          <>
-            <MapClickHandler form={form} />
-            {position && <Marker position={position as any} />}
-          </>
-        )
-      }}
-    />
-  )
-}
-
-function MapClickHandler({ form }: { form: any }) {
-  useMapEvents({
-    click(e) {
-      form.setFieldValue("latitud", e.latlng.lat.toString())
-      form.setFieldValue("longitud", e.latlng.lng.toString())
-    },
-  })
-  return null
-}
-
+// Carga solo en cliente: leaflet asume `window` apenas se importa y rompe el render SSR
+const LocationMap = lazy(() => import("./LocationMap"))
 
 export function PasoUbicacion({ form }: { form: any }) {
-  
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <h2 className="text-lg font-semibold text-foreground mb-4">Ubicación del Inmueble</h2>
@@ -126,18 +80,13 @@ export function PasoUbicacion({ form }: { form: any }) {
         
         {/* Renderizamos el mapa estéticamente */}
         <div className="w-full h-72 rounded-xl overflow-hidden border border-border shadow-sm z-0">
-          <MapContainer 
-            center={DEFAULT_CENTER} 
-            zoom={13} 
-            scrollWheelZoom={true} 
-            style={{ height: '100%', width: '100%', zIndex: 10 }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <LocationMarker form={form} />
-          </MapContainer>
+          {mounted ? (
+            <Suspense fallback={<Skeleton className="h-full w-full" />}>
+              <LocationMap form={form} />
+            </Suspense>
+          ) : (
+            <Skeleton className="h-full w-full" />
+          )}
         </div>
       </div>
 

@@ -106,7 +106,7 @@ export function AsistenteFlotante() {
         size="icon"
         onClick={() => dispatch(setOpen(true))}
         aria-label="Abrir asistente de soporte"
-        className="fixed bottom-4 right-4 z-50 size-14 rounded-full shadow-lg"
+        className="fixed bottom-6 right-6 z-50 size-14 rounded-full shadow-lg"
       >
         <HugeiconsIcon icon={CustomerSupportIcon} strokeWidth={2} className="size-7" />
       </Button>
@@ -114,7 +114,7 @@ export function AsistenteFlotante() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">
+    <div className="fixed bottom-6 right-6 z-50 flex w-80 flex-col gap-2">
       {/* Botón cerrar flotante (sólido, siempre visible) */}
       <Button
         type="button"

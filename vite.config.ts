@@ -8,6 +8,11 @@ import tailwindcss from "@tailwindcss/vite"
 import { nitro } from "nitro/vite"
 
 const config = defineConfig({
+  optimizeDeps: {
+    // Vite no detecta los named exports de este archivo al optimizarlo aislado
+    // (re-exporta vía require condicional); forzamos a que se bundlee explícitamente.
+    include: ["use-sync-external-store/shim/with-selector"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

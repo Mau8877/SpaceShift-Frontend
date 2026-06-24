@@ -14,6 +14,7 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
   const dispatch = useAppDispatch()
   const { isAuthenticated, user } = useAppSelector((state) => state.auth)
   const { isChatOpen, activeConversacionId } = useAppSelector((state) => state.chatUi)
+  const { isOpen: isAsistenteOpen } = useAppSelector((state) => state.asistente)
 
   const [mounted, setMounted] = React.useState(false)
 
@@ -110,7 +111,7 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
         </div>
 
         {/* Chat Flotante */}
-        {isAuthenticated && (
+        {isAuthenticated && !isAsistenteOpen && (
           <>
             <ChatFloatingWindow
               isOpen={isChatOpen}

@@ -15,7 +15,7 @@ export function ChatFloatingButton({
   unreadCount = 0,
 }: ChatFloatingButtonProps) {
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-24 z-50">
       <Button
         onClick={onClick}
         size="icon"
@@ -27,10 +27,10 @@ export function ChatFloatingButton({
         )}
       >
         {isOpen ? (
-          <Cancel01Icon className="h-6 w-6" />
+          <Cancel01Icon className="size-7" strokeWidth={2} />
         ) : (
           <div className="relative">
-            <Message01Icon className="h-6 w-6" />
+            <Message01Icon className="size-7" strokeWidth={2} />
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
                 {unreadCount > 9 ? "9+" : unreadCount}
