@@ -8,7 +8,8 @@ export function useFirebaseMessaging() {
   const { isAuthenticated, token } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
-    if (!isAuthenticated || !token || !firebaseApp) return
+    const app = firebaseApp
+    if (!isAuthenticated || !token || !app) return
 
     let unsubscribe: (() => void) | undefined
 
@@ -19,7 +20,7 @@ export function useFirebaseMessaging() {
         if (permission !== 'granted') return
 
         const { getMessaging, getToken, onMessage } = await import('firebase/messaging')
-        const messaging = getMessaging(firebaseApp)
+        const messaging = getMessaging(app)
 
         const fcmToken = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,

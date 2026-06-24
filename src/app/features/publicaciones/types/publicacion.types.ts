@@ -12,6 +12,7 @@ export interface DispositivoInmueble {
   precioPorDia?: number;
   maxHorasSeguidas?: number;
   horarioLimiteUso?: string; // e.g. "22:00" — no se puede usar después de esta hora
+  sancionIncumplimiento?: string;
 }
 
 export interface InmuebleRequestDTO {
@@ -69,4 +70,56 @@ export interface PublicacionRequestDTO {
   estadoPublicacion: string;
   imagenesUrls: string[];
   inmueble?: InmuebleRequestDTO;
+}
+
+export interface SelectedDevice {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precioPorDia: number;
+  maxHorasSeguidas?: number;
+  horarioLimiteUso?: string;
+  configuracionTiempo?: string;
+  horarioInicio?: string;
+  horarioFin?: string;
+  selected: boolean;
+  sancionIncumplimiento?: string;
+}
+
+export interface DispositivoContratoPayload {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precioPorDia: number;
+  precioContrato: number;
+  cantidad: number;
+  maxHorasSeguidas?: number;
+  horarioLimiteUso?: string;
+  configuracionTiempo?: string;
+  horarioInicio?: string;
+  horarioFin?: string;
+  fechaInicioUso?: string;
+  fechaFinUso?: string;
+  sancionIncumplimiento?: string;
+}
+
+export interface CrearContratoPayload {
+  idInmueble: string;
+  idPublicacion: string;
+  idCliente: string;
+  tipoContrato: "VENTA" | "ALQUILER" | "ANTICRETICO" | "ALOJAMIENTO";
+  fechaInicio?: string;
+  fechaFin?: string;
+  montoAcordado: number;
+  moneda: string;
+  observacion?: string;
+  especificaciones: {
+    precioBasePublicacion: number;
+    precioDispositivosTotal: number;
+    dispositivosContrato: DispositivoContratoPayload[];
+    condicionesInmueble?: string;
+    multasSancionesInmueble?: string;
+    reglasContrato?: string;
+    sancionesContrato?: string;
+  };
 }
