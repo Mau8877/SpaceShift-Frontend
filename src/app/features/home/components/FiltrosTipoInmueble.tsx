@@ -23,11 +23,17 @@ export function FiltrosTipoInmueble({ value, onFilterChange }: Props) {
     ALOJAMIENTO: { label: "Alojamiento", icon: Calendar03Icon },
   }
 
-  // Si el backend trae algo que no está en el mapping, usamos valores por defecto
-  const categorias = tiposTransaccion.map(tipo => ({
+  // Filtrar, limpiar duplicados y normalizar los tipos válidos
+  const categorias = Array.from(
+    new Set(
+      tiposTransaccion
+        .map(tipo => tipo?.trim().toUpperCase())
+        .filter(tipo => tipo && mapping[tipo])
+    )
+  ).map(tipo => ({
     id: tipo,
-    label: mapping[tipo]?.label || tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase(),
-    icon: mapping[tipo]?.icon || Home01Icon
+    label: mapping[tipo].label,
+    icon: mapping[tipo].icon
   }))
 
   if (categorias.length === 0) return null
