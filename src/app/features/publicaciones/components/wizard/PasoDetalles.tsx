@@ -107,10 +107,10 @@ export function PasoDetalles({ form }: { form: any }) {
           name="dispositivos"
           children={(field: any) => {
             const devices = Array.isArray(field.state.value) ? field.state.value : []
-            const updateDevice = (index: number, key: string, value: any) => {
+            const updateDevice = (index: number, patch: Record<string, any>) => {
               field.handleChange(
                 devices.map((device: any, currentIndex: number) =>
-                  currentIndex === index ? { ...device, [key]: value } : device
+                  currentIndex === index ? { ...device, ...patch } : device
                 )
               )
             }
@@ -136,6 +136,7 @@ export function PasoDetalles({ form }: { form: any }) {
                           precioPorDia: 0,
                           maxHorasSeguidas: 0,
                           horarioLimiteUso: "",
+                          horarioLimiteFin: "",
                           sancionIncumplimiento: "",
                         },
                       ])
@@ -159,7 +160,7 @@ export function PasoDetalles({ form }: { form: any }) {
                             <Input
                               value={device.nombre || ""}
                               placeholder="Ej: Altavoz inteligente Alexa"
-                              onChange={(e) => updateDevice(index, "nombre", e.target.value)}
+                              onChange={(e) => updateDevice(index, { nombre: e.target.value })}
                             />
                           </div>
                           <div className="space-y-1">
@@ -170,7 +171,7 @@ export function PasoDetalles({ form }: { form: any }) {
                               step="0.01"
                               value={device.precioPorDia ?? 0}
                               placeholder="Ej: 15"
-                              onChange={(e) => updateDevice(index, "precioPorDia", Number(e.target.value))}
+                              onChange={(e) => updateDevice(index, { precioPorDia: Number(e.target.value) })}
                             />
                           </div>
                           <div className="space-y-1 md:col-span-2">
@@ -179,7 +180,7 @@ export function PasoDetalles({ form }: { form: any }) {
                               rows={2}
                               value={device.descripcion || ""}
                               placeholder="Ej: Control de musica y luces por voz."
-                              onChange={(e) => updateDevice(index, "descripcion", e.target.value)}
+                              onChange={(e) => updateDevice(index, { descripcion: e.target.value })}
                             />
                           </div>
                         </div>
@@ -196,9 +197,9 @@ export function PasoDetalles({ form }: { form: any }) {
                                 checked={device.maxHorasSeguidas != null && device.maxHorasSeguidas > 0}
                                 onCheckedChange={(checked) => {
                                   if (checked) {
-                                    updateDevice(index, "maxHorasSeguidas", 2) // default 2 hours
+                                    updateDevice(index, { maxHorasSeguidas: 2 }) // default 2 hours
                                   } else {
-                                    updateDevice(index, "maxHorasSeguidas", 0)
+                                    updateDevice(index, { maxHorasSeguidas: 0 })
                                   }
                                 }}
                               />
@@ -227,7 +228,7 @@ export function PasoDetalles({ form }: { form: any }) {
                                   placeholder="Ej: 2"
                                   onChange={(e) => {
                                     const val = e.target.value === "" ? 0 : Number(e.target.value)
-                                    updateDevice(index, "maxHorasSeguidas", val)
+                                    updateDevice(index, { maxHorasSeguidas: val })
                                   }}
                                   className="h-8 text-xs"
                                 />
@@ -236,40 +237,51 @@ export function PasoDetalles({ form }: { form: any }) {
 
                             {/* Checkbox 2: Limitar hora máxima (Horario límite) */}
                             <div className="flex items-start gap-2.5">
-                              <Checkbox 
+                              <Checkbox
                                 id={`time-limit-toggle-${device.id || index}`}
                                 checked={device.horarioLimiteUso != null && device.horarioLimiteUso !== ""}
                                 onCheckedChange={(checked) => {
                                   if (checked) {
-                                    updateDevice(index, "horarioLimiteUso", "22:00") // default 22:00
+                                    updateDevice(index, { horarioLimiteUso: "22:00", horarioLimiteFin: "06:00" })
                                   } else {
-                                    updateDevice(index, "horarioLimiteUso", "")
+                                    updateDevice(index, { horarioLimiteUso: "", horarioLimiteFin: "" })
                                   }
                                 }}
                               />
                               <div className="grid gap-1.5 leading-none">
-                                <Label 
+                                <Label
                                   htmlFor={`time-limit-toggle-${device.id || index}`}
                                   className="text-xs font-medium text-slate-700 cursor-pointer"
                                 >
-                                  Establecer un horario límite nocturno
+                                  Restringir el uso en un horario específico
                                 </Label>
                                 <p className="text-[10px] text-slate-400">
-                                  Define una hora a partir de la cual el dispositivo dejará de estar disponible para su uso.
+                                  Define el rango horario durante el cual el dispositivo no podrá usarse (puede cruzar la medianoche).
                                 </p>
                               </div>
                             </div>
 
-                            {/* Input para horario limite */}
+                            {/* Inputs para el rango de horario limite */}
                             {device.horarioLimiteUso != null && device.horarioLimiteUso !== "" && (
-                              <div className="pl-6 max-w-[200px] space-y-1">
-                                <Label className="text-[10px] font-semibold text-slate-500">Hora límite (No permitir después de)</Label>
-                                <Input
-                                  type="time"
-                                  value={device.horarioLimiteUso || ""}
-                                  onChange={(e) => updateDevice(index, "horarioLimiteUso", e.target.value)}
-                                  className="h-8 text-xs"
-                                />
+                              <div className="pl-6 flex gap-3">
+                                <div className="max-w-[200px] space-y-1">
+                                  <Label className="text-[10px] font-semibold text-slate-500">Desde</Label>
+                                  <Input
+                                    type="time"
+                                    value={device.horarioLimiteUso || ""}
+                                    onChange={(e) => updateDevice(index, { horarioLimiteUso: e.target.value })}
+                                    className="h-8 text-xs"
+                                  />
+                                </div>
+                                <div className="max-w-[200px] space-y-1">
+                                  <Label className="text-[10px] font-semibold text-slate-500">Hasta</Label>
+                                  <Input
+                                    type="time"
+                                    value={device.horarioLimiteFin || ""}
+                                    onChange={(e) => updateDevice(index, { horarioLimiteFin: e.target.value })}
+                                    className="h-8 text-xs"
+                                  />
+                                </div>
                               </div>
                             )}
                           </div>
@@ -279,7 +291,7 @@ export function PasoDetalles({ form }: { form: any }) {
                             <Input
                               value={device.sancionIncumplimiento || ""}
                               placeholder="Ej: Multa de $10 USD o corte automático del servicio"
-                              onChange={(e) => updateDevice(index, "sancionIncumplimiento", e.target.value)}
+                              onChange={(e) => updateDevice(index, { sancionIncumplimiento: e.target.value })}
                               className="text-xs"
                             />
                           </div>

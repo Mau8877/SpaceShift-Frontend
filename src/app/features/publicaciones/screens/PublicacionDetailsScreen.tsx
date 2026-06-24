@@ -312,7 +312,7 @@ export function PublicacionDetailsScreen() {
                       )}
                       {device.horarioLimiteUso && (
                         <Badge variant="outline" className="text-xs border-rose-200 bg-rose-50 text-rose-700">
-                          Hasta las {device.horarioLimiteUso}
+                          No disponible {device.horarioLimiteUso}–{device.horarioLimiteFin || "00:00"}
                         </Badge>
                       )}
                     </div>

@@ -11,7 +11,8 @@ export interface DispositivoInmueble {
   descripcion: string;
   precioPorDia?: number;
   maxHorasSeguidas?: number;
-  horarioLimiteUso?: string; // e.g. "22:00" — no se puede usar después de esta hora
+  horarioLimiteUso?: string; // e.g. "22:00" — inicio del rango en que no se puede usar
+  horarioLimiteFin?: string; // e.g. "06:00" — fin del rango (puede cruzar medianoche)
   sancionIncumplimiento?: string;
 }
 
@@ -79,6 +80,7 @@ export interface SelectedDevice {
   precioPorDia: number;
   maxHorasSeguidas?: number;
   horarioLimiteUso?: string;
+  horarioLimiteFin?: string;
   configuracionTiempo?: string;
   horarioInicio?: string;
   horarioFin?: string;
@@ -95,6 +97,7 @@ export interface DispositivoContratoPayload {
   cantidad: number;
   maxHorasSeguidas?: number;
   horarioLimiteUso?: string;
+  horarioLimiteFin?: string;
   configuracionTiempo?: string;
   horarioInicio?: string;
   horarioFin?: string;
